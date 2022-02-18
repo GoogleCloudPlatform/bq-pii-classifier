@@ -21,7 +21,7 @@ Main Steps:
     Limit PII data access to specific groups based on domains and data classification (e.g. Marketing High Confidentiality PII Readers, Finance Low Confidentiality PII Readers)  
 
 ## Solution Modes
-The solution comes with two modes, [standard-mode](guide-standard-dlp.md) and [auto-dlp-mode](guide-auto-dlp.md).
+The solution comes with two modes, [standard-mode](docs/guide-standard-dlp.md) and [auto-dlp-mode](docs/guide-auto-dlp.md).
 
 ### Standard Mode
 
