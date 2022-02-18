@@ -1,0 +1,43 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+
+      ##########################
+      # Checkout the code base #
+      ##########################
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      ################################
+      # Run Linter against code base #
+      ################################
+      - name: Super Lint Code Base
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          # If set to false, the bash-exec linter will report a warning if a shell script is not executable. If set to true, the bash-exec linter will report an error instead.
+          ERROR_ON_MISSING_EXEC_BIT: true
+          VALIDATE_GOOGLE_JAVA_FORMAT: true
+          VALIDATE_TERRAFORM_TFLINT: true
+          VALIDATE_TERRAFORM_TERRASCAN: true
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

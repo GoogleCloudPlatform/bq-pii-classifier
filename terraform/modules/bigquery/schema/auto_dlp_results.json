@@ -1,0 +1,1152 @@
+[
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "project_data_profile",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_project_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_location",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "table_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "full_resource",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "code",
+                "type": "INTEGER"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "message",
+                "type": "STRING"
+              },
+              {
+                "fields": [
+                  {
+                    "mode": "NULLABLE",
+                    "name": "type_url",
+                    "type": "STRING"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "value",
+                    "type": "BYTES"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "details",
+                "type": "RECORD"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "status",
+            "type": "RECORD"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "seconds",
+                "type": "INTEGER"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "nanos",
+                "type": "INTEGER"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "profile_status",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "state",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "score",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "sensitivity_score",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "score",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "data_risk_level",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "version",
+                "type": "STRING"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "info_type",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "predicted_info_types",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "version",
+                "type": "STRING"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "info_type",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "other_info_types",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "trigger_name",
+            "type": "STRING"
+          },
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "mode": "NULLABLE",
+                    "name": "name",
+                    "type": "STRING"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "version",
+                    "type": "STRING"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "info_types",
+                "type": "RECORD"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "min_likelihood",
+                "type": "STRING"
+              },
+              {
+                "fields": [
+                  {
+                    "mode": "NULLABLE",
+                    "name": "max_findings_per_item",
+                    "type": "INTEGER"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "max_findings_per_request",
+                    "type": "INTEGER"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "fields": [
+                          {
+                            "mode": "NULLABLE",
+                            "name": "name",
+                            "type": "STRING"
+                          },
+                          {
+                            "mode": "NULLABLE",
+                            "name": "version",
+                            "type": "STRING"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "info_type",
+                        "type": "RECORD"
+                      },
+                      {
+                        "mode": "NULLABLE",
+                        "name": "max_findings",
+                        "type": "INTEGER"
+                      }
+                    ],
+                    "mode": "REPEATED",
+                    "name": "max_findings_per_info_type",
+                    "type": "RECORD"
+                  }
+                ],
+                "mode": "NULLABLE",
+                "name": "limits",
+                "type": "RECORD"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "include_quote",
+                "type": "BOOLEAN"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "exclude_info_types",
+                "type": "BOOLEAN"
+              },
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "mode": "NULLABLE",
+                        "name": "name",
+                        "type": "STRING"
+                      },
+                      {
+                        "mode": "NULLABLE",
+                        "name": "version",
+                        "type": "STRING"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "info_type",
+                    "type": "RECORD"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "likelihood",
+                    "type": "STRING"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "fields": [
+                          {
+                            "mode": "REPEATED",
+                            "name": "words",
+                            "type": "STRING"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "word_list",
+                        "type": "RECORD"
+                      },
+                      {
+                        "fields": [
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "project_id",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "dataset_id",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "table_id",
+                                "type": "STRING"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "table",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "name",
+                                "type": "STRING"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "field",
+                            "type": "RECORD"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "big_query_column",
+                        "type": "RECORD"
+                      },
+                      {
+                        "fields": [
+                          {
+                            "mode": "NULLABLE",
+                            "name": "path",
+                            "type": "STRING"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "cloud_storage_path",
+                        "type": "RECORD"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "dictionary",
+                    "type": "RECORD"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "mode": "NULLABLE",
+                        "name": "pattern",
+                        "type": "STRING"
+                      },
+                      {
+                        "mode": "REPEATED",
+                        "name": "group_indexes",
+                        "type": "INTEGER"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "regex",
+                    "type": "RECORD"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "mode": "NULLABLE",
+                        "name": "name",
+                        "type": "STRING"
+                      },
+                      {
+                        "fields": [
+                          {
+                            "mode": "NULLABLE",
+                            "name": "seconds",
+                            "type": "INTEGER"
+                          },
+                          {
+                            "mode": "NULLABLE",
+                            "name": "nanos",
+                            "type": "INTEGER"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "create_time",
+                        "type": "RECORD"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "stored_type",
+                    "type": "RECORD"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "fields": [
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "pattern",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "REPEATED",
+                                "name": "group_indexes",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "hotword_regex",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "window_before",
+                                "type": "INTEGER"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "window_after",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "proximity",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "fixed_likelihood",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "relative_likelihood",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "likelihood_adjustment",
+                            "type": "RECORD"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "hotword_rule",
+                        "type": "RECORD"
+                      }
+                    ],
+                    "mode": "REPEATED",
+                    "name": "detection_rules",
+                    "type": "RECORD"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "exclusion_type",
+                    "type": "STRING"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "custom_info_types",
+                "type": "RECORD"
+              },
+              {
+                "mode": "REPEATED",
+                "name": "content_options",
+                "type": "STRING"
+              },
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "mode": "NULLABLE",
+                        "name": "name",
+                        "type": "STRING"
+                      },
+                      {
+                        "mode": "NULLABLE",
+                        "name": "version",
+                        "type": "STRING"
+                      }
+                    ],
+                    "mode": "REPEATED",
+                    "name": "info_types",
+                    "type": "RECORD"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "fields": [
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "pattern",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "REPEATED",
+                                "name": "group_indexes",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "hotword_regex",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "window_before",
+                                "type": "INTEGER"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "window_after",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "proximity",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "fixed_likelihood",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "NULLABLE",
+                                "name": "relative_likelihood",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "likelihood_adjustment",
+                            "type": "RECORD"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "hotword_rule",
+                        "type": "RECORD"
+                      },
+                      {
+                        "fields": [
+                          {
+                            "fields": [
+                              {
+                                "fields": [
+                                  {
+                                    "mode": "REPEATED",
+                                    "name": "words",
+                                    "type": "STRING"
+                                  }
+                                ],
+                                "mode": "NULLABLE",
+                                "name": "word_list",
+                                "type": "RECORD"
+                              },
+                              {
+                                "fields": [
+                                  {
+                                    "fields": [
+                                      {
+                                        "mode": "NULLABLE",
+                                        "name": "project_id",
+                                        "type": "STRING"
+                                      },
+                                      {
+                                        "mode": "NULLABLE",
+                                        "name": "dataset_id",
+                                        "type": "STRING"
+                                      },
+                                      {
+                                        "mode": "NULLABLE",
+                                        "name": "table_id",
+                                        "type": "STRING"
+                                      }
+                                    ],
+                                    "mode": "NULLABLE",
+                                    "name": "table",
+                                    "type": "RECORD"
+                                  },
+                                  {
+                                    "fields": [
+                                      {
+                                        "mode": "NULLABLE",
+                                        "name": "name",
+                                        "type": "STRING"
+                                      }
+                                    ],
+                                    "mode": "NULLABLE",
+                                    "name": "field",
+                                    "type": "RECORD"
+                                  }
+                                ],
+                                "mode": "NULLABLE",
+                                "name": "big_query_column",
+                                "type": "RECORD"
+                              },
+                              {
+                                "fields": [
+                                  {
+                                    "mode": "NULLABLE",
+                                    "name": "path",
+                                    "type": "STRING"
+                                  }
+                                ],
+                                "mode": "NULLABLE",
+                                "name": "cloud_storage_path",
+                                "type": "RECORD"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "dictionary",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "pattern",
+                                "type": "STRING"
+                              },
+                              {
+                                "mode": "REPEATED",
+                                "name": "group_indexes",
+                                "type": "INTEGER"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "regex",
+                            "type": "RECORD"
+                          },
+                          {
+                            "fields": [
+                              {
+                                "fields": [
+                                  {
+                                    "mode": "NULLABLE",
+                                    "name": "name",
+                                    "type": "STRING"
+                                  },
+                                  {
+                                    "mode": "NULLABLE",
+                                    "name": "version",
+                                    "type": "STRING"
+                                  }
+                                ],
+                                "mode": "REPEATED",
+                                "name": "info_types",
+                                "type": "RECORD"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "exclude_info_types",
+                            "type": "RECORD"
+                          },
+                          {
+                            "mode": "NULLABLE",
+                            "name": "matching_type",
+                            "type": "STRING"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "exclusion_rule",
+                        "type": "RECORD"
+                      }
+                    ],
+                    "mode": "REPEATED",
+                    "name": "rules",
+                    "type": "RECORD"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "rule_set",
+                "type": "RECORD"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "inspect_config",
+            "type": "RECORD"
+          },
+          {
+            "fields": [
+              {
+                "fields": [
+                  {
+                    "mode": "NULLABLE",
+                    "name": "organization_id",
+                    "type": "INTEGER"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "folder_id",
+                    "type": "INTEGER"
+                  }
+                ],
+                "mode": "NULLABLE",
+                "name": "location",
+                "type": "RECORD"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "project_id",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "inspect_template",
+                "type": "STRING"
+              },
+              {
+                "fields": [
+                  {
+                    "fields": [
+                      {
+                        "fields": [
+                          {
+                            "mode": "NULLABLE",
+                            "name": "project_id",
+                            "type": "STRING"
+                          },
+                          {
+                            "mode": "NULLABLE",
+                            "name": "dataset_id",
+                            "type": "STRING"
+                          },
+                          {
+                            "mode": "NULLABLE",
+                            "name": "table_id",
+                            "type": "STRING"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "profile_table",
+                        "type": "RECORD"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "export_data",
+                    "type": "RECORD"
+                  },
+                  {
+                    "fields": [
+                      {
+                        "mode": "NULLABLE",
+                        "name": "topic",
+                        "type": "STRING"
+                      },
+                      {
+                        "mode": "NULLABLE",
+                        "name": "event",
+                        "type": "STRING"
+                      },
+                      {
+                        "fields": [
+                          {
+                            "fields": [
+                              {
+                                "mode": "NULLABLE",
+                                "name": "logical_operator",
+                                "type": "STRING"
+                              },
+                              {
+                                "fields": [
+                                  {
+                                    "mode": "NULLABLE",
+                                    "name": "minimum_risk_score",
+                                    "type": "STRING"
+                                  },
+                                  {
+                                    "mode": "NULLABLE",
+                                    "name": "minimum_sensitivity_score",
+                                    "type": "STRING"
+                                  }
+                                ],
+                                "mode": "REPEATED",
+                                "name": "conditions",
+                                "type": "RECORD"
+                              }
+                            ],
+                            "mode": "NULLABLE",
+                            "name": "expressions",
+                            "type": "RECORD"
+                          }
+                        ],
+                        "mode": "NULLABLE",
+                        "name": "pubsub_condition",
+                        "type": "RECORD"
+                      },
+                      {
+                        "mode": "NULLABLE",
+                        "name": "detail_of_message",
+                        "type": "STRING"
+                      }
+                    ],
+                    "mode": "NULLABLE",
+                    "name": "pub_sub_notification",
+                    "type": "RECORD"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "data_profile_actions",
+                "type": "RECORD"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "data_profile_job",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "config_snapshot",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "seconds",
+            "type": "INTEGER"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "nanos",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "last_modified_time",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "seconds",
+            "type": "INTEGER"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "nanos",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "expiration_time",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "scanned_column_count",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "failed_column_count",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "table_size_bytes",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "row_count",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "encryption_status",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "resource_visibility",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "seconds",
+            "type": "INTEGER"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "nanos",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "profile_last_generated",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "key",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "value",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "resource_labels",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "table_profile",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "code",
+                "type": "INTEGER"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "message",
+                "type": "STRING"
+              },
+              {
+                "fields": [
+                  {
+                    "mode": "NULLABLE",
+                    "name": "type_url",
+                    "type": "STRING"
+                  },
+                  {
+                    "mode": "NULLABLE",
+                    "name": "value",
+                    "type": "BYTES"
+                  }
+                ],
+                "mode": "REPEATED",
+                "name": "details",
+                "type": "RECORD"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "status",
+            "type": "RECORD"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "seconds",
+                "type": "INTEGER"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "nanos",
+                "type": "INTEGER"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "profile_status",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "state",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "seconds",
+            "type": "INTEGER"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "nanos",
+            "type": "INTEGER"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "profile_last_generated",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "table_data_profile",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "table_full_resource",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_project_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_location",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dataset_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "table_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "column",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "score",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "sensitivity_score",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "score",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "data_risk_level",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "version",
+                "type": "STRING"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "info_type",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "column_info_type",
+        "type": "RECORD"
+      },
+      {
+        "fields": [
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "version",
+                "type": "STRING"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "info_type",
+            "type": "RECORD"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "other_matches",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "free_text_score",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "column_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "policy_state",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "column_profile",
+    "type": "RECORD"
+  }
+]
