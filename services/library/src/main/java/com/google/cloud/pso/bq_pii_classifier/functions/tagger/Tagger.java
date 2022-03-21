@@ -56,13 +56,13 @@ public class Tagger {
                 Tagger.class.getSimpleName(),
                 functionNumber,
                 config.getProjectId()
-                );
+        );
     }
 
     public Map<String, String> execute(
             TableOperationRequest request,
             String trackingId
-            ) throws IOException, InterruptedException, NonRetryableApplicationException {
+    ) throws IOException, InterruptedException, NonRetryableApplicationException {
 
         logger.logFunctionStart(trackingId);
 
@@ -81,11 +81,11 @@ public class Tagger {
         Map<String, String> fieldsToPolicyTags = new HashMap<>();
 
         // If there is PII and mapped policy tags found
-        if (!fieldsToPolicyTagsMap.isEmpty()){
+        if (!fieldsToPolicyTagsMap.isEmpty()) {
 
             // Apply policy tags to columns in BigQuery
             // If isDryRun = True no actual tagging will happen on BogQuery and Dry-Run log entries will be written instead
-            List<TableFieldSchema> updatedFields = applyPolicyTags(
+            List<TableFieldSchema> updatedFields = applyPolicyTagsToTableFields(
                     targetTableSpec,
                     fieldsToPolicyTagsMap,
                     config.getAppOwnedTaxonomies(),
@@ -93,13 +93,13 @@ public class Tagger {
                     trackingId);
 
             fieldsToPolicyTags = mapFieldsToPolicyTags(updatedFields);
-        }else{
+        } else {
             logger.logInfoWithTracker(trackingId,
                     String.format(
                             "No DLP InfoTypes or mapped policy tags are found for table '%s' in DLP results view '%s'",
                             request.getTableSpec(),
                             config.getBqViewFieldsFindings()
-                            ));
+                    ));
         }
 
         logger.logFunctionEnd(trackingId);
@@ -107,11 +107,106 @@ public class Tagger {
         return fieldsToPolicyTags;
     }
 
-    public List<TableFieldSchema> applyPolicyTags(TableSpec tableSpec,
-                                                  Map<String, String> fieldsToPolicyTagsMap,
-                                                  Set<String> app_managed_taxonomies,
-                                                  Boolean isDryRun,
-                                                  String trackingId) throws IOException {
+    private TableFieldSchema updateFieldPolicyTags(TableFieldSchema field,
+                                                   String fieldLkpName,
+                                                   TableSpec tableSpec,
+                                                   Map<String, String> fieldsToPolicyTagsMap,
+                                                   Set<String> app_managed_taxonomies,
+                                                   Boolean isDryRun,
+                                                   String trackingId,
+                                                   List<TagHistoryLogEntry> policyUpdateLogs
+    ) {
+
+        if (fieldsToPolicyTagsMap.containsKey(fieldLkpName)) {
+
+            String newPolicyTagId = fieldsToPolicyTagsMap.get(fieldLkpName).trim();
+
+            PolicyTags fieldPolicyTags = field.getPolicyTags();
+
+            // if no policy exists on the field, attach one
+            if (fieldPolicyTags == null) {
+
+                // update the field with policy tag
+                fieldPolicyTags = new PolicyTags().setNames(Arrays.asList(newPolicyTagId));
+                field.setPolicyTags(fieldPolicyTags);
+
+                TagHistoryLogEntry log = new TagHistoryLogEntry(
+                        tableSpec,
+                        fieldLkpName,
+                        "",
+                        newPolicyTagId,
+                        isDryRun ? ColumnTaggingAction.DRY_RUN_CREATE : ColumnTaggingAction.CREATE,
+                        "",
+                        Level.INFO
+                );
+                policyUpdateLogs.add(log);
+            } else {
+                String existingPolicyTagId = fieldPolicyTags.getNames().get(0).trim();
+
+                // overwrite policy tag if it belongs to the same taxonomy only
+                String existingTaxonomy = Utils.extractTaxonomyIdFromPolicyTagId(existingPolicyTagId);
+                String newTaxonomy = Utils.extractTaxonomyIdFromPolicyTagId(newPolicyTagId);
+
+                // update existing tags only if they belong to the security classifier application.
+                // Don't overwrite manually created taxonomies
+                if (app_managed_taxonomies.contains(existingTaxonomy)) {
+
+                    if (existingPolicyTagId.equals(newPolicyTagId)) {
+
+                        // policy tag didn't change
+                        TagHistoryLogEntry log = new TagHistoryLogEntry(
+                                tableSpec,
+                                fieldLkpName,
+                                existingPolicyTagId,
+                                newPolicyTagId,
+                                isDryRun ? ColumnTaggingAction.DRY_RUN_NO_CHANGE : ColumnTaggingAction.NO_CHANGE,
+                                "Existing policy tag is the same as newly computed tag.",
+                                Level.INFO
+                        );
+
+                        policyUpdateLogs.add(log);
+
+                    } else {
+                        // update the field with a new policy tag
+                        fieldPolicyTags.setNames(Arrays.asList(newPolicyTagId));
+
+                        TagHistoryLogEntry log = new TagHistoryLogEntry(
+                                tableSpec,
+                                fieldLkpName,
+                                existingPolicyTagId,
+                                newPolicyTagId,
+                                isDryRun ? ColumnTaggingAction.DRY_RUN_OVERWRITE : ColumnTaggingAction.OVERWRITE,
+                                "",
+                                Level.INFO
+                        );
+                        policyUpdateLogs.add(log);
+                    }
+                } else {
+
+                    // if new taxonomy doesn't belong to the BQ security classifier app (e.g. manually created)
+                    TagHistoryLogEntry log = new TagHistoryLogEntry(
+                            tableSpec,
+                            fieldLkpName,
+                            existingPolicyTagId,
+                            newPolicyTagId,
+                            isDryRun ? ColumnTaggingAction.DRY_RUN_KEEP_EXISTING : ColumnTaggingAction.KEEP_EXISTING,
+                            "Can't overwrite tags that are not crated/managed by the application. The existing taxonomy is created by another app/user",
+                            Level.WARN
+                    );
+
+                    policyUpdateLogs.add(log);
+                }
+            }
+        }
+
+        return field;
+    }
+
+    public List<TableFieldSchema> applyPolicyTagsToTableFields(TableSpec tableSpec,
+                                                               Map<String, String> fieldsToPolicyTagsMap,
+                                                               Set<String> app_managed_taxonomies,
+                                                               Boolean isDryRun,
+                                                               String trackingId) throws IOException {
 
         List<TableFieldSchema> currentFields = bqService.getTableSchemaFields(tableSpec);
         List<TableFieldSchema> updatedFields = new ArrayList<>();
@@ -119,97 +214,55 @@ public class Tagger {
         // store all actions on policy tags and log them after patching the BQ table
         List<TagHistoryLogEntry> policyUpdateLogs = new ArrayList<>();
 
-        for (TableFieldSchema field : currentFields) {
-            if (fieldsToPolicyTagsMap.containsKey(field.getName())) {
+        for (TableFieldSchema mainField : currentFields) {
 
-                String newPolicyTagId = fieldsToPolicyTagsMap.get(field.getName()).trim();
+            // Check if field is of type "Record" and handle accordingly
+            if (mainField.getType().equals("RECORD")) {
 
-                PolicyTags fieldPolicyTags = field.getPolicyTags();
+                List<TableFieldSchema> subFields = mainField.getFields();
 
-                // if no policy exists on the field, attach one
-                if (fieldPolicyTags == null) {
+                List<TableFieldSchema> updatedSubFields = new ArrayList<>();
 
-                    // update the field with policy tag
-                    fieldPolicyTags = new PolicyTags().setNames(Arrays.asList(newPolicyTagId));
-                    field.setPolicyTags(fieldPolicyTags);
+                // Check if each subField is detected as PII from DLP scan results
+                for (TableFieldSchema subField: subFields){
 
-                    TagHistoryLogEntry log = new TagHistoryLogEntry(
+                    // Process the subField and return an updated one with policy tags (if applicable)
+                    TableFieldSchema updatedSubField =  updateFieldPolicyTags(
+                            subField,
+                            // use mainField.subField as a lookup name for the subField to find it in DLP results
+                            String.format("%s.%s", mainField.getName(), subField.getName()),
                             tableSpec,
-                            field.getName(),
-                            "",
-                            newPolicyTagId,
-                            isDryRun ? ColumnTaggingAction.DRY_RUN_CREATE : ColumnTaggingAction.CREATE,
-                            "",
-                            Level.INFO
-                    );
-                    policyUpdateLogs.add(log);
-                } else {
-                    String existingPolicyTagId = fieldPolicyTags.getNames().get(0).trim();
+                            fieldsToPolicyTagsMap,
+                            app_managed_taxonomies,
+                            isDryRun,
+                            trackingId,
+                            policyUpdateLogs);
 
-                    // overwrite policy tag if it belongs to the same taxonomy only
-                    String existingTaxonomy = Utils.extractTaxonomyIdFromPolicyTagId(existingPolicyTagId);
-                    String newTaxonomy = Utils.extractTaxonomyIdFromPolicyTagId(newPolicyTagId);
-
-                    // update existing tags only if they belong to the security classifier application.
-                    // Don't overwrite manually created taxonomies
-                    if (app_managed_taxonomies.contains(existingTaxonomy)) {
-
-                        if (existingPolicyTagId.equals(newPolicyTagId)) {
-
-                            // policy tag didn't change
-                            TagHistoryLogEntry log = new TagHistoryLogEntry(
-                                    tableSpec,
-                                    field.getName(),
-                                    existingPolicyTagId,
-                                    newPolicyTagId,
-                                    isDryRun ? ColumnTaggingAction.DRY_RUN_NO_CHANGE : ColumnTaggingAction.NO_CHANGE,
-                                    "Existing policy tag is the same as newly computed tag.",
-                                    Level.INFO
-                            );
-
-                            policyUpdateLogs.add(log);
-
-                        } else {
-                            // update the field with a new policy tag
-                            fieldPolicyTags.setNames(Arrays.asList(newPolicyTagId));
-
-                            TagHistoryLogEntry log = new TagHistoryLogEntry(
-                                    tableSpec,
-                                    field.getName(),
-                                    existingPolicyTagId,
-                                    newPolicyTagId,
-                                    isDryRun ? ColumnTaggingAction.DRY_RUN_OVERWRITE : ColumnTaggingAction.OVERWRITE,
-                                    "",
-                                    Level.INFO
-                            );
-                            policyUpdateLogs.add(log);
-                        }
-                    } else {
-
-                        // if new taxonomy doesn't belong to the BQ security classifier app (e.g. manually created)
-                        TagHistoryLogEntry log = new TagHistoryLogEntry(
-                                tableSpec,
-                                field.getName(),
-                                existingPolicyTagId,
-                                newPolicyTagId,
-                                isDryRun ? ColumnTaggingAction.DRY_RUN_KEEP_EXISTING : ColumnTaggingAction.KEEP_EXISTING,
-                                "Can't overwrite tags that are not crated/managed by the application. The existing taxonomy is created by another app/user",
-                                Level.WARN
-                        );
-
-                        policyUpdateLogs.add(log);
-                    }
+                    updatedSubFields.add(updatedSubField);
                 }
+
+                // re-set the Record-type field with all updated subFields
+                TableFieldSchema updatedField = mainField.setFields(updatedSubFields);
+                updatedFields.add(updatedField);
+
+            } else {
+                TableFieldSchema updatedField =  updateFieldPolicyTags(mainField,
+                        mainField.getName(),
+                        tableSpec,
+                        fieldsToPolicyTagsMap,
+                        app_managed_taxonomies,
+                        isDryRun,
+                        trackingId,
+                        policyUpdateLogs);
+
+                updatedFields.add(updatedField);
             }
-            // add all fields that exists in the table (after updates) to be able to patch the table
-            updatedFields.add(field);
         }
 
         // if it's not a dry run, patch the table with the new schema including new policy tags
         if (!isDryRun) {
             bqService.patchTable(tableSpec, updatedFields);
         }
-
 
         // log all actions on policy tags after bq.tables.patch operation is successful
         for (TagHistoryLogEntry l : policyUpdateLogs) {
@@ -252,12 +305,12 @@ public class Tagger {
         Map<String, String> fieldsToPolicyTagMap = new HashMap<>();
         for (FieldValueList row : result.iterateAll()) {
 
-            if (row.get("field_name").isNull()){
+            if (row.get("field_name").isNull()) {
                 throw new NonRetryableApplicationException("getFieldsToPolicyTagsMap query returned rows with null field_name");
             }
             String column_name = row.get("field_name").getStringValue();
 
-            if (row.get("info_type").isNull()){
+            if (row.get("info_type").isNull()) {
                 throw new NonRetryableApplicationException(
                         String.format(
                                 "getFieldsToPolicyTagsMap query returned rows with null info_type for column '%s'",
@@ -265,7 +318,7 @@ public class Tagger {
             }
             String info_type = row.get("info_type").getStringValue();
 
-            if (row.get("policy_tag").isNull()){
+            if (row.get("policy_tag").isNull()) {
                 throw new NonRetryableApplicationException(
                         String.format(
                                 "getFieldsToPolicyTagsMap query returned rows with null policy_tag for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
