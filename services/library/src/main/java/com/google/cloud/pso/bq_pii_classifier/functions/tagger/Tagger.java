@@ -202,6 +202,53 @@ public class Tagger {
         return field;
     }
 
+    private TableFieldSchema recursiveUpdateFieldPolicyTags(TableFieldSchema field,
+                                                            String fieldLkpName,
+                                                            TableSpec tableSpec,
+                                                            Map<String, String> fieldsToPolicyTagsMap,
+                                                            Set<String> app_managed_taxonomies,
+                                                            Boolean isDryRun,
+                                                            String trackingId,
+                                                            List<TagHistoryLogEntry> policyUpdateLogs
+                                        ){
+
+        if(!field.getType().equals("RECORD")){
+            // stop recursion
+
+            // Return the updated field schema with policy tag
+            return updateFieldPolicyTags(field,
+                    fieldLkpName,
+                    tableSpec,
+                    fieldsToPolicyTagsMap,
+                    app_managed_taxonomies,
+                    isDryRun,
+                    trackingId,
+                    policyUpdateLogs);
+
+        }else {
+            // If the field of type RECORD then apply depth-first recursion until you hit a leaf node
+            // Then return the updated sub-fields on each level
+            List<TableFieldSchema> subFields = field.getFields();
+            List<TableFieldSchema> updatedSubFields = new ArrayList<>();
+
+            for(TableFieldSchema subField: subFields){
+
+                    TableFieldSchema updatedSubField =  recursiveUpdateFieldPolicyTags(
+                            subField,
+                            // use mainField.subField as a lookup name for the subField to find it in DLP results
+                            String.format("%s.%s", fieldLkpName, subField.getName()),
+                            tableSpec,
+                            fieldsToPolicyTagsMap,
+                            app_managed_taxonomies,
+                            isDryRun,
+                            trackingId,
+                            policyUpdateLogs);
+
+                    updatedSubFields.add(updatedSubField);
+                }
+            return field.setFields(updatedSubFields);
+            }
+    }
     public List<TableFieldSchema> applyPolicyTagsToTableFields(TableSpec tableSpec,
                                                                Map<String, String> fieldsToPolicyTagsMap,
                                                                Set<String> app_managed_taxonomies,
@@ -215,48 +262,16 @@ public class Tagger {
         List<TagHistoryLogEntry> policyUpdateLogs = new ArrayList<>();
 
         for (TableFieldSchema mainField : currentFields) {
+            TableFieldSchema updatedField = recursiveUpdateFieldPolicyTags(mainField,
+                    mainField.getName(),
+                    tableSpec,
+                    fieldsToPolicyTagsMap,
+                    app_managed_taxonomies,
+                    isDryRun,
+                    trackingId,
+                    policyUpdateLogs);
 
-            // Check if field is of type "Record" and handle accordingly
-            if (mainField.getType().equals("RECORD")) {
-
-                List<TableFieldSchema> subFields = mainField.getFields();
-
-                List<TableFieldSchema> updatedSubFields = new ArrayList<>();
-
-                // Check if each subField is detected as PII from DLP scan results
-                for (TableFieldSchema subField: subFields){
-
-                    // Process the subField and return an updated one with policy tags (if applicable)
-                    TableFieldSchema updatedSubField =  updateFieldPolicyTags(
-                            subField,
-                            // use mainField.subField as a lookup name for the subField to find it in DLP results
-                            String.format("%s.%s", mainField.getName(), subField.getName()),
-                            tableSpec,
-                            fieldsToPolicyTagsMap,
-                            app_managed_taxonomies,
-                            isDryRun,
-                            trackingId,
-                            policyUpdateLogs);
-
-                    updatedSubFields.add(updatedSubField);
-                }
-
-                // re-set the Record-type field with all updated subFields
-                TableFieldSchema updatedField = mainField.setFields(updatedSubFields);
-                updatedFields.add(updatedField);
-
-            } else {
-                TableFieldSchema updatedField =  updateFieldPolicyTags(mainField,
-                        mainField.getName(),
-                        tableSpec,
-                        fieldsToPolicyTagsMap,
-                        app_managed_taxonomies,
-                        isDryRun,
-                        trackingId,
-                        policyUpdateLogs);
-
-                updatedFields.add(updatedField);
-            }
+            updatedFields.add(updatedField);
         }
 
         // if it's not a dry run, patch the table with the new schema including new policy tags
