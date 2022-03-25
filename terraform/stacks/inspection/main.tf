@@ -94,15 +94,15 @@ module "cloud-run-inspector" {
     },
     {
       name = "MIN_LIKELIHOOD",
-      value = "LIKELY",
+      value = var.dlp_min_likelihood,
     },
     {
       name = "MAX_FINDINGS_PER_ITEM",
-      value = "100",
+      value = var.dlp_max_findings_per_item,
     },
     {
       name = "SAMPLING_METHOD",
-      value = "2",
+      value = var.dlp_sampling_method,
     },
     {
       name = "DLP_NOTIFICATION_TOPIC",

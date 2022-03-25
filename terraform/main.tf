@@ -77,6 +77,7 @@ module "common-stack" {
   sa_listener_tasks = var.sa_listener_tasks
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
+  data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 
 module "inspection-stack" {
@@ -121,6 +122,9 @@ module "inspection-stack" {
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
   sa_inspection_dispatcher = var.sa_inspection_dispatcher
   sa_inspection_dispatcher_tasks = var.sa_inspection_dispatcher_tasks
+  dlp_max_findings_per_item = var.dlp_max_findings_per_item
+  dlp_min_likelihood = var.dlp_min_likelihood
+  dlp_sampling_method = var.dlp_sampling_method
 }
 
 

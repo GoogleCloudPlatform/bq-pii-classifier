@@ -13,6 +13,8 @@ projects_include_list = []
 datasets_exclude_list = []
 tables_exclude_list = []
 
+data_catalog_taxonomy_activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
+
 classification_taxonomy = [
   {
     info_type = "",
