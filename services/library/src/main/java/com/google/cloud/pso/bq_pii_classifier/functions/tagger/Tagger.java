@@ -301,13 +301,13 @@ public class Tagger {
         return result;
     }
 
-    public Map<String, String> getFieldsToPolicyTagsMap(String filedsToInfoTypeFindingsViewSpec,
+    public Map<String, String> getFieldsToPolicyTagsMap(String fieldsToInfoTypeFindingsViewSpec,
                                                         TableSpec targetTableSpec) throws InterruptedException, NonRetryableApplicationException {
 
 
         String formattedQuery = String.format(
                 "SELECT field_name, info_type, policy_tag FROM `%s` WHERE table_spec = '%s' AND info_type IS NOT NULL",
-                filedsToInfoTypeFindingsViewSpec,
+                fieldsToInfoTypeFindingsViewSpec,
                 targetTableSpec.toSqlString()
         );
 

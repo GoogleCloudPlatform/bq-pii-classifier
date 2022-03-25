@@ -125,5 +125,17 @@ variable "bq_view_dlp_fields_findings" {}
 
 variable "tagger_topic" {}
 
+variable "dlp_min_likelihood" {}
+
+variable "dlp_max_findings_per_item" {}
+
+//How to sample rows if not all rows are scanned. Meaningful only when used in conjunction with either rows_limit or rows_limit_percent. If not specified, rows are scanned in the order BigQuery reads them.
+//
+//RANDOM_START = 2
+//SAMPLE_METHOD_UNSPECIFIED = 0
+//TOP = 1
+variable "dlp_sampling_method" {}
+
+
 
 

@@ -331,8 +331,42 @@ variable "promote_mixed_info_types" {
   description = "Optional. Only needed when is_auto_dlp_mode = false"
 }
 
+// The threshold for DLP to report an INFO_TYPE as finding
+variable "dlp_min_likelihood" {
+  default = "LIKELY"
+  description = "Optional. Only needed when is_auto_dlp_mode = false"
+}
+
+// Number of findings (i.e. records) that DLP will report.
+// This setting directly affected the number of DLP findings that we consider to apply tagging.
+// DLP will inspect the full data sample anyways, regardless of the max findings config.
+// Thus, this setting shouldn't affect DLP cost.
+// However, It affects BigQuery storage cost for storing more findings and the DLP job execution time
+// Set to 0 for DLP max
+variable "dlp_max_findings_per_item" {
+  default = 0
+  description = "Optional. Only needed when is_auto_dlp_mode = false"
+}
 
 
+//How to sample rows if not all rows are scanned.
+//Meaningful only when used in conjunction with either rows_limit or rows_limit_percent.
+//If not specified, rows are scanned in the order BigQuery reads them.
+//RANDOM_START = 2
+//SAMPLE_METHOD_UNSPECIFIED = 0
+//TOP = 1
+variable "dlp_sampling_method" {
+  default = 2
+  description = "Optional. Only needed when is_auto_dlp_mode = false"
+}
+
+// Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
+// Use [] NOT to restrict IAM access.
+variable "data_catalog_taxonomy_activated_policy_types" {
+  type = list
+  default = ["FINE_GRAINED_ACCESS_CONTROL"]
+  description = "A lis of policy types for the created taxonomy(s)"
+}
 
 
 

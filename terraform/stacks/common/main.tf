@@ -102,6 +102,7 @@ module "data-catalog" {
   region = var.data_region
   domain = local.domains[count.index]
   nodes = var.classification_taxonomy
+  data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 
 

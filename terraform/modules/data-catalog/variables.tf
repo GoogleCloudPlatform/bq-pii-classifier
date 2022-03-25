@@ -23,3 +23,10 @@ variable "nodes" {
   type = list
   description = "A lis of Maps defining children nodes"
 }
+
+// Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
+// Use [] NOT to restrict IAM access.
+variable "data_catalog_taxonomy_activated_policy_types" {
+  type = list
+  description = "A lis of policy types for the created taxonomy(s)"
+}

@@ -144,7 +144,7 @@ variable "dlp_findings_view_template_name" {}
 
 variable "is_auto_dlp_mode" {}
 
-
+variable "data_catalog_taxonomy_activated_policy_types" {}
 
 
 

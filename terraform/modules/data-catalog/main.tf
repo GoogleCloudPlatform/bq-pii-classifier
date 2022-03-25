@@ -9,8 +9,7 @@ resource "google_data_catalog_taxonomy" "domain_taxonomy" {
   region = var.region
   display_name = var.domain
   description = "A collection of policy tags assigned by BQ security classifier for domain '${var.domain}'"
-  activated_policy_types = [
-    "FINE_GRAINED_ACCESS_CONTROL"]
+  activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 
 locals {

@@ -50,10 +50,18 @@
     , dlp_results AS
     (
     -- keep this in a WITH view to facilitate unit testing by creating static input
-    SELECT 
-    CONCAT(project_id, ".", dataset_id, ".", table_id) AS table_spec,
-    * FROM 
-    dlp_results_with_rank WHERE rank = 1
+    SELECT DISTINCT
+        CONCAT(project_id, ".", dataset_id, ".", table_id) AS table_spec,
+        project_id,
+        dataset_id,
+        table_id,
+        -- DLP reports column names for nested repeated records with the array index of the finding.
+        -- normalize the column names for nested repeated records by removing the '[index]' part and selecting distinct
+        -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
+        REGEXP_REPLACE(field_name, r"(\[\d+\]\.)", '.') AS field_name,
+        info_type,
+        likelihood
+    FROM dlp_results_with_rank WHERE rank = 1
 
 
             -- test one field, one likelihood
@@ -79,13 +87,14 @@
         o.dataset_id,
         o.field_name,
         o.info_type,
+        o.likelihood,
         lh.likelihood_rank,
         COUNT(1) findings,
         # Calculate a score for each field/info_type/likelihood finding
         lh.likelihood_rank * COUNT(1) AS info_type_weight
         FROM `dlp_results` o
         INNER JOIN likelihood lh ON o.likelihood = lh.likelihood
-        GROUP BY 1,2,3,4,5,6
+        GROUP BY 1,2,3,4,5,6,7
 
         -- -- Unit tests
         -- -- Normal case
@@ -114,6 +123,7 @@
                 o.dataset_id,
                 o.field_name,
                 o.info_type,
+                MAX(likelihood_rank) AS max_likelihood_rank,
                 -- merge scores for similar field/info_type regardless of likelihood
                 SUM(o.info_type_weight) AS info_type_weight,
                 -- rank the field/info_type by the merged score
@@ -141,9 +151,12 @@
                 s.project_id,
                 s.dataset_id,
                 s.field_name,
-                CASE WHEN m.field_name IS NULL THEN s.info_type ELSE "MIXED" END AS info_type
+                CASE WHEN m.field_name IS NULL THEN s.info_type ELSE "MIXED" END AS info_type,
+                -- If we find more than one info type then we are reporting MIXED with the highest likelihood. Else we use the info type's max detected likelihood
+                CASE WHEN m.field_name IS NULL THEN l.likelihood ELSE "VERY_LIKELY" END AS max_likelihood
             FROM merge_same_info_type_scores AS s
             LEFT JOIN fields_with_mixed_pii AS m ON s.table_spec = m.table_spec AND s.field_name = m.field_name
+            LEFT JOIN likelihood l ON s.max_likelihood_rank = l.likelihood_rank
             WHERE s.info_type_weight_rank = 1
         )
         , with_policy_tags AS
@@ -154,7 +167,8 @@
                 i.dataset_id,
                 i.field_name,
                 i.info_type,
-                c.policy_tag
+                c.policy_tag,
+                i.max_likelihood
             FROM final_info_type i
             LEFT JOIN datasets_domains dd ON dd.project = i.project_id AND dd.dataset = i.dataset_id
             LEFT JOIN projects_domains pd ON pd.project = i.project_id
