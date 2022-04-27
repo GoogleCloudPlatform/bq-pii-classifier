@@ -41,7 +41,7 @@
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.5.5</version>
+                <version>2.6.7</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-dlp</artifactId>
-            <version>2.3.4</version>
+            <version>3.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.cloud</groupId>
@@ -136,7 +136,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.7</version>
+            <version>1.2.11</version>
         </dependency>
         <!-- End Logging dependencies -->
 
