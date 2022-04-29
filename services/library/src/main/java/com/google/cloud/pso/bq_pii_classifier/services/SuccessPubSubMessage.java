@@ -16,19 +16,19 @@
 
 package com.google.cloud.pso.bq_pii_classifier.services;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
+import com.google.cloud.pso.bq_pii_classifier.entities.JsonMessage;
 
-public class TableOpsRequestSuccessPubSubMessage {
+public class SuccessPubSubMessage {
 
-    private TableOperationRequest msg;
+    private JsonMessage msg;
     private String msgId;
 
-    public TableOpsRequestSuccessPubSubMessage(TableOperationRequest msg, String msgId) {
+    public SuccessPubSubMessage(JsonMessage msg, String msgId) {
         this.msg = msg;
         this.msgId = msgId;
     }
 
-    public TableOperationRequest getMsg() {
+    public JsonMessage getMsg() {
         return msg;
     }
 
@@ -39,7 +39,7 @@ public class TableOpsRequestSuccessPubSubMessage {
     @Override
     public String toString() {
         return "PubSubSuccessMessage{" +
-                "msg='" + msg + '\'' +
+                "msg='" + msg.toJsonString() + '\'' +
                 ", msgId='" + msgId + '\'' +
                 '}';
     }

@@ -27,6 +27,4 @@ variable "projects_domains_mapping" {}
 
 variable "dataset_domains_mapping" {}
 
-variable "dlp_findings_view_template_name" {}
-
 variable "is_auto_dlp_mode" {}

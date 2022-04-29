@@ -81,4 +81,8 @@ public class Environment {
     public String getTableScanLimitsJsonConfig(){
         return Utils.getConfigFromEnv("TABLE_SCAN_LIMITS_JSON_CONFIG", true);
     }
+
+    public String getGcsFlagsBucket(){
+        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
+    }
 }

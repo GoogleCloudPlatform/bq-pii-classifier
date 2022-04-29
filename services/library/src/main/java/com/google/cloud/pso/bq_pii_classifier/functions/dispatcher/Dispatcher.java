@@ -16,18 +16,12 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
+import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
-import com.google.cloud.pso.bq_pii_classifier.services.BigQueryService;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubPublishResults;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubService;
-import com.google.cloud.pso.bq_pii_classifier.services.Scanner;
-import com.google.cloud.pso.bq_pii_classifier.services.TableOpsRequestFailedPubSubMessage;
-import com.google.cloud.pso.bq_pii_classifier.services.TableOpsRequestSuccessPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.*;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,18 +37,24 @@ public class Dispatcher {
     private PubSubService pubSubService;
     private Scanner scanner;
     private DispatcherConfig config;
+    private PersistentSet persistentSet;
+    private String persistentSetObjectPrefix;
     private String runId;
 
     public Dispatcher(DispatcherConfig config,
                       BigQueryService bqService,
                       PubSubService pubSubService,
                       Scanner scanner,
+                      PersistentSet persistentSet,
+                      String persistentSetObjectPrefix,
                       String runId) {
 
         this.config = config;
         this.bqService = bqService;
         this.pubSubService = pubSubService;
         this.scanner = scanner;
+        this.persistentSet = persistentSet;
+        this.persistentSetObjectPrefix = persistentSetObjectPrefix;
         this.runId = runId;
 
         logger = new LoggingHelper(
@@ -64,13 +64,23 @@ public class Dispatcher {
         );
     }
 
-    public PubSubPublishResults execute(BigQueryScope bqScope) throws IOException, NonRetryableApplicationException, InterruptedException {
+    public PubSubPublishResults execute(BigQueryScope bqScope, String pubSubMessageId) throws IOException, NonRetryableApplicationException, InterruptedException {
 
-        // Generate a unique ID for this invocation
-        String runIdMsg = String.format("Computed Run ID = %s", runId);
-
-        logger.logInfoWithTracker(runId, runIdMsg);
-        logger.logFunctionStart(runId);
+        /**
+         *  Check if we already processed this pubSubMessageId before to avoid re-running the dispatcher (and the whole process)
+         *  in case we have unexpected errors with PubSub re-sending the message. This is an extra measure to avoid unnecessary cost.
+         *  We do that by keeping simple flag files in GCS with the pubSubMessageId as file name.
+         */
+        String flagFileName = String.format("%s/%s", persistentSetObjectPrefix, pubSubMessageId);
+        if(persistentSet.contains(flagFileName)){
+            // log error and ACK and return
+            String msg = String.format("PubSub message ID '%s' has been processed before by the dispatcher. The message should be ACK to PubSub to stop retries. Please investigate further why the message was retried in the first place.",
+                    pubSubMessageId);
+            throw new NonRetryableApplicationException(msg);
+        }else{
+            logger.logInfoWithTracker(runId, String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
+            persistentSet.add(flagFileName);
+        }
 
         /**
          * Detecting which resources to tag is done bottom up TABLES > DATASETS > PROJECTS where lower levels configs (e.g. Tables)
@@ -94,11 +104,11 @@ public class Dispatcher {
 
         // List down which tables to publish a Tagging request for based on the input scan scope and DLP results table
 
-        List<TableOperationRequest> pubSubMessagesToPublish;
+        List<JsonMessage> pubSubMessagesToPublish;
 
         if (!bqScope.getTableIncludeList().isEmpty()) {
             pubSubMessagesToPublish = processTables(bqScope.getTableIncludeList(), bqScope.getTableExcludeList());
-        }else {
+        } else {
 
             if (!bqScope.getDatasetIncludeList().isEmpty()) {
                 pubSubMessagesToPublish = processDatasets(
@@ -106,15 +116,14 @@ public class Dispatcher {
                         bqScope.getDatasetExcludeList(),
                         bqScope.getTableExcludeList(),
                         config.getDataRegionId());
-            }else{
+            } else {
                 if (!bqScope.getProjectIncludeList().isEmpty()) {
                     pubSubMessagesToPublish = processProjects(
                             bqScope.getProjectIncludeList(),
                             bqScope.getDatasetExcludeList(),
                             bqScope.getTableExcludeList(),
                             config.getDataRegionId());
-                }else
-                {
+                } else {
                     throw new NonRetryableApplicationException("At least one of of the following params must be not empty [tableIncludeList, datasetIncludeList, projectIncludeList]");
                 }
             }
@@ -127,15 +136,24 @@ public class Dispatcher {
                 pubSubMessagesToPublish
         );
 
-        for(TableOpsRequestFailedPubSubMessage msg: publishResults.getFailedMessages()){
+        for (FailedPubSubMessage msg : publishResults.getFailedMessages()) {
             String logMsg = String.format("Failed to publish this messages %s", msg.toString());
             logger.logWarnWithTracker(runId, logMsg);
         }
 
-        for(TableOpsRequestSuccessPubSubMessage msg: publishResults.getSuccessMessages()){
+        for (SuccessPubSubMessage msg : publishResults.getSuccessMessages()) {
             // this enable us to detect dispatched messages within a runId that fail in later stages (i.e. Tagger)
-            TableSpec tableSpec = TableSpec.fromSqlString(msg.getMsg().getTableSpec());
-            logger.logSuccessDispatcherTrackingId(runId, msg.getMsg().getTrackingId(), tableSpec);
+            Operation request = (Operation) msg.getMsg();
+
+            // Log the dispatched tracking ID to be able to track the progress of this run
+            if(config.getDispatcherType().equals(DispatcherType.INSPECTION) || config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
+                // Inspection Dispatcher (in Standard Mode) and Auto DLP mode outputs contains the table spec (for the inspector service to use)
+                TableSpec tableSpec = TableSpec.fromSqlString(request.getEntityKey());
+                logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), tableSpec);
+            }else{
+                // Tagger Dispatcher in Standard mode outputs contains the table spec (for the inspector service to use)
+                logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId());
+            }
         }
 
         logger.logFunctionEnd(runId);
@@ -143,9 +161,9 @@ public class Dispatcher {
         return publishResults;
     }
 
-    public List<TableOperationRequest> processTables(List<String> tableIncludeList,
-                                                     List<String> tableExcludeList) {
-        List<TableOperationRequest> pubSubMessagesToPublish = new ArrayList<>();
+    public List<JsonMessage> processTables(List<String> tableIncludeList,
+                                           List<String> tableExcludeList) {
+        List<JsonMessage> pubSubMessagesToPublish = new ArrayList<>();
 
         for (String table : tableIncludeList) {
             try {
@@ -153,12 +171,11 @@ public class Dispatcher {
 
                     String trackingId = TrackingHelper.generateTrackingId(runId, table);
 
-                    TableOperationRequest tableOperationRequest = new TableOperationRequest(table, runId, trackingId);
+                    Operation operation = new Operation(table, runId, trackingId);
 
-                    pubSubMessagesToPublish.add(tableOperationRequest);
+                    pubSubMessagesToPublish.add(operation);
                 }
-            }
-            catch (Exception ex){
+            } catch (Exception ex) {
                 // log and continue
                 logger.logFailedDispatcherEntityId(runId, table, ex);
             }
@@ -166,10 +183,10 @@ public class Dispatcher {
         return pubSubMessagesToPublish;
     }
 
-    public List<TableOperationRequest> processDatasets(List<String> datasetIncludeList,
-                                                       List<String> datasetExcludeList,
-                                                       List<String> tableExcludeList,
-                                                       String dataRegionId) throws IOException, InterruptedException, NonRetryableApplicationException {
+    public List<JsonMessage> processDatasets(List<String> datasetIncludeList,
+                                             List<String> datasetExcludeList,
+                                             List<String> tableExcludeList,
+                                             String dataRegionId) throws IOException, InterruptedException, NonRetryableApplicationException {
 
         List<String> tablesIncludeList = new ArrayList<>();
 
@@ -206,7 +223,7 @@ public class Dispatcher {
                     }
 
                     // get all tables that have DLP findings
-                    List<String> datasetTables = scanner.listTables(projectId, datasetId);
+                    List<String> datasetTables = scanner.listChildren(projectId, datasetId);
                     tablesIncludeList.addAll(datasetTables);
 
                     if (datasetTables.isEmpty()) {
@@ -219,8 +236,7 @@ public class Dispatcher {
                         logger.logInfoWithTracker(runId, String.format("Tables found in dataset %s : %s", dataset, datasetTables));
                     }
                 }
-            }
-            catch (Exception exception){
+            } catch (Exception exception) {
                 // log and continue
                 logger.logFailedDispatcherEntityId(runId, dataset, exception);
             }
@@ -229,7 +245,7 @@ public class Dispatcher {
     }
 
 
-    public List<TableOperationRequest> processProjects(
+    public List<JsonMessage> processProjects(
             List<String> projectIncludeList,
             List<String> datasetExcludeList,
             List<String> tableExcludeList,
@@ -246,7 +262,7 @@ public class Dispatcher {
             try {
 
                 // get all datasets with tables that have DLP findings
-                List<String> projectDatasets = scanner.listDatasets(project);
+                List<String> projectDatasets = scanner.listParents(project);
                 datasetIncludeList.addAll(projectDatasets);
 
                 if (projectDatasets.isEmpty()) {
@@ -260,8 +276,7 @@ public class Dispatcher {
                     logger.logInfoWithTracker(runId, String.format("Datasets found in project %s : %s", project, projectDatasets));
                 }
 
-            }
-            catch (Exception exception){
+            } catch (Exception exception) {
                 // log and continue
                 logger.logFailedDispatcherEntityId(runId, project, exception);
             }

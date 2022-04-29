@@ -23,13 +23,7 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableSchema;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
-import com.google.cloud.bigquery.Job;
-import com.google.cloud.bigquery.JobId;
-import com.google.cloud.bigquery.JobInfo;
-import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.TableResult;
+import com.google.cloud.bigquery.*;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 
 import java.io.IOException;
@@ -73,8 +67,10 @@ public class BigQueryServiceImpl implements BigQueryService {
         QueryJobConfiguration queryConfig =
                 QueryJobConfiguration.newBuilder(query)
                         .setUseLegacySql(false)
-                        // Run at batch priority, which won't count toward concurrent rate limit.
-                        .setPriority(QueryJobConfiguration.Priority.BATCH)
+                        // Use Interactive priority to avoid waiting idle and timing out the cloud run request
+                        // Interactive queries have a limit of 100 concurrent ones. This is handled by
+                        // Cloud run number of parallel requests and PubSub retries
+                        .setPriority(QueryJobConfiguration.Priority.INTERACTIVE)
                         .build();
 
         JobId jobId = JobId.of(UUID.randomUUID().toString());
@@ -83,7 +79,9 @@ public class BigQueryServiceImpl implements BigQueryService {
 
     @Override
     public TableResult waitAndGetJobResults(Job queryJob) throws InterruptedException, RuntimeException {
+
         // Wait for the query to complete.
+
         queryJob = queryJob.waitFor();
 
         // Check for errors
@@ -126,5 +124,8 @@ public class BigQueryServiceImpl implements BigQueryService {
                 .getNumRows();
     }
 
-
+    @Override
+    public boolean tableExists(TableSpec tableSpec) {
+        return bqAPIWrapper.getTable(tableSpec.toTableId()) != null;
+    }
 }

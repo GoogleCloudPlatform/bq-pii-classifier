@@ -120,9 +120,6 @@ variable "table_scan_limits_json_config" {
   description = "JSON config to specify table scan limits intervals"
 }
 
-variable "bq_view_dlp_fields_findings" {}
-
-
 variable "tagger_topic" {}
 
 variable "dlp_min_likelihood" {}
@@ -135,6 +132,29 @@ variable "dlp_max_findings_per_item" {}
 //SAMPLE_METHOD_UNSPECIFIED = 0
 //TOP = 1
 variable "dlp_sampling_method" {}
+
+variable "gcs_flags_bucket_name" {}
+
+# Dispatcher settings.
+variable "dispatcher_service_timeout_seconds" {}
+
+variable "dispatcher_subscription_ack_deadline_seconds" {}
+
+variable "dispatcher_subscription_message_retention_duration" {}
+
+# Inspector settings.
+variable "inspector_service_timeout_seconds" {}
+
+variable "inspector_subscription_ack_deadline_seconds" {}
+
+variable "inspector_subscription_message_retention_duration" {}
+
+# Listener settings.
+variable "listener_service_timeout_seconds" {}
+
+variable "listener_subscription_ack_deadline_seconds" {}
+
+variable "listener_subscription_message_retention_duration" {}
 
 
 

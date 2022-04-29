@@ -1,5 +1,6 @@
 WITH broken AS
 (
+-- Check for Tagger call in-completion (yet)
 SELECT
 run_id,
 TIMESTAMP_MILLIS(CAST(SUBSTR(run_id, 0, 13) AS INT64)) AS timestamp,
@@ -9,13 +10,18 @@ msg AS details
 FROM `${project}.${dataset}.${v_broken_steps}` s
 ),
 success AS (
+
+-- Check for Tagger call completion
 SELECT DISTINCT
 run_id,
 TIMESTAMP_MILLIS(CAST(SUBSTR(run_id, 0, 13) AS INT64)) AS timestamp,
 tracker AS tracking_id,
 'COMPLETE' AS status,
-'Table was tagged sucessfully' AS details
-FROM `${project}.${dataset}.${v_tagging_actions}`
+'Tagger Completed Successfully' AS details
+FROM
+`${project}.${dataset}.${v_service_calls}`
+WHERE tagger_ends > 0
+
 )
 ,
 final AS

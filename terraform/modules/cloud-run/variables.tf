@@ -17,9 +17,11 @@ variable "max_cpu" {
 }
 
 variable "max_containers" {
-  default = 100
+  default = 10
 }
 
 variable "max_requests_per_container" {
   default = 80
 }
+
+variable "timeout_seconds" {}

@@ -25,12 +25,28 @@ provider "google-beta" {
 }
 
 locals {
-  // if is_auto_dlp_mode then "v_dlp_fields_findings_auto_dlp"
-  // else if var.promote_mixed_info_types then "v_dlp_fields_findings_with_promotion"
-  // else "v_dlp_fields_findings_without_promotion"
-  dlp_findings_view_template_name = var.is_auto_dlp_mode ? "v_dlp_fields_findings_auto_dlp" : var.promote_mixed_info_types ? "v_dlp_fields_findings_with_promotion" : "v_dlp_fields_findings_without_promotion"
+  // Which SA should have access to the GCS flags bucket?
+  // In all deployments, use these SAs
+  common_gcs_admins = [
+    "serviceAccount:${module.common-stack.sa_tagging_dispatcher_email}",
+    "serviceAccount:${module.common-stack.sa_tagger_email}"
+  ]
+  // In Inspection Mode deployment (is_auto_dlp = false) use these:
+  inspection_gcs_admins = var.is_auto_dlp_mode ? [] : [
+    "serviceAccount:${module.inspection-stack[0].sa_inspection_dispatcher_email}",
+    "serviceAccount:${module.inspection-stack[0].sa_inspector_email}"
+  ]
 }
 
+
+module "gcs" {
+  source = "./modules/gcs"
+  gcs_flags_bucket_name = "${var.project}-${var.gcs_flags_bucket_name}-${var.env}"
+  project = var.project
+  region = var.compute_region # because it's used by the cloud run services
+  # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
+  gcs_flags_bucket_admins = var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
+}
 
 module "common-stack" {
   source = "./stacks/common"
@@ -40,7 +56,6 @@ module "common-stack" {
   datasets_exclude_list = var.datasets_exclude_list
   datasets_include_list = var.datasets_include_list
   dispatcher_service_image = var.tagging_dispatcher_service_image
-  dlp_findings_view_template_name = local.dlp_findings_view_template_name
   dlp_service_account = var.dlp_service_account
   domain_mapping = var.domain_mapping
   env = var.env
@@ -78,6 +93,15 @@ module "common-stack" {
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
+  gcs_flags_bucket_name = module.gcs.create_gcs_flags_bucket_name
+
+  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
+  dispatcher_subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
+  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
+  tagger_subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
+  tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  promote_mixed_info_types = var.promote_mixed_info_types
 }
 
 module "inspection-stack" {
@@ -86,7 +110,6 @@ module "inspection-stack" {
   count = var.is_auto_dlp_mode ? 0 : 1
 
   bigquery_dataset_name = module.common-stack.bq_results_dataset
-  bq_view_dlp_fields_findings = module.common-stack.bq_view_dlp_fields_findings
   cloud_scheduler_account = var.cloud_scheduler_account
   cron_expression = var.inspection_cron_expression
   datasets_exclude_list = var.datasets_exclude_list
@@ -125,6 +148,17 @@ module "inspection-stack" {
   dlp_max_findings_per_item = var.dlp_max_findings_per_item
   dlp_min_likelihood = var.dlp_min_likelihood
   dlp_sampling_method = var.dlp_sampling_method
+  gcs_flags_bucket_name = module.gcs.create_gcs_flags_bucket_name
+
+  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
+  dispatcher_subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
+  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  inspector_service_timeout_seconds = var.inspector_service_timeout_seconds
+  inspector_subscription_ack_deadline_seconds = var.inspector_subscription_ack_deadline_seconds
+  inspector_subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
+  listener_service_timeout_seconds = var.listener_service_timeout_seconds
+  listener_subscription_ack_deadline_seconds = var.listener_subscription_ack_deadline_seconds
+  listener_subscription_message_retention_duration = var.listener_subscription_message_retention_duration
 }
 
 

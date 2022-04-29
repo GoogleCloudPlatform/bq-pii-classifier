@@ -24,32 +24,53 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import java.util.ArrayList;
 import java.util.List;
 
-public class DlpResultsScannerImpl implements Scanner {
+public class AutoDlpResultsScannerImpl implements Scanner {
 
-    private String dlpFindingsView;
+    private String hostProject;
+    private String hostDataset;
+    private String dlpFindingsTable;
     public BigQueryService bqService;
 
-    public DlpResultsScannerImpl(BigQueryService bqService, String dlpFindingsView){
+    public AutoDlpResultsScannerImpl(String hostProject, String hostDataset, String dlpFindingsTable, BigQueryService bqService) {
+        this.hostProject = hostProject;
+        this.hostDataset = hostDataset;
+        this.dlpFindingsTable = dlpFindingsTable;
         this.bqService = bqService;
-        this.dlpFindingsView = dlpFindingsView;
     }
 
-    public String getDlpFindingsView() {
-        return dlpFindingsView;
+    public String getDlpFindingsTable() {
+        return dlpFindingsTable;
     }
 
     public BigQueryService getBqService(){
         return bqService;
     }
 
+    public String getHostProject() {
+        return hostProject;
+    }
+
+    public String getHostDataset() {
+        return hostDataset;
+    }
+
     @Override
-    // List all datasets in a project that have tables containing DLP findings
+    // List all datasets under this project that was scanned by the latest inspection run
+    // Datasets that no longer exist on BQ are omitted
     // return: List("project.dataset")
-    public List<String> listDatasets(String project) throws NonRetryableApplicationException, InterruptedException {
-        // Get all tables under this dataset that was scanned by DLP
-        String formattedQuery = String.format(
-                "SELECT DISTINCT CONCAT(project_id, '.', dataset_id) AS dataset FROM `%s` WHERE project_id = '%s'",
-                dlpFindingsView,
+    public List<String> listParents(String project) throws NonRetryableApplicationException, InterruptedException {
+
+        String queryTemplate = "SELECT DISTINCT " +
+                "CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id) AS dataset " +
+                "FROM %s.%s.%s r " +
+                "INNER JOIN %s.INFORMATION_SCHEMA.SCHEMATA s ON s.schema_name = r.column_profile.dataset_id " +
+                "WHERE r.column_profile.dataset_project_id = '%s'";
+
+        String formattedQuery = String.format(queryTemplate,
+                hostProject,
+                hostDataset,
+                dlpFindingsTable,
+                project,
                 project
         );
 
@@ -72,12 +93,15 @@ public class DlpResultsScannerImpl implements Scanner {
     }
 
     @Override
-    // List all tables in a dataset/project that have DLP findings
-    public List<String> listTables(String project, String dataset) throws InterruptedException, NonRetryableApplicationException {
-        // Get all tables under this dataset that was scanned by DLP
-        String formattedQuery = String.format(
-                "SELECT DISTINCT table_spec AS table FROM `%s` WHERE CONCAT(project_id, '.', dataset_id) = '%s.%s'",
-                dlpFindingsView,
+    // List all dlp job IDs for tables in a dataset/project that have DLP findings within the latest inspection run
+    public List<String> listChildren(String project, String dataset) throws InterruptedException, NonRetryableApplicationException {
+
+        String queryTemplate = "SELECT DISTINCT CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id, '.', column_profile.table_id) AS table FROM %s.%s.%s WHERE column_profile.dataset_project_id = '%s' AND column_profile.dataset_id = '%s'";
+
+        String formattedQuery = String.format(queryTemplate,
+                hostProject,
+                hostDataset,
+                dlpFindingsTable,
                 project,
                 dataset
         );
@@ -92,7 +116,7 @@ public class DlpResultsScannerImpl implements Scanner {
         for (FieldValueList row : result.iterateAll()) {
 
             if (row.get("table").isNull()) {
-                throw new NonRetryableApplicationException("processDatasets query returned rows with null 'table' field.");
+                throw new NonRetryableApplicationException("processDatasets query returned rows with null 'job_name' field.");
             }
             String tableSpec = row.get("table").getStringValue();
             datasetTables.add(tableSpec);

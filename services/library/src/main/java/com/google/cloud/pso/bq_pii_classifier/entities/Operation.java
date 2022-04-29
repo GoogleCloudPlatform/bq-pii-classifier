@@ -18,23 +18,27 @@ package com.google.cloud.pso.bq_pii_classifier.entities;
 
 import com.google.gson.Gson;
 
-public class TableOperationRequest {
+public class Operation implements JsonMessage {
+    
 
-    private String tableSpec;
+    // entity key is table spec in case of Dispatcher to Inspector route
+    // entity key is dlpJob name in case of Dispatcher to Tagger route
+    private String entityKey;
     private String runId;
     private String trackingId;
 
-    public TableOperationRequest() {
+    public Operation() {
     }
 
-    public TableOperationRequest(String tableSpec, String runId, String trackingId) {
-        this.tableSpec = tableSpec;
+    public Operation(String entityKey, String runId, String trackingId) {
+        this.entityKey = entityKey;
         this.runId = runId;
         this.trackingId = trackingId;
     }
 
-    public String getTableSpec() {
-        return tableSpec;
+
+    public String getEntityKey() {
+        return entityKey;
     }
 
     public String getRunId() {
@@ -45,27 +49,16 @@ public class TableOperationRequest {
         return trackingId;
     }
 
-    public void setTableSpec(String tableSpec) {
-        this.tableSpec = tableSpec;
-    }
-
-    public void setRunId(String runId) {
-        this.runId = runId;
-    }
-
-    public void setTrackingId(String trackingId) {
-        this.trackingId = trackingId;
-    }
-
     @Override
     public String toString() {
-        return "TaggerRequest{" +
-                "tableSpec='" + tableSpec + '\'' +
+        return "Operation{" +
+                "entityKey='" + entityKey + '\'' +
                 ", runId='" + runId + '\'' +
-                ", trackerId='" + trackingId + '\'' +
+                ", trackingId='" + trackingId + '\'' +
                 '}';
     }
 
+    @Override
     public String toJsonString (){
         return new Gson().toJson(this);
 

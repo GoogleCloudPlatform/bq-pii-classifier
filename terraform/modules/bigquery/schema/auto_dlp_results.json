@@ -49,23 +49,6 @@
                 "mode": "NULLABLE",
                 "name": "message",
                 "type": "STRING"
-              },
-              {
-                "fields": [
-                  {
-                    "mode": "NULLABLE",
-                    "name": "type_url",
-                    "type": "STRING"
-                  },
-                  {
-                    "mode": "NULLABLE",
-                    "name": "value",
-                    "type": "BYTES"
-                  }
-                ],
-                "mode": "REPEATED",
-                "name": "details",
-                "type": "RECORD"
               }
             ],
             "mode": "NULLABLE",
@@ -74,6 +57,11 @@
           },
           {
             "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "timestamp",
+                "type": "TIMESTAMP"
+              },
               {
                 "mode": "NULLABLE",
                 "name": "seconds",
@@ -93,11 +81,6 @@
         "mode": "NULLABLE",
         "name": "profile_status",
         "type": "RECORD"
-      },
-      {
-        "mode": "NULLABLE",
-        "name": "state",
-        "type": "STRING"
       },
       {
         "fields": [
@@ -380,6 +363,11 @@
                       },
                       {
                         "fields": [
+                          {
+                            "mode": "NULLABLE",
+                            "name": "timestamp",
+                            "type": "TIMESTAMP"
+                          },
                           {
                             "mode": "NULLABLE",
                             "name": "seconds",
@@ -724,8 +712,8 @@
                 "type": "STRING"
               },
               {
-                "mode": "NULLABLE",
-                "name": "inspect_template",
+                "mode": "REPEATED",
+                "name": "inspect_templates",
                 "type": "STRING"
               },
               {
@@ -836,6 +824,11 @@
         "fields": [
           {
             "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "TIMESTAMP"
+          },
+          {
+            "mode": "NULLABLE",
             "name": "seconds",
             "type": "INTEGER"
           },
@@ -851,6 +844,11 @@
       },
       {
         "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "TIMESTAMP"
+          },
           {
             "mode": "NULLABLE",
             "name": "seconds",
@@ -898,6 +896,11 @@
       },
       {
         "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "TIMESTAMP"
+          },
           {
             "mode": "NULLABLE",
             "name": "seconds",
@@ -955,23 +958,6 @@
                 "mode": "NULLABLE",
                 "name": "message",
                 "type": "STRING"
-              },
-              {
-                "fields": [
-                  {
-                    "mode": "NULLABLE",
-                    "name": "type_url",
-                    "type": "STRING"
-                  },
-                  {
-                    "mode": "NULLABLE",
-                    "name": "value",
-                    "type": "BYTES"
-                  }
-                ],
-                "mode": "REPEATED",
-                "name": "details",
-                "type": "RECORD"
               }
             ],
             "mode": "NULLABLE",
@@ -980,6 +966,11 @@
           },
           {
             "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "timestamp",
+                "type": "TIMESTAMP"
+              },
               {
                 "mode": "NULLABLE",
                 "name": "seconds",
@@ -1001,12 +992,12 @@
         "type": "RECORD"
       },
       {
-        "mode": "NULLABLE",
-        "name": "state",
-        "type": "STRING"
-      },
-      {
         "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "timestamp",
+            "type": "TIMESTAMP"
+          },
           {
             "mode": "NULLABLE",
             "name": "seconds",

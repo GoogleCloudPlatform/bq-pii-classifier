@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
+import com.google.cloud.bigquery.TableId;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
 import java.util.List;
@@ -47,6 +48,8 @@ public class TableSpec {
     public String toSqlString(){
         return String.format("%s.%s.%s", project, dataset, table);
     }
+
+    public TableId toTableId(){ return TableId.of(project, dataset, table); }
 
     // parse from "project.dataset.table" format
     public static TableSpec fromSqlString(String sqlTableId){

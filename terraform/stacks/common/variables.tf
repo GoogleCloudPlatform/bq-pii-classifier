@@ -140,12 +140,27 @@ variable "cron_expression" {
 
 }
 
-variable "dlp_findings_view_template_name" {}
-
 variable "is_auto_dlp_mode" {}
 
 variable "data_catalog_taxonomy_activated_policy_types" {}
 
+variable "gcs_flags_bucket_name" {}
 
+# Dispatcher settings.
+variable "dispatcher_service_timeout_seconds" {}
 
+variable "dispatcher_subscription_ack_deadline_seconds" {}
+
+variable "dispatcher_subscription_message_retention_duration" {}
+
+# Tagger settings.
+variable "tagger_service_timeout_seconds" {}
+
+variable "tagger_subscription_ack_deadline_seconds" {}
+
+variable "tagger_subscription_message_retention_duration" {}
+
+variable "promote_mixed_info_types" {
+  type = bool
+}
 

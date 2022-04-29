@@ -37,4 +37,6 @@ public interface BigQueryService {
     void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException;
 
     BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;
+
+    boolean tableExists(TableSpec tableSpec);
 }

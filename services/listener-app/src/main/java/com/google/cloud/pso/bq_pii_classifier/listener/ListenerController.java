@@ -15,21 +15,16 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.listener;
 
-import com.google.api.gax.rpc.ApiException;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
 import com.google.cloud.pso.bq_pii_classifier.functions.listener.Listener;
-import com.google.cloud.pso.bq_pii_classifier.functions.listener.ListenerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.DlpService;
 import com.google.cloud.pso.bq_pii_classifier.services.DlpServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.PubSubService;
 import com.google.cloud.pso.bq_pii_classifier.services.PubSubServiceImpl;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,13 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.io.IOException;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.Tagger;
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
 @RestController
@@ -73,7 +61,7 @@ public class ListenerController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
 
-        String trackingId = "NA";
+        String trackingId = "0000000000000-z";
         DlpService dlpService = null;
         PubSubService pubSubService = null;
 
@@ -81,7 +69,7 @@ public class ListenerController {
 
             if (requestBody == null || requestBody.getMessage() == null) {
                 String msg = "Bad Request: invalid message format";
-                logger.logSevereWithTracker("NA", msg);
+                logger.logSevereWithTracker(trackingId, msg);
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
