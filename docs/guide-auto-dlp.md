@@ -154,7 +154,7 @@ permissions on each data project. To do, run the following script:
 
 From root folder:
 ```
-./../scripts/prepare_data_projects_for_auto_dlp_mode.sh <project1> <project2> <etc>
+./scripts/prepare_data_projects_for_auto_dlp_mode.sh <project1> <project2> <etc>
 ```
 
 PS: 

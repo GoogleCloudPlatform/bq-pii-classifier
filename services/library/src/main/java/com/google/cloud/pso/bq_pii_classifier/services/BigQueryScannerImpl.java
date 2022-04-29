@@ -37,7 +37,7 @@ public class BigQueryScannerImpl implements Scanner {
     }
 
     @Override
-    public List<String> listTables(String projectId, String datasetId) {
+    public List<String> listChildren(String projectId, String datasetId) {
         return StreamSupport.stream(bqService.listTables(DatasetId.of(projectId, datasetId)).iterateAll().spliterator(),
                 false)
                 .filter(t -> t.getDefinition().getType().equals(TableDefinition.Type.TABLE))
@@ -46,7 +46,7 @@ public class BigQueryScannerImpl implements Scanner {
     }
 
     @Override
-    public List<String> listDatasets(String projectId) {
+    public List<String> listParents(String projectId) {
         return StreamSupport.stream(bqService.listDatasets(projectId)
                         .iterateAll()
                         .spliterator(),

@@ -48,6 +48,14 @@ resource "google_bigquery_table" "standard_dlp_results_table" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = var.standard_dlp_results_table_name
 
+  # ingestion time partitioning
+  time_partitioning {
+    type = "DAY"
+  }
+
+  # use job_name as a cluster to limit the number of bytes scanned to lookup job results
+  clustering = ["job_name"]
+
   schema = file("modules/bigquery/schema/standard_dlp_results.json")
 
   deletion_protection = true
@@ -146,27 +154,6 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
   }
 }
 
-resource "google_bigquery_table" "view_fields_findings" {
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
-  table_id = "v_dlp_fields_findings"
-
-  deletion_protection = false
-
-  view {
-    use_legacy_sql = false
-    query = templatefile("modules/bigquery/views/${var.dlp_findings_view_template_name}.tpl",
-    {
-      project = var.project
-      dataset = var.dataset
-      config_view_infotypes_policytags_map = google_bigquery_table.config_view_infotypes_policytags_map.table_id
-      config_view_dataset_domain_map = google_bigquery_table.config_view_dataset_domain_map.table_id
-      config_view_project_domain_map = google_bigquery_table.config_view_project_domain_map.table_id
-      results_table_spec = local.results_table_spec
-    }
-    )
-  }
-}
-
 resource "google_bigquery_table" "view_tagging_actions" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_tagging_actions"
@@ -198,7 +185,7 @@ resource "google_bigquery_table" "view_run_summary" {
     {
       project = var.project
       dataset = var.dataset
-      v_tagging_actions = google_bigquery_table.view_tagging_actions.table_id
+      v_service_calls = google_bigquery_table.view_service_calls.table_id
       v_broken_steps = google_bigquery_table.logging_view_broken_steps.table_id
     }
     )

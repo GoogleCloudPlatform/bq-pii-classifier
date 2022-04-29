@@ -86,3 +86,24 @@ FROM `bq_security_classifier.v_run_summary` s
 LEFT JOIN `bq_security_classifier.v_tracking_id_to_table_map` m ON s.tracking_id = m.tracking_id
 WHERE s.run_id = '1643760012003-I'
 ```
+
+### Execution duration per function
+One could analyze or build charts on top of this dataset to monitor 
+the time taken for each table request (i.e. tracker) along different steps (i.e. Inspector, Listener, Tagger). 
+Please note that the Inspector duration is the time taken to submit a DLP job and not the DLP inspectio itself.
+```
+SELECT  
+t.jsonPayload.global_run_id,
+t.resource.labels.service_name,
+t.jsonPayload.global_tracker,
+TIMESTAMP_MILLIS(CAST(SUBSTR(MAX(t.jsonPayload.global_run_id), 0, 13) AS INT64)) run_start_time,
+MIN(timestamp) AS start, 
+MAX(timestamp) AS finish,
+TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), SECOND) AS duration_seconds
+
+FROM bq_security_classifier.run_googleapis_com_stdout t
+WHERE t.jsonPayload.global_app_log = 'TRACKER_LOG'
+AND t.jsonPayload.function_lifecycle_event IN ("START", "END")
+GROUP BY 1,2,3
+ORDER BY 1,2,3
+```

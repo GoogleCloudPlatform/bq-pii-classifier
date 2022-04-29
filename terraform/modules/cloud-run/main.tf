@@ -11,7 +11,7 @@ resource "google_cloud_run_service" "service" {
   template {
     spec {
 
-      timeout_seconds = 300
+      timeout_seconds = var.timeout_seconds
       service_account_name = var.service_account_email
 
       container_concurrency = var.max_requests_per_container

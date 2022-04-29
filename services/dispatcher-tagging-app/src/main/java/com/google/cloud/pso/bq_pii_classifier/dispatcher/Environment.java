@@ -15,6 +15,8 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.dispatcher;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
+import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.DispatcherConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
@@ -25,7 +27,9 @@ public class Environment {
                 getProjectId(),
                 getComputeRegionId(),
                 getDataRegionId(),
-                getTaggerTopic()
+                getTaggerTopic(),
+                DispatcherType.TAGGING,
+                getIsAutoDlpMode() ? SolutionMode.AUTO_DLP : SolutionMode.STANDARD_DLP
         );
     }
 
@@ -43,7 +47,28 @@ public class Environment {
 
     public String getTaggerTopic() { return Utils.getConfigFromEnv("TAGGER_TOPIC", true); }
 
-    public String getBqViewFieldsFindings(){
-        return Utils.getConfigFromEnv("BQ_VIEW_FIELDS_FINDINGS_SPEC", true);
+    public String getGcsFlagsBucket(){
+        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
     }
+
+    public String getSolutionDataset(){
+        return Utils.getConfigFromEnv("SOLUTION_DATASET", true);
+    }
+
+    public Boolean getIsAutoDlpMode(){
+        return Boolean.valueOf(Utils.getConfigFromEnv("IS_AUTO_DLP_MODE", true));
+    }
+
+    public String getDlpTableStandard(){
+        return Utils.getConfigFromEnv("DLP_TABLE_STANDARD", true);
+    }
+
+    public String getDlpTableAuto(){
+        return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
+    }
+
+    public String getLoggingTable(){
+        return Utils.getConfigFromEnv("LOGGING_TABLE", true);
+    }
+
 }

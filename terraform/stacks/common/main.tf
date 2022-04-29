@@ -117,7 +117,6 @@ module "bigquery" {
   created_policy_tags = local.created_policy_tags
   dataset_domains_mapping = local.datasets_and_domains_filtered
   projects_domains_mapping = local.project_and_domains_filtered
-  dlp_findings_view_template_name = var.dlp_findings_view_template_name
   is_auto_dlp_mode = var.is_auto_dlp_mode
   auto_dlp_results_table_name = var.auto_dlp_results_table_name
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
@@ -181,11 +180,11 @@ module "cloud-run-tagging-dispatcher" {
   service_name = "${var.dispatcher_service_name}-${var.env}"
   service_account_email = module.iam.sa_tagging_dispatcher_email
   invoker_service_account_email = module.iam.sa_tagging_dispatcher_tasks_email
+  # Dispatcher could take time to list large number of tables
+  timeout_seconds = var.dispatcher_service_timeout_seconds
+  max_containers = 1
+  max_cpu = 2
   environment_variables =  [
-    {
-      name = "BQ_VIEW_FIELDS_FINDINGS_SPEC",
-      value = module.bigquery.bq_view_dlp_fields_findings,
-    },
     {
       name = "TAGGER_TOPIC",
       value = module.pubsub-tagger.topic-name,
@@ -202,7 +201,31 @@ module "cloud-run-tagging-dispatcher" {
       name = "PROJECT_ID",
       value = var.project,
     },
-    ]
+    {
+      name = "GCS_FLAGS_BUCKET",
+      value = var.gcs_flags_bucket_name,
+    },
+    {
+      name = "SOLUTION_DATASET",
+      value = module.bigquery.results_dataset,
+    },
+    {
+      name = "DLP_TABLE_STANDARD",
+      value = module.bigquery.results_table_standard_dlp,
+    },
+    {
+      name = "DLP_TABLE_AUTO",
+      value = module.bigquery.results_table_auto_dlp,
+    },
+    {
+      name = "IS_AUTO_DLP_MODE",
+      value = tostring(var.is_auto_dlp_mode),
+    },
+    {
+      name = "LOGGING_TABLE",
+      value = module.bigquery.logging_table
+    },
+  ]
 }
 
 module "cloud-run-tagger" {
@@ -213,11 +236,12 @@ module "cloud-run-tagger" {
   service_name = "${var.tagger_service_name}-${var.env}"
   service_account_email = module.iam.sa_tagger_email
   invoker_service_account_email = module.iam.sa_tagger_tasks_email
+  # no more than 80 requests at a time to handle BigQuery API rate limiting
+  max_containers = 1
+  max_requests_per_container = 80
+  # Tagger is using BigQuery BATCH queries that could take time to get started
+  timeout_seconds = var.tagger_service_timeout_seconds
   environment_variables =  [
-    {
-      name = "BQ_VIEW_FIELDS_FINDINGS_SPEC",
-      value = module.bigquery.bq_view_dlp_fields_findings,
-    },
     {
       name = "IS_DRY_RUN",
       value = var.is_dry_run,
@@ -234,6 +258,42 @@ module "cloud-run-tagger" {
       name = "PROJECT_ID",
       value = var.project,
     },
+    {
+      name = "GCS_FLAGS_BUCKET",
+      value = var.gcs_flags_bucket_name,
+    },
+    {
+      name = "DLP_DATASET",
+      value = module.bigquery.results_dataset,
+    },
+    {
+      name = "DLP_TABLE_STANDARD",
+      value = module.bigquery.results_table_standard_dlp,
+    },
+    {
+      name = "DLP_TABLE_AUTO",
+      value = module.bigquery.results_table_auto_dlp,
+    },
+    {
+      name = "VIEW_INFOTYPE_POLICYTAGS_MAP",
+      value = module.bigquery.config_view_infotype_policytag_map
+    },
+    {
+      name = "VIEW_DATASET_DOMAIN_MAP",
+      value = module.bigquery.config_view_dataset_domain_map
+    },
+    {
+      name = "VIEW_PROJECT_DOMAIN_MAP",
+      value = module.bigquery.config_view_project_domain_map
+    },
+    {
+      name = "PROMOTE_MIXED_TYPES",
+      value = tostring(var.promote_mixed_info_types),
+    },
+    {
+      name = "IS_AUTO_DLP_MODE",
+      value = tostring(var.is_auto_dlp_mode),
+    }
   ]
 }
 
@@ -248,6 +308,12 @@ module "pubsub-tagging-dispatcher" {
   subscription_service_account = module.iam.sa_tagging_dispatcher_tasks_email
   topic = "${var.dispatcher_pubsub_topic}_${var.env}"
   topic_publisher_sa_email = var.cloud_scheduler_account
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+
 }
 
 module "pubsub-tagger" {
@@ -258,6 +324,12 @@ module "pubsub-tagger" {
   subscription_service_account = module.iam.sa_tagger_tasks_email
   topic = "${var.tagger_pubsub_topic}_${var.env}"
   topic_publisher_sa_email = module.iam.sa_tagging_dispatcher_email
+  # Tagger is using BigQuery queries in BATCH mode to avoid INTERACTIVE query concurency limits and they might take longer time to execute under heavy load
+  # 10m is max allowed
+  subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
+  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions
+  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
 

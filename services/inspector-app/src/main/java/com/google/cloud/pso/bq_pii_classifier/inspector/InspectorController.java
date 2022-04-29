@@ -15,19 +15,13 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.inspector;
 
-import com.google.api.gax.rpc.ApiException;
-import com.google.api.gax.rpc.ResourceExhaustedException;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
+import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.cloud.pso.bq_pii_classifier.functions.inspector.Inspector;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-import com.google.cloud.pso.bq_pii_classifier.services.BigQueryService;
-import com.google.cloud.pso.bq_pii_classifier.services.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpService;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpServiceImpl;
-import com.google.common.collect.Sets;
+import com.google.cloud.pso.bq_pii_classifier.services.*;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,12 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.io.IOException;
 import java.util.Base64;
-
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.Tagger;
-
-import javax.net.ssl.SSLException;
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
 @RestController
@@ -70,7 +59,7 @@ public class InspectorController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
 
-        String trackingId = "NA";
+        String trackingId = "0000000000000-z";
         DlpService dlpService = null;
         BigQueryService bqService = null;
 
@@ -78,7 +67,7 @@ public class InspectorController {
 
             if (requestBody == null || requestBody.getMessage() == null) {
                 String msg = "Bad Request: invalid message format";
-                logger.logSevereWithTracker("NA", msg);
+                logger.logSevereWithTracker(trackingId, msg);
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
@@ -91,21 +80,23 @@ public class InspectorController {
 
             logger.logInfoWithTracker(trackingId, String.format("Received payload: %s", requestJsonString));
 
-            TableOperationRequest tableOperationRequest = gson.fromJson(requestJsonString, TableOperationRequest.class);
+            Operation operation = gson.fromJson(requestJsonString, Operation.class);
 
-            trackingId = tableOperationRequest.getTrackingId();
+            trackingId = operation.getTrackingId();
 
-            logger.logInfoWithTracker(trackingId, String.format("Parsed Request: %s", tableOperationRequest.toString()));
+            logger.logInfoWithTracker(trackingId, String.format("Parsed Request: %s", operation.toString()));
 
             dlpService = new DlpServiceImpl();
             bqService = new BigQueryServiceImpl();
             Inspector inspector = new Inspector(
                     environment.toConfig(),
                     dlpService,
-                    bqService
+                    bqService,
+                    new GCSPersistenSetImpl(environment.getGcsFlagsBucket()),
+                    "inspector-flags"
             );
 
-            inspector.execute(tableOperationRequest, trackingId);
+            inspector.execute(operation, trackingId, requestBody.getMessage().getMessageId());
 
             return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
 

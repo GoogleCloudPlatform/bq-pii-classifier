@@ -21,6 +21,7 @@ import com.google.api.gax.rpc.ResourceExhaustedException;
 import com.google.api.gax.rpc.StatusCode;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
+import com.google.cloud.storage.StorageException;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.junit.Test;
@@ -154,6 +155,32 @@ public class ControllerExceptionHelperTest {
                         }
                     },
                     true
+                    );
+
+        } catch (Exception e) {
+
+            assertEquals(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    ControllerExceptionHelper
+                            .handleException(e, logger, "resourceExhaustedTracker")
+                            .getStatusCode()
+            );
+
+        }
+    }
+
+    @Test
+    public void testNestedRetryableException() {
+        LoggingHelper logger = new LoggingHelper(ControllerExceptionHelperTest.class.getSimpleName(), 0, "test");
+
+        try {
+            Throwable cause = new java.net.SocketException ("test socket exception");
+
+            //  StorageException is not retryable on it's own but the cause SocketException is
+            throw new StorageException(
+                    0,
+                    "test reason",
+                    cause
                     );
 
         } catch (Exception e) {

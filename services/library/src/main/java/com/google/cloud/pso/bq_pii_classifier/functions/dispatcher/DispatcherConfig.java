@@ -16,18 +16,35 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
+import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
+
 public class DispatcherConfig {
 
     private String projectId;
     private String computeRegionId;
     private String dataRegionId;
     private String outputTopic;
+    private DispatcherType dispatcherType;
+    private SolutionMode solutionMode;
 
-    public DispatcherConfig(String projectId, String computeRegionId, String dataRegionId, String outputTopic) {
+    public DispatcherConfig(String projectId,
+                            String computeRegionId,
+                            String dataRegionId,
+                            String outputTopic,
+                            DispatcherType dispatcherType,
+                            SolutionMode solutionMode
+                            ) {
         this.projectId = projectId;
         this.computeRegionId = computeRegionId;
         this.dataRegionId = dataRegionId;
         this.outputTopic = outputTopic;
+        this.dispatcherType = dispatcherType;
+        this.solutionMode = solutionMode;
+    }
+
+    public DispatcherType getDispatcherType() {
+        return dispatcherType;
     }
 
     public String getDataRegionId() {
@@ -46,6 +63,10 @@ public class DispatcherConfig {
         return outputTopic;
     }
 
+    public SolutionMode getSolutionMode() {
+        return solutionMode;
+    }
+
     @Override
     public String toString() {
         return "DispatcherConfig{" +
@@ -53,6 +74,8 @@ public class DispatcherConfig {
                 ", computeRegionId='" + computeRegionId + '\'' +
                 ", dataRegionId='" + dataRegionId + '\'' +
                 ", outputTopic='" + outputTopic + '\'' +
+                ", dispatcherType=" + dispatcherType +
+                ", solutionMode=" + solutionMode +
                 '}';
     }
 }

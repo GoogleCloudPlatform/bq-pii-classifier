@@ -19,21 +19,12 @@
 # exit script when errors occur
 set -e
 
-# set the working dir as the scripts directory
-cd "$(dirname "$0")"
+SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project=${PROJECT_ID})
 
-cd ../terraform
-
-# resume the created schedule in order for terraform to update them
-source ../scripts/schedulers_action.sh "resume"
-
-terraform init \
-    -backend-config="bucket=${BUCKET_NAME}" \
-    -backend-config="prefix=terraform-state"
-
-terraform workspace select "${CONFIG}"
-
-terraform apply -lock=false -var-file="${VARS}" -auto-approve
-
-# pause the created schedulers to fake on-demand schedulers
-source ../scripts/schedulers_action.sh "pause"
+set -f                      # avoid globbing (expansion of *).
+ARRAY=(${SCHEDULERS// / })
+for i in "${!ARRAY[@]}"
+do
+    echo "$1 ${ARRAY[i]}.."
+    gcloud scheduler jobs $1 ${ARRAY[i]}
+done

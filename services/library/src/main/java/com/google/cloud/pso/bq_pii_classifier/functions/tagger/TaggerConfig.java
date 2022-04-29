@@ -21,19 +21,39 @@ import java.util.Set;
 public class TaggerConfig {
 
     private String projectId;
-    private String bqViewFieldsFindings;
     private Set<String> appOwnedTaxonomies;
     private Boolean isDryRun;
+    private String dlpDataset;
+    private String dlpTableStandard;
+    private String dlpTableAuto;
+    private String configViewInfoTypePolicyTagsMap;
+    private String configViewDatasetDomainMap;
+    private String configViewProjectDomainMap;
+    private Boolean isPromoteMixedTypes;
+    private Boolean isAutoDlpMode;
 
-    public TaggerConfig(String projectId, String bqViewFieldsFindings, Set<String> appOwnedTaxonomies, Boolean isDryRun) {
+    public TaggerConfig(String projectId,
+                        Set<String> appOwnedTaxonomies,
+                        String dlpDataset,
+                        String dlpTableStandard,
+                        String dlpTableAuto,
+                        String configViewInfoTypePolicyTagsMap,
+                        String configViewDatasetDomainMap,
+                        String configViewProjectDomainMap,
+                        Boolean isPromoteMixedTypes,
+                        Boolean isAutoDlpMode,
+                        Boolean isDryRun) {
         this.projectId = projectId;
-        this.bqViewFieldsFindings = bqViewFieldsFindings;
         this.appOwnedTaxonomies = appOwnedTaxonomies;
+        this.dlpDataset = dlpDataset;
+        this.dlpTableStandard = dlpTableStandard;
+        this.dlpTableAuto = dlpTableAuto;
+        this.configViewInfoTypePolicyTagsMap = configViewInfoTypePolicyTagsMap;
+        this.configViewDatasetDomainMap = configViewDatasetDomainMap;
+        this.configViewProjectDomainMap = configViewProjectDomainMap;
+        this.isPromoteMixedTypes = isPromoteMixedTypes;
+        this.isAutoDlpMode = isAutoDlpMode;
         this.isDryRun = isDryRun;
-    }
-
-    public String getBqViewFieldsFindings() {
-        return bqViewFieldsFindings;
     }
 
     public  Set<String> getAppOwnedTaxonomies() {
@@ -48,13 +68,52 @@ public class TaggerConfig {
         return projectId;
     }
 
+    public String getDlpDataset() {
+        return dlpDataset;
+    }
+
+    public String getConfigViewInfoTypePolicyTagsMap() {
+        return configViewInfoTypePolicyTagsMap;
+    }
+
+    public String getConfigViewDatasetDomainMap() {
+        return configViewDatasetDomainMap;
+    }
+
+    public String getConfigViewProjectDomainMap() {
+        return configViewProjectDomainMap;
+    }
+
+    public String getDlpTableStandard() {
+        return dlpTableStandard;
+    }
+
+    public String getDlpTableAuto() {
+        return dlpTableAuto;
+    }
+
+    public Boolean isPromoteMixedTypes() {
+        return isPromoteMixedTypes;
+    }
+
+    public Boolean isAutoDlpMode() {
+        return isAutoDlpMode;
+    }
+
     @Override
     public String toString() {
         return "TaggerConfig{" +
                 "projectId='" + projectId + '\'' +
-                ", bqViewFieldsFindings='" + bqViewFieldsFindings + '\'' +
                 ", appOwnedTaxonomies=" + appOwnedTaxonomies +
                 ", isDryRun=" + isDryRun +
+                ", dlpDataset='" + dlpDataset + '\'' +
+                ", dlpTableStandard='" + dlpTableStandard + '\'' +
+                ", dlpTableAuto='" + dlpTableAuto + '\'' +
+                ", configViewInfoTypePolicyTagsMap='" + configViewInfoTypePolicyTagsMap + '\'' +
+                ", configViewDatasetDomainMap='" + configViewDatasetDomainMap + '\'' +
+                ", configViewProjectDomainMap='" + configViewProjectDomainMap + '\'' +
+                ", isPromoteMixedTypes=" + isPromoteMixedTypes +
+                ", isAutoDlpMode=" + isAutoDlpMode +
                 '}';
     }
 }

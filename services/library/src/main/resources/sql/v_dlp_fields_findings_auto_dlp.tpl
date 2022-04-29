@@ -40,8 +40,9 @@
         WHEN column_profile.column_info_type.info_type.name IS NULL AND ARRAY_LENGTH(column_profile.other_matches) > 1 THEN "MIXED" END AS final_info_type,
     TIMESTAMP_SECONDS(column_profile.profile_status.timestamp.seconds) column_profile_status_timestamp,
     RANK () OVER (PARTITION BY column_profile.table_full_resource, column_profile.column, column_profile.column_info_type.info_type.name ORDER BY column_profile.profile_status.timestamp.seconds DESC) AS rank
-    FROM `${results_table_spec}`
+    FROM `${project}.${dataset}.${results_table}`
     WHERE (column_profile.column_info_type.info_type.name IS NOT NULL OR column_profile.other_matches IS NOT NULL)
+    AND CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id, '.', column_profile.table_id) = '${param_lookup_key}'
     )
     , column_info_type_final AS
     (

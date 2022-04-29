@@ -47,6 +47,10 @@ public class LoggingHelper {
         logger = LoggerFactory.getLogger(loggerName);
     }
 
+    public void logDebugWithTracker(String tracker, String msg) {
+        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.DEBUG);
+    }
+
     public void logInfoWithTracker(String tracker, String msg) {
         logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.INFO);
     }
@@ -84,6 +88,14 @@ public class LoggingHelper {
                 attributes
         );
 
+    }
+
+    // used by Tagging Dispatcher
+    public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId) {
+        logSuccessDispatcherTrackingId(trackingId,
+                dispatchedTrackingId,
+                new TableSpec("NA","NA","NA")
+        );
     }
 
     public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId, TableSpec tableSpec) {
@@ -143,24 +155,32 @@ public class LoggingHelper {
                 Level.ERROR,
                 attributes
         );
+        ex.printStackTrace();
     }
 
     // To log failed processing of projects, datasets or tables
-    public void logRetryableExceptions(String trackingId, Exception ex) {
+    public void logRetryableExceptions(String trackingId, Exception ex, String reason) {
 
         Object [] attributes = new Object[]{
                 kv("retryable_ex_tracking_id", trackingId),
                 kv("retryable_ex_name", ex.getClass().getName()),
                 kv("retryable_ex_msg", ex.getMessage()),
+                kv("retryable_ex_reason", reason),
         };
 
         logWithTracker(
                 ApplicationLog.RETRYABLE_EXCEPTIONS_LOG,
                 trackingId,
-                String.format("Caught a Retryable exception while processing tracker `%s`. Exception: %s. Msg: %s", trackingId, ex.getClass().getName(), ex.getMessage()),
+                String.format("Caught a Retryable exception while processing tracker `%s`. Exception: %s. Msg: %s. Classification Reason: %s.",
+                        trackingId,
+                        ex.getClass().getName(),
+                        ex.getMessage(),
+                        reason
+                ),
                 Level.WARN,
                 attributes
         );
+        ex.printStackTrace();
     }
 
     public void logFunctionStart(String trackingId) {
@@ -207,7 +227,8 @@ public class LoggingHelper {
         try{
             runId = TrackingHelper.parseRunIdAsPrefix(tracker);
         }catch (Exception e){
-            runId = "NA";
+            // so that it never appears in max(run_id) queries
+            runId = "0000000000000-z";
         }
 
         Object [] globalAttributes = new Object[]{

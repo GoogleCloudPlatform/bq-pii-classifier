@@ -23,9 +23,7 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.BigQueryScannerImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,6 +63,7 @@ public class InspectionDispatcherController {
     public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
 
         String runId = TrackingHelper.generateInspectionRunId();
+        String state = "";
 
         try {
 
@@ -92,16 +91,31 @@ public class InspectionDispatcherController {
                     new BigQueryServiceImpl(),
                     new PubSubServiceImpl(),
                     new BigQueryScannerImpl(),
+                    new GCSPersistenSetImpl(environment.getGcsFlagsBucket()),
+                    "inspection-dispatcher-flags",
                     runId
             );
 
-            dispatcher.execute(bqScope);
+            PubSubPublishResults results = dispatcher.execute(bqScope, requestBody.getMessage().getMessageId());
 
-            return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+            state = String.format("Publishing results: %s SUCCESS MESSAGES and %s FAILED MESSAGES",
+                    results.getSuccessMessages().size(),
+                    results.getFailedMessages().size());
+
+            logger.logInfoWithTracker(runId, state);
+
+        } catch (Exception e) {
+            logger.logNonRetryableExceptions(runId, e);
+            state = String.format("ERROR '%s'", e.getMessage());
         }
-        catch (Exception e ){
-            return ControllerExceptionHelper.handleException(e, logger, runId);
-        }
+
+        // Always ACK the pubsub message to avoid retries
+        // The dispatcher is the entry point and retrying it could cause
+        // unnecessary runs and costs
+
+        return new ResponseEntity(
+                String.format("Process completed with state = %s", state),
+                HttpStatus.OK);
     }
 
     public static void main(String[] args) {

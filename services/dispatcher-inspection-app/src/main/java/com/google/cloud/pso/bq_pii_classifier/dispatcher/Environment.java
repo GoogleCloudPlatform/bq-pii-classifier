@@ -16,6 +16,8 @@
 
 package com.google.cloud.pso.bq_pii_classifier.dispatcher;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
+import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.DispatcherConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
@@ -26,7 +28,9 @@ public class Environment {
                 getProjectId(),
                 getComputeRegionId(),
                 getDataRegionId(),
-                getInspectionTopic()
+                getInspectionTopic(),
+                DispatcherType.INSPECTION,
+                SolutionMode.STANDARD_DLP
         );
     }
 
@@ -44,7 +48,7 @@ public class Environment {
 
     public String getInspectionTopic() { return Utils.getConfigFromEnv("INSPECTION_TOPIC", true); }
 
-    public String getBqViewFieldsFindings(){
-        return Utils.getConfigFromEnv("BQ_VIEW_FIELDS_FINDINGS_SPEC", true);
+    public String getGcsFlagsBucket(){
+        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
     }
 }
