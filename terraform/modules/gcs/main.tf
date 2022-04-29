@@ -15,6 +15,8 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
       type = "Delete"
     }
   }
+
+  uniform_bucket_level_access = true
 }
 
 resource "google_storage_bucket_iam_binding" "gcs_flags_bucket_iam_bindings" {

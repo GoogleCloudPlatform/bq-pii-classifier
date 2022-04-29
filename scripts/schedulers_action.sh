@@ -19,12 +19,12 @@
 # exit script when errors occur
 set -e
 
-SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project=${PROJECT_ID})
+SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project="${PROJECT_ID}")
 
 set -f                      # avoid globbing (expansion of *).
 ARRAY=(${SCHEDULERS// / })
 for i in "${!ARRAY[@]}"
 do
     echo "$1 ${ARRAY[i]}.."
-    gcloud scheduler jobs $1 ${ARRAY[i]}
+    gcloud scheduler jobs "${1}" ${ARRAY[i]}
 done
