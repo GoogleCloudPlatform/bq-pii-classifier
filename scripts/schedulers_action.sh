@@ -26,5 +26,5 @@ ARRAY=(${SCHEDULERS// / })
 for i in "${!ARRAY[@]}"
 do
     echo "$1 ${ARRAY[i]}.."
-    gcloud scheduler jobs "${1}" ${ARRAY[i]}
+    gcloud scheduler jobs "${1}" "${ARRAY[i]}"
 done
