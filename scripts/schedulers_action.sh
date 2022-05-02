@@ -20,9 +20,10 @@
 set -e
 
 SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project="${PROJECT_ID}")
+echo $SCHEDULERS
+## Splitting the string into array
 
-# Splitting the string into array
-read -a ARRAY <<< "${SCHEDULERS}"
+read -a ARRAY <<< ${SCHEDULERS}
 
 for i in "${!ARRAY[@]}"
 do
