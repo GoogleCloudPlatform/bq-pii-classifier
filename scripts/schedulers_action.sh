@@ -22,7 +22,7 @@ set -e
 SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project="${PROJECT_ID}")
 
 set -f                      # avoid globbing (expansion of *).
-ARRAY=(${SCHEDULERS// / })
+ARRAY=(${SCHEDULERS})
 for i in "${!ARRAY[@]}"
 do
     echo "$1 ${ARRAY[i]}.."
