@@ -67,7 +67,10 @@ Analytical Usage, where each component has its own cost control measures.
 <b>For DLP:</b>  
     You can set the number or percentage of rows to be randomly selected 
 and inspected from each table as a function of the table size. This is done in the Terraform
-configuration as part of the deployment procedures.
+configuration as part of the deployment procedures. Please note that setting is only applicable
+in the `Standard-mode` while in `Auto-dlp mode` it's totally up to the Auto-DLP configurations and heuristics
+to determine the frequency and number of rows to scan from each table.
+
 
 <b>For BigQuery:</b>  
     It's important to understand that the solution (more specifically, the Tagger service)
