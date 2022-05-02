@@ -21,16 +21,17 @@ import com.google.api.services.bigquery.model.TableFieldSchema.PolicyTags;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.TableResult;
-import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
-import com.google.cloud.pso.bq_pii_classifier.entities.TagHistoryLogEntry;
+import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.BigQueryService;
+import com.google.cloud.pso.bq_pii_classifier.services.PersistentSet;
+import com.google.common.io.Resources;
 import org.slf4j.event.Level;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,11 +47,19 @@ public class Tagger {
     private TaggerConfig config;
 
     BigQueryService bqService;
+    PersistentSet persistentSet;
+    String persistentSetObjectPrefix;
 
-    public Tagger(TaggerConfig config, BigQueryService bqService) throws IOException {
+    public Tagger(TaggerConfig config,
+                  BigQueryService bqService,
+                  PersistentSet persistentSet,
+                  String persistentSetObjectPrefix
+    ) throws IOException {
 
         this.config = config;
         this.bqService = bqService;
+        this.persistentSet = persistentSet;
+        this.persistentSetObjectPrefix = persistentSetObjectPrefix;
 
         logger = new LoggingHelper(
                 Tagger.class.getSimpleName(),
@@ -60,51 +69,90 @@ public class Tagger {
     }
 
     public Map<String, String> execute(
-            TableOperationRequest request,
-            String trackingId
+            Operation request,
+            String trackingId,
+            String pubSubMessageId
     ) throws IOException, InterruptedException, NonRetryableApplicationException {
 
         logger.logFunctionStart(trackingId);
-
         logger.logInfoWithTracker(trackingId, String.format("Request : %s", request.toString()));
 
-        TableSpec targetTableSpec = TableSpec.fromSqlString(request.getTableSpec());
+        /**
+         *  Check if we already processed this pubSubMessageId before to avoid submitting BQ queries
+         *  in case we have unexpected errors with PubSub re-sending the message. This is an extra measure to avoid unnecessary cost.
+         *  We do that by keeping simple flag files in GCS with the pubSubMessageId as file name.
+         */
+        String flagFileName = String.format("%s/%s", persistentSetObjectPrefix, pubSubMessageId);
+        if (persistentSet.contains(flagFileName)) {
+            // log error and ACK and return
+            String msg = String.format("PubSub message ID '%s' has been processed before by the Tagger. The message should be ACK to PubSub to stop retries. Please investigate further why the message was retried in the first place.",
+                    pubSubMessageId);
+            throw new NonRetryableApplicationException(msg);
+        }
 
         // Query DLP results in BQ and return a dict of bq_column=policy_tag
-        Map<String, String> fieldsToPolicyTagsMap = getFieldsToPolicyTagsMap(
-                config.getBqViewFieldsFindings(),
-                targetTableSpec);
+
+        // lookup key is the DLP "jobId" in case of Standard Mode (to use the clustered column)
+        // and "project.dataset.table" in case of Auto DLP (as there are no jobIds in that case)
+        String lookUpKey = request.getEntityKey();
+
+        TablePolicyTags tablePolicyTags = getFieldsToPolicyTagsMap(lookUpKey);
+
+        // TODO: do we really need appliedFieldsToPolicyTags or can we just return tablePolicyTags.getFieldsPolicyTags()
+        Map<String, String> appliedFieldsToPolicyTags = new HashMap<>();
+        // if we have DLP findings for this table or dlpJob
+        if (tablePolicyTags != null) {
+
+            Map<String, String> computedFieldsToPolicyTagsMap = tablePolicyTags.getFieldsPolicyTags();
+            TableSpec targetTableSpec = tablePolicyTags.getTableSpec();
+
+            // AutoDLP mode and re-tagging runs in Standard mode could potentially contain tables that were deleted.
+            // For that we need to check if the table exists before attempting to apply tags
+            // When a table is not found a com.google.api.client.googleapis.json.GoogleJsonResponseException
+            if (bqService.tableExists(targetTableSpec)) {
+
+                logger.logInfoWithTracker(trackingId, String.format("Computed Fields to Policy Tags mapping : %s", computedFieldsToPolicyTagsMap.toString()));
+
+                // Apply policy tags to columns in BigQuery
+                // If isDryRun = True no actual tagging will happen on BigQuery and Dry-Run log entries will be written instead
+                List<TableFieldSchema> updatedFields = applyPolicyTagsToTableFields(
+                        targetTableSpec,
+                        computedFieldsToPolicyTagsMap,
+                        config.getAppOwnedTaxonomies(),
+                        config.getDryRun(),
+                        trackingId);
+
+                appliedFieldsToPolicyTags = mapFieldsToPolicyTags(updatedFields);
+
+            } else {
+                // if the table doesn't exist anymore on BigQuery
+                logger.logWarnWithTracker(trackingId,
+                        String.format(
+                                "Table %s doesn't exist anymore in BigQuery and no tagging could be applied",
+                                targetTableSpec.toSqlString()
+                        ));
+            }
 
 
-        logger.logInfoWithTracker(trackingId, String.format("Computed Fields to Policy Tags mapping : %s", fieldsToPolicyTagsMap.toString()));
-
-        Map<String, String> fieldsToPolicyTags = new HashMap<>();
-
-        // If there is PII and mapped policy tags found
-        if (!fieldsToPolicyTagsMap.isEmpty()) {
-
-            // Apply policy tags to columns in BigQuery
-            // If isDryRun = True no actual tagging will happen on BogQuery and Dry-Run log entries will be written instead
-            List<TableFieldSchema> updatedFields = applyPolicyTagsToTableFields(
-                    targetTableSpec,
-                    fieldsToPolicyTagsMap,
-                    config.getAppOwnedTaxonomies(),
-                    config.getDryRun(),
-                    trackingId);
-
-            fieldsToPolicyTags = mapFieldsToPolicyTags(updatedFields);
         } else {
+            // if we don't have DLP findings for this table or dlpJob
             logger.logInfoWithTracker(trackingId,
                     String.format(
-                            "No DLP InfoTypes or mapped policy tags are found for table '%s' in DLP results view '%s'",
-                            request.getTableSpec(),
-                            config.getBqViewFieldsFindings()
+                            "No DLP InfoTypes or mapped policy tags are found for lookUpKey '%s'",
+                            lookUpKey
                     ));
         }
 
+
+        // Add a flag key marking that we already completed this request and no additional runs
+        // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has already processed the request
+        // This is an extra measure to avoid unnecessary BigQuery cost due to config issues.
+        logger.logInfoWithTracker(trackingId, String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
+        persistentSet.add(flagFileName);
+
         logger.logFunctionEnd(trackingId);
 
-        return fieldsToPolicyTags;
+        return appliedFieldsToPolicyTags;
     }
 
     private TableFieldSchema updateFieldPolicyTags(TableFieldSchema field,
@@ -210,9 +258,9 @@ public class Tagger {
                                                             Boolean isDryRun,
                                                             String trackingId,
                                                             List<TagHistoryLogEntry> policyUpdateLogs
-                                        ){
+    ) {
 
-        if(!field.getType().equals("RECORD")){
+        if (!field.getType().equals("RECORD")) {
             // stop recursion
 
             // Return the updated field schema with policy tag
@@ -225,30 +273,31 @@ public class Tagger {
                     trackingId,
                     policyUpdateLogs);
 
-        }else {
+        } else {
             // If the field of type RECORD then apply depth-first recursion until you hit a leaf node
             // Then return the updated sub-fields on each level
             List<TableFieldSchema> subFields = field.getFields();
             List<TableFieldSchema> updatedSubFields = new ArrayList<>();
 
-            for(TableFieldSchema subField: subFields){
+            for (TableFieldSchema subField : subFields) {
 
-                    TableFieldSchema updatedSubField =  recursiveUpdateFieldPolicyTags(
-                            subField,
-                            // use mainField.subField as a lookup name for the subField to find it in DLP results
-                            String.format("%s.%s", fieldLkpName, subField.getName()),
-                            tableSpec,
-                            fieldsToPolicyTagsMap,
-                            app_managed_taxonomies,
-                            isDryRun,
-                            trackingId,
-                            policyUpdateLogs);
+                TableFieldSchema updatedSubField = recursiveUpdateFieldPolicyTags(
+                        subField,
+                        // use mainField.subField as a lookup name for the subField to find it in DLP results
+                        String.format("%s.%s", fieldLkpName, subField.getName()),
+                        tableSpec,
+                        fieldsToPolicyTagsMap,
+                        app_managed_taxonomies,
+                        isDryRun,
+                        trackingId,
+                        policyUpdateLogs);
 
-                    updatedSubFields.add(updatedSubField);
-                }
-            return field.setFields(updatedSubFields);
+                updatedSubFields.add(updatedSubField);
             }
+            return field.setFields(updatedSubFields);
+        }
     }
+
     public List<TableFieldSchema> applyPolicyTagsToTableFields(TableSpec tableSpec,
                                                                Map<String, String> fieldsToPolicyTagsMap,
                                                                Set<String> app_managed_taxonomies,
@@ -301,15 +350,46 @@ public class Tagger {
         return result;
     }
 
-    public Map<String, String> getFieldsToPolicyTagsMap(String fieldsToInfoTypeFindingsViewSpec,
-                                                        TableSpec targetTableSpec) throws InterruptedException, NonRetryableApplicationException {
 
+    // lookup key is the DLP "jobId" in case of Standard Mode (to use the clustered column)
+    // and "project.dataset.table" in case of Auto DLP (as there are no jobIds in that case)
+    public String generateQuery(String lookUpKey) throws IOException {
 
-        String formattedQuery = String.format(
-                "SELECT field_name, info_type, policy_tag FROM `%s` WHERE table_spec = '%s' AND info_type IS NOT NULL",
-                fieldsToInfoTypeFindingsViewSpec,
-                targetTableSpec.toSqlString()
-        );
+        String dlpTable;
+        String sqlTemplatePath;
+        if (config.isAutoDlpMode()) {
+            sqlTemplatePath = "sql/v_dlp_fields_findings_auto_dlp.tpl";
+            dlpTable = config.getDlpTableAuto();
+        } else {
+            sqlTemplatePath = config.isPromoteMixedTypes() ? "sql/v_dlp_fields_findings_with_promotion.tpl" : "sql/v_dlp_fields_findings_without_promotion.tpl";
+            dlpTable = config.getDlpTableStandard();
+        }
+
+        final URL url = Resources.getResource(sqlTemplatePath);
+
+        String queryTemplate = Resources.toString(url, StandardCharsets.UTF_8);
+        return queryTemplate.replace("${project}", config.getProjectId())
+                .replace("${dataset}", config.getDlpDataset())
+                .replace("${config_view_infotypes_policytags_map}", config.getConfigViewInfoTypePolicyTagsMap())
+                .replace("${config_view_dataset_domain_map}", config.getConfigViewDatasetDomainMap())
+                .replace("${config_view_project_domain_map}", config.getConfigViewProjectDomainMap())
+                .replace("${results_table}", dlpTable)
+                .replace("${param_lookup_key}", lookUpKey);
+    }
+
+    /**
+     * Look for DLP results by a given jobName or tableSpec. Returns a map of fields to policy tags or null if DLP
+     * doesn't have findings
+     *
+     * @param lookUpKey
+     * @return
+     * @throws InterruptedException
+     * @throws NonRetryableApplicationException
+     * @throws IOException
+     */
+    public TablePolicyTags getFieldsToPolicyTagsMap(String lookUpKey) throws InterruptedException, NonRetryableApplicationException, IOException {
+
+        String formattedQuery = generateQuery(lookUpKey);
 
         // Create a job ID so that we can safely retry.
         Job queryJob = bqService.submitJob(formattedQuery);
@@ -318,6 +398,7 @@ public class Tagger {
 
         // Construct a mapping between field names and DLP infotypes
         Map<String, String> fieldsToPolicyTagMap = new HashMap<>();
+        String tableSpecStr = "";
         for (FieldValueList row : result.iterateAll()) {
 
             if (row.get("field_name").isNull()) {
@@ -341,10 +422,18 @@ public class Tagger {
             }
             String policy_tag = row.get("policy_tag").getStringValue();
 
+            if (row.get("table_spec").isNull()) {
+                throw new NonRetryableApplicationException("getFieldsToPolicyTagsMap query returned rows with null table_spec");
+            }
+            tableSpecStr = row.get("table_spec").getStringValue();
+
             fieldsToPolicyTagMap.put(column_name, policy_tag);
         }
 
-        return fieldsToPolicyTagMap;
+        if (fieldsToPolicyTagMap.isEmpty())
+            return null;
+        else
+            return new TablePolicyTags(TableSpec.fromSqlString(tableSpecStr), fieldsToPolicyTagMap);
     }
 
 }

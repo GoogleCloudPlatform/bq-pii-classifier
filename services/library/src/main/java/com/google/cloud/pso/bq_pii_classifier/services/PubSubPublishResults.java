@@ -20,19 +20,19 @@ import java.util.List;
 
 public class PubSubPublishResults {
 
-    private List<TableOpsRequestSuccessPubSubMessage> successMessages;
-    private List<TableOpsRequestFailedPubSubMessage> failedMessages;
+    private List<SuccessPubSubMessage> successMessages;
+    private List<FailedPubSubMessage> failedMessages;
 
-    public PubSubPublishResults(List<TableOpsRequestSuccessPubSubMessage> successMessages, List<TableOpsRequestFailedPubSubMessage> failedMessages) {
+    public PubSubPublishResults(List<SuccessPubSubMessage> successMessages, List<FailedPubSubMessage> failedMessages) {
         this.successMessages = successMessages;
         this.failedMessages = failedMessages;
     }
 
-    public List<TableOpsRequestSuccessPubSubMessage> getSuccessMessages() {
+    public List<SuccessPubSubMessage> getSuccessMessages() {
         return successMessages;
     }
 
-    public List<TableOpsRequestFailedPubSubMessage> getFailedMessages() {
+    public List<FailedPubSubMessage> getFailedMessages() {
         return failedMessages;
     }
 

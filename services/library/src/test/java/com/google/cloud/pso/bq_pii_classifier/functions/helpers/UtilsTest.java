@@ -16,8 +16,19 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.helpers;
 
+import com.google.cloud.bigquery.FieldValueList;
+import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.TableResult;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.cloud.pso.bq_pii_classifier.services.BigQueryServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.GCSPersistenSetImpl;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 

@@ -209,6 +209,11 @@
         "mode": "NULLABLE",
         "name": "retryable_ex_msg",
         "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "retryable_ex_reason",
+        "type": "STRING"
       }
     ],
     "mode": "NULLABLE",

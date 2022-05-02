@@ -60,6 +60,27 @@ Using `Auto-dlp mode` offers the following benefits:
 * visualizing data profiles (i.e. tables, columns, PII types, metrics, etc) from the GCP console (UI).
 * Accessing GCP Cloud Support for the product (Auto-DLP only, not this custom solution).
 
+## Cost Control
+The main contributing components to cost in this solution are DLP Inspection Jobs and BigQuery
+Analytical Usage, where each component has its own cost control measures.
+
+<b>For DLP:</b>  
+    You can set the number or percentage of rows to be randomly selected 
+and inspected from each table as a function of the table size. This is done in the Terraform
+configuration as part of the deployment procedures.
+
+<b>For BigQuery:</b>  
+    It's important to understand that the solution (more specifically, the Tagger service)
+will submit one query per target table in order to fetch its DLP findings,
+interpret it and apply policy tags to that table. This query runs against a common DLP detailed
+findings table that can grow large very quickly in runs that includes a large number of tables.
+This in turn translates to more bytes scanned that contribute to higher costs.  
+
+In order to factor in this point, it's highly advised to do one or more of the following if 
+you plan to scan a large number of tables:
+* Assign the solution host project to a BigQuery [Slot Reservation](https://cloud.google.com/bigquery/docs/reservations-intro) (Flat-Rate pricing)
+* Create BigQuery [Custom Cost Controls](https://cloud.google.com/bigquery/docs/custom-quotas) to avoid scanning (and paying) more than a daily Threshold 
+
 ## Data Access Model Example
  
   Check out this [document](docs/common-iam-example.md) for an example on a data access

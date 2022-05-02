@@ -17,14 +17,16 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
 
+import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
+import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
+import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 import com.google.cloud.pso.bq_pii_classifier.services.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpResultsScannerImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.StandardDlpResultsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.PubSubPublishResults;
 import com.google.cloud.pso.bq_pii_classifier.services.PubSubServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.TableOpsRequestFailedPubSubMessage;
-import com.google.cloud.pso.bq_pii_classifier.services.TableOpsRequestSuccessPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.FailedPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.SuccessPubSubMessage;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,13 +51,15 @@ import static org.mockito.Mockito.mock;
 public class DispatcherTest {
 
     @Mock
-    DlpResultsScannerImpl dlpResultsService;
+    StandardDlpResultsScannerImpl dlpResultsService;
     @Mock BigQueryServiceImpl bqServiceMock;
     @Mock DispatcherConfig config = new DispatcherConfig(
             "testProjectId",
             "testComputeRegionId",
             "testDataRegionId",
-            "testTaggerTopic"
+            "testTaggerTopic",
+            DispatcherType.INSPECTION,
+            SolutionMode.STANDARD_DLP
     );
     @Mock String runId = "R-testxxxxxxx";
 
@@ -67,28 +71,28 @@ public class DispatcherTest {
         // mock dlpResultsService
 
         // use lenient() to disable strict stubbing. Mockito detects that the stubs are not used by they actually are!
-        lenient().when(dlpResultsService.listDatasets("p1")).thenReturn(
+        lenient().when(dlpResultsService.listParents("p1")).thenReturn(
                 Arrays.asList("p1.d1","p1.d2")
         );
-        lenient().when(dlpResultsService.listDatasets("p2")).thenReturn(
+        lenient().when(dlpResultsService.listParents("p2")).thenReturn(
                 Arrays.asList("p2.d1","p2.d2")
         );
 
         // list p1 tables
-        lenient().when(dlpResultsService.listTables("p1", "d1")).thenReturn(
+        lenient().when(dlpResultsService.listChildren("p1", "d1")).thenReturn(
                 Arrays.asList("p1.d1.t1", "p1.d1.t2")
         );
 
-        lenient().when(dlpResultsService.listTables("p1", "d2")).thenReturn(
+        lenient().when(dlpResultsService.listChildren("p1", "d2")).thenReturn(
                 Arrays.asList("p1.d2.t1", "p1.d2.t2")
         );
 
         // list p2 tables
-        lenient().when(dlpResultsService.listTables("p2", "d1")).thenReturn(
+        lenient().when(dlpResultsService.listChildren("p2", "d1")).thenReturn(
                 Arrays.asList("p2.d1.t1", "p2.d1.t2")
         );
 
-        lenient().when(dlpResultsService.listTables("p2", "d2")).thenReturn(
+        lenient().when(dlpResultsService.listChildren("p2", "d2")).thenReturn(
                 Arrays.asList("p2.d2.t1")
         );
 
@@ -151,29 +155,29 @@ public class DispatcherTest {
     private List<String> testWithInput (BigQueryScope bigQueryScope) throws IOException, NonRetryableApplicationException, InterruptedException {
 
         //Dispatcher function = new Dispatcher(envMock, bqServiceMock, cloudTasksServiceMock);
-        PubSubPublishResults results = function.execute(bigQueryScope);
+        PubSubPublishResults results = function.execute(bigQueryScope, "");
 
         PubSubServiceImpl pubSubServiceMock = mock(PubSubServiceImpl.class);
         lenient().when(pubSubServiceMock.publishTableOperationRequests(anyString(), anyString(), any())).thenReturn(
                 new PubSubPublishResults(
                         Arrays.asList(
-                                new TableOpsRequestSuccessPubSubMessage(
-                                        new TableOperationRequest("p1.d1.t1", "runId", "trackingId"),
+                                new SuccessPubSubMessage(
+                                        new Operation("p1.d1.t1", "runId", "trackingId"),
                                         "publishedMessageId"
                                 ),
-                                new TableOpsRequestSuccessPubSubMessage(
-                                        new TableOperationRequest("p1.d1.t2", "runId", "trackingId"),
+                                new SuccessPubSubMessage(
+                                        new Operation("p1.d1.t2", "runId", "trackingId"),
                                         "publishedMessageId"
                                 )
                         ),
                         Arrays.asList(
-                                new TableOpsRequestFailedPubSubMessage(
-                                        new TableOperationRequest("","",""),
+                                new FailedPubSubMessage(
+                                        new Operation("","",""),
                                         new Exception("test fail message")
                                 )
                         )
                 ));
 
-        return results.getSuccessMessages().stream().map(x -> x.getMsg().getTableSpec()).collect(Collectors.toList());
+        return results.getSuccessMessages().stream().map(x -> ((Operation) x.getMsg()).getEntityKey()).collect(Collectors.toList());
     }
 }

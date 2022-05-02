@@ -33,11 +33,7 @@ jobs:
         uses: github/super-linter@v4
         env:
           VALIDATE_ALL_CODEBASE: true
-          # If set to false, the bash-exec linter will report a warning if a shell script is not executable. If set to true, the bash-exec linter will report an error instead.
-          ERROR_ON_MISSING_EXEC_BIT: true
           VALIDATE_GOOGLE_JAVA_FORMAT: true
           VALIDATE_TERRAFORM_TFLINT: true
           VALIDATE_TERRAFORM_TERRASCAN: true
-          VALIDATE_BASH: true
-          VALIDATE_BASH_EXEC: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

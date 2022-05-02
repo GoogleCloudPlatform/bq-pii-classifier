@@ -46,11 +46,13 @@ module "cloud-run-inspection-dispatcher" {
   service_name = "${var.dispatcher_service_name}-${var.env}"
   service_account_email = google_service_account.sa_inspection_dispatcher.email
   invoker_service_account_email = google_service_account.sa_inspection_dispatcher_tasks.email
+  # Dispatcher could take time to list large number of tables
+  timeout_seconds = var.dispatcher_service_timeout_seconds
+  # We don't need high conc for the entry point
+  max_containers = 1
+  # We need more than 1 CPU to help accelerate processing of large BigQuery Scan scope
+  max_cpu = 2
   environment_variables =  [
-    {
-      name = "BQ_VIEW_FIELDS_FINDINGS_SPEC",
-      value = var.bq_view_dlp_fields_findings,
-    },
     {
       name = "INSPECTION_TOPIC",
       value = module.pubsub-inspector.topic-name,
@@ -67,6 +69,10 @@ module "cloud-run-inspection-dispatcher" {
       name = "PROJECT_ID",
       value = var.project,
     },
+    {
+      name = "GCS_FLAGS_BUCKET",
+      value = var.gcs_flags_bucket_name,
+    },
     ]
 }
 
@@ -78,6 +84,7 @@ module "cloud-run-inspector" {
   service_name = "${var.inspector_service_name}-${var.env}"
   service_account_email = google_service_account.sa_inspector.email
   invoker_service_account_email = google_service_account.sa_inspector_tasks.email
+  timeout_seconds = var.inspector_service_timeout_seconds
 
   environment_variables =  [
     {
@@ -120,7 +127,10 @@ module "cloud-run-inspector" {
       name = "TABLE_SCAN_LIMITS_JSON_CONFIG",
       value = var.table_scan_limits_json_config,
     },
-
+    {
+      name = "GCS_FLAGS_BUCKET",
+      value = var.gcs_flags_bucket_name,
+    },
   ]
 }
 
@@ -132,6 +142,7 @@ module "cloud-run-listener" {
   service_name = "${var.listener_service_name}-${var.env}"
   service_account_email = google_service_account.sa_listener.email
   invoker_service_account_email = google_service_account.sa_listener_tasks.email
+  timeout_seconds = var.listener_service_timeout_seconds
 
   environment_variables =  [
     {
@@ -160,6 +171,11 @@ module "pubsub-inspection-dispatcher" {
   subscription_service_account = google_service_account.sa_inspection_dispatcher_tasks.email
   topic = "${var.dispatcher_pubsub_topic}_${var.env}"
   topic_publisher_sa_email = var.cloud_scheduler_account
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
 }
 
 module "pubsub-inspector" {
@@ -170,6 +186,12 @@ module "pubsub-inspector" {
   subscription_service_account = google_service_account.sa_inspector_tasks.email
   topic = "${var.inspector_pubsub_topic}_${var.env}"
   topic_publisher_sa_email = google_service_account.sa_inspection_dispatcher.email
+  subscription_ack_deadline_seconds = var.inspector_subscription_ack_deadline_seconds
+  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions
+  # However, retrying the inspector function with the same msg will lead to a non-retryable error due to dlp job name collision
+  subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
+
 }
 
 module "pubsub-listener" {
@@ -181,6 +203,11 @@ module "pubsub-listener" {
   topic = "${var.listener_pubsub_topic}_${var.env}"
   // DLP is publishing to the listener topic and not Inspector
   topic_publisher_sa_email = var.dlp_service_account
+  subscription_ack_deadline_seconds = var.listener_subscription_ack_deadline_seconds
+  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions
+  subscription_message_retention_duration = var.listener_subscription_message_retention_duration
+
 }
 
 

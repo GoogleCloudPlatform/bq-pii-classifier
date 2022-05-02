@@ -24,8 +24,8 @@ public interface Scanner {
 
 
     // list datasets under a project in the format "project.dataset"
-    List<String> listDatasets(String project) throws NonRetryableApplicationException, InterruptedException;
+    List<String> listParents(String project) throws NonRetryableApplicationException, InterruptedException;
 
-    // list tables under a project/dataset in the format "project.dataset.table"
-    List<String> listTables(String project, String dataset) throws InterruptedException, NonRetryableApplicationException;
+    // list tables or dlpJobNames under a project/dataset in the format "project.dataset.table"
+    List<String> listChildren(String project, String dataset) throws InterruptedException, NonRetryableApplicationException;
 }

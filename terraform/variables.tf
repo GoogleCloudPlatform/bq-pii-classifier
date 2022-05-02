@@ -368,5 +368,111 @@ variable "data_catalog_taxonomy_activated_policy_types" {
   description = "A lis of policy types for the created taxonomy(s)"
 }
 
+variable "gcs_flags_bucket_name" {
+  default = "bq-pii-classifier-flags"
+}
+
+# Dispatcher settings.
+variable "dispatcher_service_timeout_seconds" {
+  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
+  type = number
+  # Dispatcher might need relatively long time to process large BigQuery scan scopes
+  default = 540 # 9m
+}
+
+variable "dispatcher_subscription_ack_deadline_seconds" {
+  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
+  type = number
+  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
+  // range is 10 to 600
+  default = 600 # 10m
+}
+
+variable "dispatcher_subscription_message_retention_duration" {
+  description = "How long to retain unacknowledged messages in the subscription's backlog"
+  type = string
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
+  # min value must be at least equal to the ack_deadline_seconds
+  # Dispatcher should have the shortest retention possible because we want to avoid retries (on the app level as well)
+  default = "600s" # 10m
+}
+
+# Inspector settings.
+variable "inspector_service_timeout_seconds" {
+  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
+  type = number
+  default = 300 # 5m
+}
+
+variable "inspector_subscription_ack_deadline_seconds" {
+  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
+  type = number
+  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
+  default = 420 # 7m
+}
+
+variable "inspector_subscription_message_retention_duration" {
+  description = "How long to retain unacknowledged messages in the subscription's backlog"
+  type = string
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
+  # It also sets how long should we keep trying to process one run
+  # min value must be at least equal to the ack_deadline_seconds
+  # Inspector should have a relatively long retention to handle runs with large number of tables.
+  default = "86400s" # 24h
+}
+
+# Listener settings.
+variable "listener_service_timeout_seconds" {
+  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
+  type = number
+  default = 300 # 5m
+}
+
+variable "listener_subscription_ack_deadline_seconds" {
+  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
+  type = number
+  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
+  default = 420 # 7m
+}
+
+variable "listener_subscription_message_retention_duration" {
+  description = "How long to retain unacknowledged messages in the subscription's backlog"
+  type = string
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
+  # It also sets how long should we keep trying to process one run
+  # min value must be at least equal to the ack_deadline_seconds
+  # Inspector should have a relatively long retention to handle runs with large number of tables.
+  default = "86400s" # 24h
+}
+
+# Tagger settings.
+variable "tagger_service_timeout_seconds" {
+  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
+  type = number
+  # Tagger is using BQ batch jobs that might need time to start running and thus a relatively longer timeout
+  default = 540 # 9m
+}
+
+variable "tagger_subscription_ack_deadline_seconds" {
+  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
+  type = number
+  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
+  // range is 10 to 600
+  default = 600 # 10m
+}
+
+variable "tagger_subscription_message_retention_duration" {
+  description = "How long to retain unacknowledged messages in the subscription's backlog"
+  type = string
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
+  # It also sets how long should we keep trying to process one run
+  # min value must be at least equal to the ack_deadline_seconds
+  # Inspector should have a relatively long retention to handle runs with large number of tables.
+  default = "86400s" # 24h
+}
+
+
+
+
 
 

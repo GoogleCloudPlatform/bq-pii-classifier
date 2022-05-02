@@ -16,20 +16,20 @@
 
 package com.google.cloud.pso.bq_pii_classifier.services;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
+import com.google.cloud.pso.bq_pii_classifier.entities.JsonMessage;
 
-public class TableOpsRequestFailedPubSubMessage {
+public class FailedPubSubMessage {
 
-    private TableOperationRequest msg;
+    private JsonMessage msg;
     private Exception exception;
 
 
-    public TableOpsRequestFailedPubSubMessage(TableOperationRequest msg, Exception exception) {
+    public FailedPubSubMessage(JsonMessage msg, Exception exception) {
         this.msg = msg;
         this.exception = exception;
     }
 
-    public TableOperationRequest getMsg() {
+    public JsonMessage getMsg() {
         return msg;
     }
 

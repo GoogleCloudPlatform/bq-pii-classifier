@@ -1,11 +1,27 @@
-output "bq_view_dlp_fields_findings" {
-  value = "${google_bigquery_table.view_fields_findings.project}.${google_bigquery_table.view_fields_findings.dataset_id}.${google_bigquery_table.view_fields_findings.table_id}"
-}
-
 output "config_view_infotype_policytag_map" {
-  value = google_bigquery_table.config_view_infotypes_policytags_map
+  value = google_bigquery_table.config_view_infotypes_policytags_map.table_id
 }
 
 output "results_dataset" {
   value = google_bigquery_dataset.results_dataset.dataset_id
+}
+
+output "results_table_standard_dlp" {
+  value = google_bigquery_table.standard_dlp_results_table.table_id
+}
+
+output "results_table_auto_dlp" {
+  value = google_bigquery_table.auto_dlp_results_table.table_id
+}
+
+output "config_view_dataset_domain_map" {
+  value = google_bigquery_table.config_view_dataset_domain_map.table_id
+}
+
+output "config_view_project_domain_map" {
+  value = google_bigquery_table.config_view_project_domain_map.table_id
+}
+
+output "logging_table" {
+  value = google_bigquery_table.logging_table.table_id
 }

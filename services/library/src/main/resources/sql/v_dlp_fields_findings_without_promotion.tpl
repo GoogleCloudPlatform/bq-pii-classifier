@@ -30,26 +30,28 @@
         # SELECT 'p1' AS project, 'dm1' AS domain UNION ALL
         # SELECT 'p1' AS project, 'dm2' AS domain
     )
-    , dlp_results_with_rank AS
+    , dlp_results_core AS
     (
         -- get the latest DLP scan results for a table
     SELECT
+    job_name AS dlp_job_name,
     l.record_location.record_key.big_query_key.table_reference.project_id AS project_id,
     l.record_location.record_key.big_query_key.table_reference.dataset_id AS dataset_id,
     l.record_location.record_key.big_query_key.table_reference.table_id AS table_id,
     l.record_location.field_id.name AS field_name,
     o.info_type.name AS info_type,
-    o.likelihood,
-    -- order by the job_name since it has the runId which is a timestamp
-    RANK() OVER (PARTITION BY location.container.full_path ORDER BY o.job_name DESC) AS rank
-    FROM `${results_table_spec}` o
+    o.likelihood
+    FROM `${project}.${dataset}.${results_table}` o
     , UNNEST(location.content_locations) l
+     -- job_name filter is not pushed when we use it in the outer query
+     WHERE job_name  = '${param_lookup_key}'
 
     )
     , dlp_results AS
     (
     -- keep this in a WITH view to facilitate unit testing by creating static input
     SELECT DISTINCT
+        d.dlp_job_name,
         CONCAT(d.project_id, ".", d.dataset_id, ".", d.table_id) AS table_spec,
         d.project_id,
         d.dataset_id,
@@ -61,13 +63,13 @@
         d.info_type,
         d.likelihood,
         lh.likelihood_rank
-    FROM dlp_results_with_rank d
+    FROM dlp_results_core d
     INNER JOIN likelihood lh ON d.likelihood = lh.likelihood
-    WHERE rank = 1
     )
 
     , info_types_per_field AS (
       SELECT
+        o.dlp_job_name,
         o.table_spec,
         o.project_id,
         o.dataset_id,
@@ -76,6 +78,7 @@
         MAX(o.likelihood_rank) AS max_likelihood_rank
       FROM`dlp_results` o
       GROUP BY
+        o.dlp_job_name,
         o.table_spec,
         o.project_id,
         o.dataset_id,
@@ -84,6 +87,7 @@
 
         , one_info_type_per_field AS (
             SELECT
+             i.dlp_job_name,
              i.table_spec,
              i.project_id,
              i.dataset_id,
@@ -98,6 +102,7 @@
 
       , info_type_with_policy_tags AS (
       SELECT
+        o.dlp_job_name,
         o.table_spec,
         o.project_id,
         o.dataset_id,
@@ -111,7 +116,7 @@
       LEFT JOIN projects_domains pd ON pd.project = o.project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
       LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type
-      GROUP BY 1, 2,3,4,5,6,7
+      GROUP BY 1, 2,3,4,5,6,7,8
       )
 
-      SELECT * FROM info_type_with_policy_tags
+      SELECT table_spec, field_name, info_type, policy_tag FROM info_type_with_policy_tags WHERE info_type IS NOT NULL

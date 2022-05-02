@@ -17,12 +17,14 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.inspector;
 
 
-import com.google.cloud.pso.bq_pii_classifier.entities.TableOperationRequest;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableScanLimitsConfig;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.DlpService;
+import com.google.cloud.pso.bq_pii_classifier.services.PersistentSet;
 import com.google.privacy.dlp.v2.Action;
 import com.google.privacy.dlp.v2.BigQueryOptions;
 import com.google.privacy.dlp.v2.BigQueryTable;
@@ -46,12 +48,21 @@ public class Inspector {
     private InspectorConfig config;
     private DlpService dlpService;
     private BigQueryService bqService;
+    private PersistentSet persistentSet;
+    private String persistentSetObjectPrefix;
 
 
-    public Inspector(InspectorConfig config, DlpService dlpService, BigQueryService bqService){
+    public Inspector(InspectorConfig config,
+                     DlpService dlpService,
+                     BigQueryService bqService,
+                     PersistentSet persistentSet,
+                     String persistentSetObjectPrefix
+                     ){
         this.config = config;
         this.dlpService = dlpService;
         this.bqService = bqService;
+        this.persistentSet = persistentSet;
+        this.persistentSetObjectPrefix = persistentSetObjectPrefix;
 
         logger = new LoggingHelper(
                 Inspector.class.getSimpleName(),
@@ -60,11 +71,25 @@ public class Inspector {
         );
     }
 
-    public DlpJob execute(TableOperationRequest request, String trackingId) throws IOException {
+    public DlpJob execute(Operation request, String trackingId, String pubSubMessageId) throws IOException, NonRetryableApplicationException {
 
         logger.logFunctionStart(trackingId);
-
         logger.logInfoWithTracker(trackingId, String.format("Request : %s", request.toString()));
+
+        /**
+         *  Check if we already processed this pubSubMessageId before to avoid submitting BQ queries
+         *  in case we have unexpected errors with PubSub re-sending the message. This is an extra measure to avoid unnecessary cost.
+         *  We do that by keeping simple flag files in GCS with the pubSubMessageId as file name.
+         */
+        String flagFileName = String.format("%s/%s", persistentSetObjectPrefix, pubSubMessageId);
+        if(persistentSet.contains(flagFileName)){
+            // log error and ACK and return
+            String msg = String.format("PubSub message ID '%s' has been processed before by %s. The message should be ACK to PubSub to stop retries. Please investigate further why the message was retried in the first place.",
+                    pubSubMessageId,
+                    this.getClass().getSimpleName()
+                    );
+            throw new NonRetryableApplicationException(msg);
+        }
 
         // get Table Scan Limits config and Table size
         TableScanLimitsConfig tableScanLimitsConfig  = new TableScanLimitsConfig(
@@ -75,7 +100,7 @@ public class Inspector {
 
         // DLP job config accepts Integer only for table scan limit. Must downcast
         // NumRows from BigInteger to Integer
-        TableSpec targetTableSpec = TableSpec.fromSqlString(request.getTableSpec());
+        TableSpec targetTableSpec = TableSpec.fromSqlString(request.getEntityKey());
 
         Integer tableNumRows = bqService.getTableNumRows(targetTableSpec).intValue();
 
@@ -96,6 +121,12 @@ public class Inspector {
 
         logger.logInfoWithTracker(trackingId, String.format("DLP job created successfully id='%s'",
                 submittedDlpJob.getName()));
+
+        // Add a flag key marking that we already completed this request and no additional runs
+        // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has already processed the request
+        // This is an extra measure to avoid unnecessary cost due to config issues.
+        logger.logInfoWithTracker(trackingId, String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
+        persistentSet.add(flagFileName);
 
         logger.logFunctionEnd(trackingId);
 

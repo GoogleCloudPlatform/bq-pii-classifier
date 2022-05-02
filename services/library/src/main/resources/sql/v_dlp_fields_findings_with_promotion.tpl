@@ -31,26 +31,30 @@
         # SELECT 'p1' AS project, 'dm1' AS domain UNION ALL
         # SELECT 'p1' AS project, 'dm2' AS domain
     )
-    , dlp_results_with_rank AS
+    , dlp_results_core AS
     (
         -- get the latest DLP scan results for a table 
     SELECT
+    job_name AS dlp_job_name,
     l.record_location.record_key.big_query_key.table_reference.project_id AS project_id,
     l.record_location.record_key.big_query_key.table_reference.dataset_id AS dataset_id,
     l.record_location.record_key.big_query_key.table_reference.table_id AS table_id,
     l.record_location.field_id.name AS field_name,
     o.info_type.name AS info_type,
-    o.likelihood,
-    -- order by the job_name since it has the runId which is a timestamp
-    RANK() OVER (PARTITION BY location.container.full_path ORDER BY o.job_name DESC) AS rank
-    FROM `${results_table_spec}` o
+    o.likelihood
+    FROM `${project}.${dataset}.${results_table}` o
     , UNNEST(location.content_locations) l
+
+    -- job_name filter is not pushed when we use it in the outer query
+    WHERE job_name  = '${param_lookup_key}'
+
 
     )
     , dlp_results AS
     (
     -- keep this in a WITH view to facilitate unit testing by creating static input
     SELECT DISTINCT
+        dlp_job_name,
         CONCAT(project_id, ".", dataset_id, ".", table_id) AS table_spec,
         project_id,
         dataset_id,
@@ -61,7 +65,7 @@
         REGEXP_REPLACE(field_name, r"(\[\d+\]\.)", '.') AS field_name,
         info_type,
         likelihood
-    FROM dlp_results_with_rank WHERE rank = 1
+    FROM dlp_results_core
 
 
             -- test one field, one likelihood
@@ -82,6 +86,7 @@
     , info_type_scores AS
         (
         SELECT
+        o.dlp_job_name,
         o.table_spec,
         o.project_id,
         o.dataset_id,
@@ -94,7 +99,7 @@
         lh.likelihood_rank * COUNT(1) AS info_type_weight
         FROM `dlp_results` o
         INNER JOIN likelihood lh ON o.likelihood = lh.likelihood
-        GROUP BY 1,2,3,4,5,6,7
+        GROUP BY 1,2,3,4,5,6,7,8
 
         -- -- Unit tests
         -- -- Normal case
@@ -118,6 +123,7 @@
             # some fields will have same infotype finidings with different likelihood. We need to add up their scores
             # For example, for FAX_NUMBER 3 row will have PHONE/Likely and 10 rows Phone/Highly Likely.
             SELECT
+                o.dlp_job_name,
                 o.table_spec,
                 o.project_id,
                 o.dataset_id,
@@ -130,7 +136,7 @@
                 -- field/info_type with the same score will have the same rank. In the next step we detect those and mark them "MIXED_PII"
                 RANK() OVER(PARTITION BY o.table_spec, o.field_name ORDER BY SUM(o.info_type_weight) DESC) AS info_type_weight_rank
             FROM  info_type_scores o
-            GROUP BY 1,2,3,4,5
+            GROUP BY 1,2,3,4,5,6
         )
         , fields_with_mixed_pii AS
         (
@@ -147,6 +153,7 @@
         final_info_type AS
         (
             SELECT DISTINCT
+                s.dlp_job_name,
                 s.table_spec,
                 s.project_id,
                 s.dataset_id,
@@ -162,6 +169,7 @@
         , with_policy_tags AS
         (
             SELECT
+                i.dlp_job_name,
                 i.table_spec,
                 i.project_id,
                 i.dataset_id,
@@ -176,7 +184,7 @@
             LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = i.info_type
         )
 
-        SELECT * FROM  with_policy_tags
+        SELECT table_spec, field_name, info_type, policy_tag FROM with_policy_tags WHERE info_type IS NOT NULL
 
 
 
