@@ -19,6 +19,11 @@ Main Steps:
    Applying access-control tags to columns in accordance with data classification 
 4. *Enforcing Column-level Access Control:*  
     Limit PII data access to specific groups based on domains and data classification (e.g. Marketing High Confidentiality PII Readers, Finance Low Confidentiality PII Readers)  
+    
+<i>If you find this solution helpful please show us your support by <b>starring or forking</b> the repo and 
+report issues using the Github tracker.  
+If you're a Googler kindly fill in this short [survery](https://docs.google.com/forms/d/19D-3pocKKdDjFuaEoo_XBGoaRVGdbs_DAe35jbKcyyI/viewform)
+for tracking and reach out to <b>bq-pii-classifier@</b> for support.</i> 
 
 ## Solution Modes
 The solution comes with two modes, [standard-mode](docs/guide-standard-dlp.md) and [auto-dlp-mode](docs/guide-auto-dlp.md).
