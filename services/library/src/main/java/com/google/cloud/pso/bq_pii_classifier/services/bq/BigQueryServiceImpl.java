@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.bq;
 
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;

@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

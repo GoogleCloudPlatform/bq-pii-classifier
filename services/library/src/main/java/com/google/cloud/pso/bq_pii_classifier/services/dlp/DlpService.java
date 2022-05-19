@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.dlp;
 
 import com.google.privacy.dlp.v2.BigQueryTable;
 import com.google.privacy.dlp.v2.CreateDlpJobRequest;

@@ -38,7 +38,7 @@ Follow the steps in this [document](common-terraform-1-prepare.md) and then cont
 
 ### Build Cloud Run Services Images
 
-We need to build and deploy docker images to be used by the Cloud Run service.
+We need to build and deploy docker images to be used by the Cloud Run services.
 
 ```
 export TAGGING_DISPATCHER_IMAGE=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/bqsc-tagging-dispatcher-service:latest
@@ -102,6 +102,18 @@ tagging_cron_expression = "0 0 * * *"
 PS: the current solution has one entry point/scheduler but one can extend the solution
 by adding more schedulers that have different BigQuery scope and/or timing.
 
+#### Take Note
+
+Take note of the default or user-defined values for the following
+variables as they will be used while configuring Auto-DLP outside
+of this solution in the next section:
+* `project`: the host project where we deploy the solution
+* `bigquery_dataset_name`: the name of the BigQuery dataset that contains the solution tables and views  
+* `auto_dlp_results_table_name`: the name of the BigQuery table that Auto-DLP uses to store detailed inspection findings.  
+* `tagger_pubsub_topic`: the PubSub topic for table tagging requests
+
+PS: If you haven't specified these variables 
+in your `.tfvars` file you can find the default values in [variables.tf](../terraform/variables.tf)
 
 ### Terraform Deployment
 
@@ -112,11 +124,25 @@ Follow the steps in this [document](common-terraform-3-apply.md) and then contin
 
 Follow the official [GCP guide](https://cloud.google.com/dlp/docs/data-profiles) 
 on how to set up scan configurations. Please note the following sections:
-* "Select inspection template": choose the "existing template" option 
-  and use the template that is created by the solution via Terraform (found under DLP > Configuration > Templates).
-  This will enable Auto DLP to look for the PII types you configured earlier in Terraform.
-* "Manage scan outcome": enable "save data profile copies to BigQuery" and use the same project, dataset and auto_dlp_table_name configured/created by Terraform.
-
+* "Select inspection template":  
+   Choose the "existing template" option and use the template that is created by the solution via Terraform (found under DLP > Configuration > Templates > Inspect).
+   This will enable Auto DLP to look for the PII types you configured earlier in Terraform.
+* "Manage scan outcome": 
+    * enable "save data profile copies to BigQuery" and use the same `project`, `bigquery_dataset_name` and `auto_dlp_results_table_name` as configured in Terraform.
+    * enable "Publish to Pub/Sub" and do the following
+        * Select "Send a Pub/Sub notification each time a table is profiled for the first time."
+        * Select "Send a Pub/Sub notification each time a profile is updated."
+        * For all selected options use these values:
+            * Pub/Sub Topic: `projects/<project-id>/topics/<topic-name>.` Where `project-id` and `topic-name` are the values of the Terraform variables `project` and `tagger_pubsub_topic` respectively.
+            * Notification Details:  "Resource Name Only"
+* "Manage service agent container and billing":  
+   * Choose "Select an existing service agent container".
+   * Enter the host project name (as set in the Terraform variable `project`) in the "Service agent container field"
+   * PS: This configuration is only allowed when you set Auto-DLP on an Org or Folder levels. 
+     If you configure Auto-DLP on project level make sure it's the same as the solution host project or re-deploy the terraform
+     module while using the desired DLP service agent in the variable `dlp_service_account`. This important to make sure that the
+     DLP service agent gets the required permissions on the solution.
+            
 ### Post deployment setup
 
 #### Set env variables
@@ -124,9 +150,8 @@ on how to set up scan configurations. Please note the following sections:
 Set the following variables that will be used in next steps:
 
 ```
-export ENV=<same one set in terraform vars>
-export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
-export SA_TAGGER_EMAIL=tagger-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGER_EMAIL=tagger@${PROJECT_ID}.iam.gserviceaccount.com
 ```
 
 PS: update the SA emails if the default names have been changed in Terraform

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.scan;
 
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;

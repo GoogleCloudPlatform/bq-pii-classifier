@@ -24,7 +24,7 @@ module "inspection_cloud_scheduler" {
   source = "../../modules/cloud-scheduler"
   project = var.project
   region = var.compute_region
-  scheduler_name = "${var.scheduler_name}-${var.env}"
+  scheduler_name = var.scheduler_name
 
 
   target_uri = module.pubsub-inspection-dispatcher.topic-id
@@ -43,7 +43,7 @@ module "cloud-run-inspection-dispatcher" {
   project = var.project
   region = var.compute_region
   service_image = var.dispatcher_service_image
-  service_name = "${var.dispatcher_service_name}-${var.env}"
+  service_name = var.dispatcher_service_name
   service_account_email = google_service_account.sa_inspection_dispatcher.email
   invoker_service_account_email = google_service_account.sa_inspection_dispatcher_tasks.email
   # Dispatcher could take time to list large number of tables
@@ -81,7 +81,7 @@ module "cloud-run-inspector" {
   project = var.project
   region = var.compute_region
   service_image = var.inspector_service_image
-  service_name = "${var.inspector_service_name}-${var.env}"
+  service_name = var.inspector_service_name
   service_account_email = google_service_account.sa_inspector.email
   invoker_service_account_email = google_service_account.sa_inspector_tasks.email
   timeout_seconds = var.inspector_service_timeout_seconds
@@ -113,7 +113,7 @@ module "cloud-run-inspector" {
     },
     {
       name = "DLP_NOTIFICATION_TOPIC",
-      value = module.pubsub-listener.topic-id,
+      value = var.tagger_topic_id,
     },
     {
       name = "BQ_RESULTS_DATASET",
@@ -134,32 +134,6 @@ module "cloud-run-inspector" {
   ]
 }
 
-module "cloud-run-listener" {
-  source = "../../modules/cloud-run"
-  project = var.project
-  region = var.compute_region
-  service_image = var.listener_service_image
-  service_name = "${var.listener_service_name}-${var.env}"
-  service_account_email = google_service_account.sa_listener.email
-  invoker_service_account_email = google_service_account.sa_listener_tasks.email
-  timeout_seconds = var.listener_service_timeout_seconds
-
-  environment_variables =  [
-    {
-      name = "REGION_ID",
-      value = var.compute_region,
-    },
-    {
-      name = "PROJECT_ID",
-      value = var.project,
-    },
-    {
-      name = "TAGGER_TOPIC_ID",
-      value = var.tagger_topic,
-    },
-  ]
-}
-
 
 // PubSub
 
@@ -167,10 +141,10 @@ module "pubsub-inspection-dispatcher" {
   source = "../../modules/pubsub"
   project = var.project
   subscription_endpoint = module.cloud-run-inspection-dispatcher.service_endpoint
-  subscription_name = "${var.dispatcher_pubsub_sub}_${var.env}"
+  subscription_name = var.dispatcher_pubsub_sub
   subscription_service_account = google_service_account.sa_inspection_dispatcher_tasks.email
-  topic = "${var.dispatcher_pubsub_topic}_${var.env}"
-  topic_publisher_sa_email = var.cloud_scheduler_account
+  topic = var.dispatcher_pubsub_topic
+  topic_publishers_sa_emails = [var.cloud_scheduler_account]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -182,31 +156,15 @@ module "pubsub-inspector" {
   source = "../../modules/pubsub"
   project = var.project
   subscription_endpoint = module.cloud-run-inspector.service_endpoint
-  subscription_name = "${var.inspector_pubsub_sub}_${var.env}"
+  subscription_name = var.inspector_pubsub_sub
   subscription_service_account = google_service_account.sa_inspector_tasks.email
-  topic = "${var.inspector_pubsub_topic}_${var.env}"
-  topic_publisher_sa_email = google_service_account.sa_inspection_dispatcher.email
+  topic = var.inspector_pubsub_topic
+  topic_publishers_sa_emails = [google_service_account.sa_inspection_dispatcher.email]
   subscription_ack_deadline_seconds = var.inspector_subscription_ack_deadline_seconds
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   # However, retrying the inspector function with the same msg will lead to a non-retryable error due to dlp job name collision
   subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
-
-}
-
-module "pubsub-listener" {
-  source = "../../modules/pubsub"
-  project = var.project
-  subscription_endpoint = module.cloud-run-listener.service_endpoint
-  subscription_name = "${var.listener_pubsub_sub}_${var.env}"
-  subscription_service_account = google_service_account.sa_listener_tasks.email
-  topic = "${var.listener_pubsub_topic}_${var.env}"
-  // DLP is publishing to the listener topic and not Inspector
-  topic_publisher_sa_email = var.dlp_service_account
-  subscription_ack_deadline_seconds = var.listener_subscription_ack_deadline_seconds
-  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
-  # In case of unexpected problems we want to avoid a buildup that re-trigger functions
-  subscription_message_retention_duration = var.listener_subscription_message_retention_duration
 
 }
 

@@ -18,8 +18,6 @@ variable "compute_region" {}
 
 variable "data_region" {}
 
-variable "env" {}
-
 variable "bigquery_dataset_name" {
 }
 

@@ -41,7 +41,7 @@ locals {
 
 module "gcs" {
   source = "./modules/gcs"
-  gcs_flags_bucket_name = "${var.project}-${var.gcs_flags_bucket_name}-${var.env}"
+  gcs_flags_bucket_name = "${var.project}-${var.gcs_flags_bucket_name}"
   project = var.project
   region = var.compute_region # because it's used by the cloud run services
   # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
@@ -58,7 +58,6 @@ module "common-stack" {
   dispatcher_service_image = var.tagging_dispatcher_service_image
   dlp_service_account = var.dlp_service_account
   domain_mapping = var.domain_mapping
-  env = var.env
   iam_mapping = var.iam_mapping
   is_dry_run = var.is_dry_run
   project = var.project
@@ -117,7 +116,6 @@ module "inspection-stack" {
   dispatcher_service_image = var.inspection_dispatcher_service_image
   dlp_inspection_template_id = module.common-stack.dlp_inspection_template_id
   dlp_service_account = var.dlp_service_account
-  env = var.env
   inspector_service_image = var.inspector_service_image
   listener_service_image = var.listener_service_image
   project = var.project
@@ -127,7 +125,7 @@ module "inspection-stack" {
   table_scan_limits_json_config = var.table_scan_limits_json_config
   tables_exclude_list = var.tables_exclude_list
   tables_include_list = var.tables_include_list
-  tagger_topic = module.common-stack.tagger_topic_name
+  tagger_topic_id = module.common-stack.tagger_topic_id
   dispatcher_pubsub_sub = var.inspection_dispatcher_pubsub_sub
   dispatcher_pubsub_topic = var.inspection_dispatcher_pubsub_topic
   dispatcher_service_name = var.inspection_dispatcher_service_name

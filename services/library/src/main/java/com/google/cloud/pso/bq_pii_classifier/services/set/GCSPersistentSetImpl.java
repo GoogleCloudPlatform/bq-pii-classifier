@@ -1,19 +1,15 @@
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.set;
 
 import com.google.cloud.storage.*;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 
-import java.util.List;
-
-public class GCSPersistenSetImpl implements PersistentSet {
+public class GCSPersistentSetImpl implements PersistentSet {
 
     private Storage storage;
     private String bucketName;
 
-    public GCSPersistenSetImpl(String bucketName) {
+    public GCSPersistentSetImpl(String bucketName) {
         // Instantiates a client
         this.storage = StorageOptions.getDefaultInstance().getService();
         this.bucketName = bucketName;

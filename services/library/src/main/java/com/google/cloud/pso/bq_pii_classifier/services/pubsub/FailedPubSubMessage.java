@@ -14,16 +14,34 @@
  * limitations under the License.
  */
 
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.pubsub;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.JsonMessage;
 
-import java.io.IOException;
-import java.util.List;
+public class FailedPubSubMessage {
 
-public interface PubSubService {
+    private JsonMessage msg;
+    private Exception exception;
 
-    //public PubSubPublishResults publishMessages(String projectId, String topicId, List<String> messages) throws IOException, InterruptedException;
 
-    public PubSubPublishResults publishTableOperationRequests(String projectId, String topicId, List<JsonMessage> messages) throws IOException, InterruptedException;
+    public FailedPubSubMessage(JsonMessage msg, Exception exception) {
+        this.msg = msg;
+        this.exception = exception;
+    }
+
+    public JsonMessage getMsg() {
+        return msg;
+    }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    @Override
+    public String toString() {
+        return "PubSubFailedMessage{" +
+                "msg='" + msg + '\'' +
+                ", exception=" + exception +
+                '}';
+    }
 }

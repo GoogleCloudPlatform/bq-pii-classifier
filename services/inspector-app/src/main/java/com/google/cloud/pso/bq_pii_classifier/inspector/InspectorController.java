@@ -21,7 +21,11 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-import com.google.cloud.pso.bq_pii_classifier.services.*;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.dlp.DlpService;
+import com.google.cloud.pso.bq_pii_classifier.services.dlp.DlpServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -71,9 +75,7 @@ public class InspectorController {
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
-            String requestJsonString = new String(Base64.getDecoder().decode(
-                    requestBody.getMessage().getData()
-            ));
+            String requestJsonString = requestBody.getMessage().dataToUtf8String();
 
             // remove any escape characters (e.g. from Terraform
             requestJsonString = requestJsonString.replace("\\", "");
@@ -92,7 +94,7 @@ public class InspectorController {
                     environment.toConfig(),
                     dlpService,
                     bqService,
-                    new GCSPersistenSetImpl(environment.getGcsFlagsBucket()),
+                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                     "inspector-flags"
             );
 

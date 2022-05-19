@@ -10,10 +10,6 @@ output "results_table_standard_dlp" {
   value = google_bigquery_table.standard_dlp_results_table.table_id
 }
 
-output "results_table_auto_dlp" {
-  value = google_bigquery_table.auto_dlp_results_table.table_id
-}
-
 output "config_view_dataset_domain_map" {
   value = google_bigquery_table.config_view_dataset_domain_map.table_id
 }

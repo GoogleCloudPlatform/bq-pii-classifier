@@ -20,10 +20,13 @@ package com.google.cloud.pso.bq_pii_classifier.dispatcher;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.BigQueryScope;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.Dispatcher;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.*;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.BigQueryScannerImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -73,9 +76,7 @@ public class InspectionDispatcherController {
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
-            String requestJsonString = new String(Base64.getDecoder().decode(
-                    requestBody.getMessage().getData()
-            ));
+            String requestJsonString = requestBody.getMessage().dataToUtf8String();
 
             // remove any escape characters (e.g. from Terraform
             requestJsonString = requestJsonString.replace("\\", "");
@@ -91,7 +92,7 @@ public class InspectionDispatcherController {
                     new BigQueryServiceImpl(),
                     new PubSubServiceImpl(),
                     new BigQueryScannerImpl(),
-                    new GCSPersistenSetImpl(environment.getGcsFlagsBucket()),
+                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                     "inspection-dispatcher-flags",
                     runId
             );

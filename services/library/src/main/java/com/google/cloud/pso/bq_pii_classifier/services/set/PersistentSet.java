@@ -1,4 +1,4 @@
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.set;
 
 public interface PersistentSet {
 

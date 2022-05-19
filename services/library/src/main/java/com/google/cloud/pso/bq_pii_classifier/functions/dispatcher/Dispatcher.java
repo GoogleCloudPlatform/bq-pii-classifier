@@ -20,7 +20,13 @@ import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
-import com.google.cloud.pso.bq_pii_classifier.services.*;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.FailedPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.SuccessPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.*;
 
 
 import java.io.IOException;

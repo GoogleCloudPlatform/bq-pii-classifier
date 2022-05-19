@@ -2,13 +2,6 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset
 
 
-locals {
-
-  // We only create a dlp results table if we're in standard mode.
-  // For AutoDLP mode, we expect the table to be created and it's spec/name passed to the module to be used in the view
-  results_table_spec = var.is_auto_dlp_mode ? "${var.project}.${var.dataset}.${google_bigquery_table.auto_dlp_results_table.table_id}" : "${var.project}.${var.dataset}.${google_bigquery_table.standard_dlp_results_table.table_id}"
-}
-
 ######## Datasets ##############################################################
 
 resource "google_bigquery_dataset" "results_dataset" {
@@ -26,19 +19,6 @@ resource "google_bigquery_dataset_iam_member" "logging_sink_access" {
 }
 
 ##### Tables #######################################################
-
-resource "google_bigquery_table" "auto_dlp_results_table" {
-
-  #count = var.is_auto_dlp_mode ? 1 : 0
-
-  project = var.project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
-  table_id = var.auto_dlp_results_table_name
-
-  schema = file("modules/bigquery/schema/auto_dlp_results.json")
-
-  deletion_protection = true
-}
 
 resource "google_bigquery_table" "standard_dlp_results_table" {
 

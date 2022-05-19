@@ -3,7 +3,6 @@
 project = ""
 compute_region = ""
 data_region = ""
-env = ""
 
 bigquery_dataset_name = "bq_security_classifier"
 

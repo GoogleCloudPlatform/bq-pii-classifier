@@ -179,11 +179,10 @@ Follow the steps in this [document](common-terraform-3-apply.md) and then contin
 Set the following variables that will be used in next steps:
 
 ```
-export ENV=<same one set in terraform vars>
-export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
-export SA_INSPECTION_DISPATCHER_EMAIL=insp-dispatcher-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
-export SA_INSPECTOR_EMAIL=inspector-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
-export SA_TAGGER_EMAIL=tagger-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_INSPECTION_DISPATCHER_EMAIL=insp-dispatcher@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_INSPECTOR_EMAIL=inspector@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGER_EMAIL=tagger@${PROJECT_ID}.iam.gserviceaccount.com
 export SA_DLP_EMAIL=service-${PROJECT_NUMBER}@dlp-api.iam.gserviceaccount.com
 ```
 

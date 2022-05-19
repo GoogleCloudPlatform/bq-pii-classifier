@@ -2,37 +2,37 @@
 
 resource "google_service_account" "sa_inspection_dispatcher" {
   project = var.project
-  account_id = "${var.sa_inspection_dispatcher}-${var.env}"
+  account_id = var.sa_inspection_dispatcher
   display_name = "Runtime SA for Inspection Dispatcher service"
 }
 
 resource "google_service_account" "sa_inspector" {
   project = var.project
-  account_id = "${var.sa_inspector}-${var.env}"
+  account_id = var.sa_inspector
   display_name = "Runtime SA for Inspector service"
 }
 
 resource "google_service_account" "sa_listener" {
   project = var.project
-  account_id = "${var.sa_listener}-${var.env}"
+  account_id = var.sa_listener
   display_name = "Runtime SA for Listener service"
 }
 
 resource "google_service_account" "sa_inspection_dispatcher_tasks" {
   project = var.project
-  account_id = "${var.sa_inspection_dispatcher_tasks}-${var.env}"
+  account_id = var.sa_inspection_dispatcher_tasks
   display_name = "To authorize PubSub Push requests to Inspection Dispatcher Service"
 }
 
 resource "google_service_account" "sa_inspector_tasks" {
   project = var.project
-  account_id = "${var.sa_inspector_tasks}-${var.env}"
+  account_id = var.sa_inspector_tasks
   display_name = "To authorize PubSub Push requests to Inspector Service"
 }
 
 resource "google_service_account" "sa_listener_tasks" {
   project = var.project
-  account_id = "${var.sa_listener_tasks}-${var.env}"
+  account_id = var.sa_listener_tasks
   display_name = "To authorize PubSub Push requests to Listener Service"
 }
 
@@ -100,13 +100,5 @@ resource "google_service_account_iam_member" "sa_listener_account_user_sa_listen
 resource "google_project_iam_member" "sa_listener_dlp_job_reader" {
   project = var.project
   role = "roles/dlp.jobsReader"
-  member = "serviceAccount:${google_service_account.sa_listener.email}"
-}
-
-# Listener SA must be able to Publish to Tagger Topic
-resource "google_pubsub_topic_iam_member" "sa_listener_tagger_topic_publisher" {
-  project = var.project
-  topic = var.tagger_topic
-  role = "roles/pubsub.publisher"
   member = "serviceAccount:${google_service_account.sa_listener.email}"
 }

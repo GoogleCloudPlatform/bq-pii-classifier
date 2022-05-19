@@ -18,8 +18,6 @@ variable "compute_region" {}
 
 variable "data_region" {}
 
-variable "env" {}
-
 variable "sa_inspection_dispatcher" {
 }
 
@@ -120,7 +118,7 @@ variable "table_scan_limits_json_config" {
   description = "JSON config to specify table scan limits intervals"
 }
 
-variable "tagger_topic" {}
+variable "tagger_topic_id" {}
 
 variable "dlp_min_likelihood" {}
 

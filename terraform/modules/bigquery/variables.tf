@@ -8,10 +8,6 @@ variable "dataset" {
 
 }
 
-variable "auto_dlp_results_table_name" {
-
-}
-
 variable "standard_dlp_results_table_name" {
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.cloud.pso.bq_pii_classifier.services;
+package com.google.cloud.pso.bq_pii_classifier.services.bq;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.cloud.bigquery.Job;

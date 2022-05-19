@@ -23,50 +23,37 @@
         # SELECT 'p1' AS project, 'dm2' AS domain
     )
     , column_info_type_base AS
-    (
-    SELECT
-    column_profile.table_full_resource AS table_full_resource,
-    SPLIT(column_profile.table_full_resource, '/')[OFFSET (4)] AS project,
-    SPLIT(column_profile.table_full_resource, '/')[OFFSET (6)] AS dataset,
-    SPLIT(column_profile.table_full_resource, '/')[OFFSET (8)] AS table,
-    column_profile.column AS column_name,
-    column_profile.column_info_type.info_type.name  AS auto_dlp_promoted_info_type,
-    CASE
-       -- If Auto DLP promotes only one PII type, use this PII
-       WHEN column_profile.column_info_type.info_type.name IS NOT NULL THEN column_profile.column_info_type.info_type.name
-       -- If Auto DLP doesn't promote a PII type but finds only one "Other PII" type, use that one other PII type
-       WHEN column_profile.column_info_type.info_type.name IS NULL AND ARRAY_LENGTH(column_profile.other_matches) = 1 THEN column_profile.other_matches[ORDINAL (1)].info_type.name
-       -- If Auto DLP doesn't promote a PII type but finds more than one "Other PII" type, use MIXED
-        WHEN column_profile.column_info_type.info_type.name IS NULL AND ARRAY_LENGTH(column_profile.other_matches) > 1 THEN "MIXED" END AS final_info_type,
-    TIMESTAMP_SECONDS(column_profile.profile_status.timestamp.seconds) column_profile_status_timestamp,
-    RANK () OVER (PARTITION BY column_profile.table_full_resource, column_profile.column, column_profile.column_info_type.info_type.name ORDER BY column_profile.profile_status.timestamp.seconds DESC) AS rank
-    FROM `${project}.${dataset}.${results_table}`
-    WHERE (column_profile.column_info_type.info_type.name IS NOT NULL OR column_profile.other_matches IS NOT NULL)
-    AND CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id, '.', column_profile.table_id) = '${param_lookup_key}'
-    )
-    , column_info_type_final AS
-    (
-    SELECT DISTINCT * EXCEPT (rank)
-    FROM column_info_type_base
-    WHERE rank = 1
-    )
+        (
 
-    SELECT DISTINCT
-    CONCAT(o.project, ".", o.dataset, ".", o.table) AS table_spec,
-    o.project AS project_id,
-    o.dataset AS dataset_id,
-    o.table AS table_id,
-    -- DLP reports column names for nested repeated records with the array index of the finding.
-    -- normalize the column names for nested repeated records by removing the '[index]' part and selecting distinct
-    -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
-    REGEXP_REPLACE(o.column_name, r"(\[\d+\]\.)", '.') AS field_name,
-    o.final_info_type AS info_type,
-    c.policy_tag
-    FROM column_info_type_final o
-    LEFT JOIN datasets_domains dd ON dd.project = o.project AND dd.dataset = o.dataset
-    LEFT JOIN projects_domains pd ON pd.project = o.project
-    -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-    LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = o.final_info_type
-    WHERE o.final_info_type IS NOT NULL
-    ORDER BY 1,2
+        SELECT
+        column_profile.dataset_project_id,
+        column_profile.dataset_id,
+        column_profile.table_id,
+        column_profile.column AS column_name,
+        CASE
+           -- If Auto DLP promotes only one PII type, use this PII
+           WHEN column_profile.column_info_type.info_type.name IS NOT NULL THEN column_profile.column_info_type.info_type.name
+           -- If Auto DLP doesn't promote a PII type but finds only one "Other PII" type, use that one other PII type
+           WHEN column_profile.column_info_type.info_type.name IS NULL AND ARRAY_LENGTH(column_profile.other_matches) = 1 THEN column_profile.other_matches[ORDINAL (1)].info_type.name
+           -- If Auto DLP doesn't promote a PII type but finds more than one "Other PII" type, use MIXED
+            WHEN column_profile.column_info_type.info_type.name IS NULL AND ARRAY_LENGTH(column_profile.other_matches) > 1 THEN "MIXED" END AS final_info_type,
+        FROM `${project}.${dataset}.${results_table}`
+        WHERE (column_profile.column_info_type.info_type.name IS NOT NULL OR column_profile.other_matches IS NOT NULL)
 
+        AND CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id, '.', column_profile.table_id) = '${param_lookup_key}'
+        )
+
+        SELECT DISTINCT
+        -- DLP reports column names for nested repeated records with the array index of the finding.
+        -- normalize the column names for nested repeated records by removing the '[index]' part and selecting distinct
+        -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
+        REGEXP_REPLACE(o.column_name, r"(\[\d+\]\.)", '.') AS field_name,
+        o.final_info_type AS info_type,
+        c.policy_tag
+        FROM column_info_type_base o
+        LEFT JOIN datasets_domains dd ON dd.project = o.dataset_project_id AND dd.dataset = o.dataset_id
+        LEFT JOIN projects_domains pd ON pd.project = o.dataset_project_id
+        -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
+        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = o.final_info_type
+        WHERE o.final_info_type IS NOT NULL
+        ORDER BY 1,2

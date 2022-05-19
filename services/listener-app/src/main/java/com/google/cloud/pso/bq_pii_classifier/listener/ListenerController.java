@@ -21,10 +21,10 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpService;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubService;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.dlp.DlpService;
+import com.google.cloud.pso.bq_pii_classifier.services.dlp.DlpServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class ListenerController {
 
     private final LoggingHelper logger;
-
 
     private static final Integer functionNumber = 3;
 
@@ -74,7 +73,6 @@ public class ListenerController {
             }
 
             String dlpJobName = requestBody.getMessage().getAttributes().getOrDefault("DlpJobName", "");
-
 
             if (dlpJobName.isBlank()) {
                 throw new NonRetryableApplicationException("DlpJobName message attribute is missing");

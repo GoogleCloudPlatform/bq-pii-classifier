@@ -20,11 +20,11 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.DlpService;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubPublishResults;
-import com.google.cloud.pso.bq_pii_classifier.services.PubSubService;
-import com.google.cloud.pso.bq_pii_classifier.services.FailedPubSubMessage;
-import com.google.cloud.pso.bq_pii_classifier.services.SuccessPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.dlp.DlpService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.FailedPubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.SuccessPubSubMessage;
 
 import java.io.IOException;
 import java.util.Arrays;
