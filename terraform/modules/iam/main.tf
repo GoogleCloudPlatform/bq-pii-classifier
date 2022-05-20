@@ -107,9 +107,17 @@ resource "google_project_iam_member" "sa_tagger_bq_job_user" {
 
 ############## DLP Service Account ################################################
 
+# DLP SA must read BigQuery columns tagged by solution-managed taxonomies
 resource "google_project_iam_member" "dlp_sa_binding" {
   project = var.project
   role = "roles/datacatalog.categoryFineGrainedReader"
+  member = "serviceAccount:${var.dlp_service_account}"
+}
+
+# DLP SA must write results to BigQuery table inside of the solution dataset
+resource "google_bigquery_dataset_iam_member" "dlp_access_bq_dataset" {
+  dataset_id = var.bq_results_dataset
+  role = "roles/bigquery.dataEditor"
   member = "serviceAccount:${var.dlp_service_account}"
 }
 

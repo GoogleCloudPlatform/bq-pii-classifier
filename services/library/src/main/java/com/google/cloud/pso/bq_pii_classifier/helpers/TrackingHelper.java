@@ -25,6 +25,7 @@ public class TrackingHelper {
 
     private static final String taggingRunSuffix = "-T";
     private static final String inspectionRunSuffix = "-I";
+    private static final String oneTimeTaggingSuffix = "-A";
     private static final Integer suffixLength = 2;
 
     public static String generateTaggingRunId(){
@@ -33,6 +34,10 @@ public class TrackingHelper {
 
     public static String generateInspectionRunId(){
         return generateRunId(inspectionRunSuffix);
+    }
+
+    public static String generateOneTimeTaggingSuffix(){
+        return generateRunId(oneTimeTaggingSuffix);
     }
 
     private static String generateRunId(String suffix){

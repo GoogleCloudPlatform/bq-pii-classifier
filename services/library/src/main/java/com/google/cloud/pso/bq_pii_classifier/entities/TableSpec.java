@@ -20,6 +20,7 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TableSpec {
 
@@ -59,5 +60,30 @@ public class TableSpec {
                 targetTableSpecs.get(1),
                 targetTableSpecs.get(2)
         );
+    }
+
+    // parse from "//bigquery.googleapis.com/projects/#project_name/datasets/#dataset_name/tables/#table_name>"
+    public static TableSpec fromFullResource(String fullResource){
+        List<String> tokens = Utils.tokenize(fullResource, "/", true);
+        return new TableSpec(
+                tokens.get(2),
+                tokens.get(4),
+                tokens.get(6)
+        );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TableSpec tableSpec = (TableSpec) o;
+        return Objects.equals(project, tableSpec.project) &&
+                Objects.equals(dataset, tableSpec.dataset) &&
+                Objects.equals(table, tableSpec.table);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(project, dataset, table);
     }
 }

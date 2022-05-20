@@ -3,7 +3,6 @@
 project = ""
 compute_region = ""
 data_region = ""
-env = ""
 
 bigquery_dataset_name = "bq_security_classifier"
 
@@ -65,7 +64,6 @@ is_auto_dlp_mode = false
 tagging_dispatcher_service_image = ""
 inspection_dispatcher_service_image = ""
 inspector_service_image = ""
-listener_service_image = ""
 tagger_service_image = ""
 
 inspection_cron_expression = ""

@@ -18,8 +18,6 @@ variable "compute_region" {}
 
 variable "data_region" {}
 
-variable "env" {}
-
 variable "bigquery_dataset_name" {
   default = "bq_security_classifier"
 }
@@ -58,14 +56,6 @@ variable "sa_inspector_tasks" {
   default = "inspector-tasks"
 }
 
-variable "sa_listener" {
-  default = "listener"
-}
-
-variable "sa_listener_tasks" {
-  default = "listener-tasks"
-}
-
 variable "sa_tagger" {
   default = "tagger"
 }
@@ -102,12 +92,8 @@ variable "inspector_service_name" {
   default = "s2-inspector"
 }
 
-variable "listener_service_name" {
-  default = "s3-listener"
-}
-
 variable "tagger_service_name" {
-  default = "s4-tagger"
+  default = "s3-tagger"
 }
 
 
@@ -135,14 +121,6 @@ variable "inspector_pubsub_sub" {
   default = "inspector_push_sub"
 }
 
-variable "listener_pubsub_topic" {
-  default = "listener_topic"
-}
-
-variable "listener_pubsub_sub" {
-  default = "listener_push_sub"
-}
-
 variable "tagger_pubsub_topic" {
   default = "tagger_topic"
 }
@@ -167,12 +145,6 @@ variable "inspector_service_image" {
   description = "Optional. Only needed when is_auto_dlp_mode = false"
   default = "(N/A)"
 }
-
-variable "listener_service_image" {
-  description = "Optional. Only needed when is_auto_dlp_mode = false"
-  default = "(N/A)"
-}
-
 
 # DLP scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
@@ -412,30 +384,6 @@ variable "inspector_subscription_ack_deadline_seconds" {
 }
 
 variable "inspector_subscription_message_retention_duration" {
-  description = "How long to retain unacknowledged messages in the subscription's backlog"
-  type = string
-  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
-  # It also sets how long should we keep trying to process one run
-  # min value must be at least equal to the ack_deadline_seconds
-  # Inspector should have a relatively long retention to handle runs with large number of tables.
-  default = "86400s" # 24h
-}
-
-# Listener settings.
-variable "listener_service_timeout_seconds" {
-  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
-  type = number
-  default = 300 # 5m
-}
-
-variable "listener_subscription_ack_deadline_seconds" {
-  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
-  type = number
-  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
-  default = 420 # 7m
-}
-
-variable "listener_subscription_message_retention_duration" {
   description = "How long to retain unacknowledged messages in the subscription's backlog"
   type = string
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)

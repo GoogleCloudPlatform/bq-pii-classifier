@@ -41,7 +41,7 @@ locals {
 
 module "gcs" {
   source = "./modules/gcs"
-  gcs_flags_bucket_name = "${var.project}-${var.gcs_flags_bucket_name}-${var.env}"
+  gcs_flags_bucket_name = "${var.project}-${var.gcs_flags_bucket_name}"
   project = var.project
   region = var.compute_region # because it's used by the cloud run services
   # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
@@ -58,7 +58,6 @@ module "common-stack" {
   dispatcher_service_image = var.tagging_dispatcher_service_image
   dlp_service_account = var.dlp_service_account
   domain_mapping = var.domain_mapping
-  env = var.env
   iam_mapping = var.iam_mapping
   is_dry_run = var.is_dry_run
   project = var.project
@@ -88,8 +87,6 @@ module "common-stack" {
   sa_inspection_dispatcher_tasks = var.sa_inspection_dispatcher_tasks
   sa_inspector = var.sa_inspector
   sa_inspector_tasks = var.sa_inspector_tasks
-  sa_listener = var.sa_listener
-  sa_listener_tasks = var.sa_listener_tasks
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
@@ -117,9 +114,7 @@ module "inspection-stack" {
   dispatcher_service_image = var.inspection_dispatcher_service_image
   dlp_inspection_template_id = module.common-stack.dlp_inspection_template_id
   dlp_service_account = var.dlp_service_account
-  env = var.env
   inspector_service_image = var.inspector_service_image
-  listener_service_image = var.listener_service_image
   project = var.project
   projects_include_list = var.projects_include_list
   compute_region = var.compute_region
@@ -127,20 +122,15 @@ module "inspection-stack" {
   table_scan_limits_json_config = var.table_scan_limits_json_config
   tables_exclude_list = var.tables_exclude_list
   tables_include_list = var.tables_include_list
-  tagger_topic = module.common-stack.tagger_topic_name
+  tagger_topic_id = module.common-stack.tagger_topic_id
   dispatcher_pubsub_sub = var.inspection_dispatcher_pubsub_sub
   dispatcher_pubsub_topic = var.inspection_dispatcher_pubsub_topic
   dispatcher_service_name = var.inspection_dispatcher_service_name
   inspector_pubsub_sub = var.inspector_pubsub_sub
   inspector_pubsub_topic = var.inspector_pubsub_topic
   inspector_service_name = var.inspector_service_name
-  listener_pubsub_sub = var.listener_pubsub_sub
-  listener_pubsub_topic = var.listener_pubsub_topic
-  listener_service_name = var.listener_service_name
   sa_inspector = var.sa_inspector
   sa_inspector_tasks = var.sa_inspector_tasks
-  sa_listener = var.sa_listener
-  sa_listener_tasks = var.sa_listener_tasks
   scheduler_name = var.inspection_scheduler_name
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
   sa_inspection_dispatcher = var.sa_inspection_dispatcher
@@ -156,9 +146,6 @@ module "inspection-stack" {
   inspector_service_timeout_seconds = var.inspector_service_timeout_seconds
   inspector_subscription_ack_deadline_seconds = var.inspector_subscription_ack_deadline_seconds
   inspector_subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
-  listener_service_timeout_seconds = var.listener_service_timeout_seconds
-  listener_subscription_ack_deadline_seconds = var.listener_subscription_ack_deadline_seconds
-  listener_subscription_message_retention_duration = var.listener_subscription_message_retention_duration
 }
 
 

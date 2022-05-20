@@ -38,7 +38,7 @@ Follow the steps in this [document](common-terraform-1-prepare.md) and then cont
 
 ### Build Cloud Run Services Images
 
-We need to build and deploy docker images to be used by the Cloud Run service.
+We need to build and deploy docker images to be used by the Cloud Run services.
 
 ```
 export TAGGING_DISPATCHER_IMAGE=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/bqsc-tagging-dispatcher-service:latest
@@ -102,6 +102,18 @@ tagging_cron_expression = "0 0 * * *"
 PS: the current solution has one entry point/scheduler but one can extend the solution
 by adding more schedulers that have different BigQuery scope and/or timing.
 
+#### Take Note
+
+Take note of the default or user-defined values for the following
+variables as they will be used while configuring Auto-DLP outside
+of this solution in the next section:
+* `project`: the host project where we deploy the solution
+* `bigquery_dataset_name`: the name of the BigQuery dataset that contains the solution tables and views  
+* `auto_dlp_results_table_name`: the name of the BigQuery table that Auto-DLP uses to store detailed inspection findings.  
+* `tagger_pubsub_topic`: the PubSub topic for table tagging requests
+
+PS: If you haven't specified these variables 
+in your `.tfvars` file you can find the default values in [variables.tf](../terraform/variables.tf)
 
 ### Terraform Deployment
 
@@ -112,11 +124,25 @@ Follow the steps in this [document](common-terraform-3-apply.md) and then contin
 
 Follow the official [GCP guide](https://cloud.google.com/dlp/docs/data-profiles) 
 on how to set up scan configurations. Please note the following sections:
-* "Select inspection template": choose the "existing template" option 
-  and use the template that is created by the solution via Terraform (found under DLP > Configuration > Templates).
-  This will enable Auto DLP to look for the PII types you configured earlier in Terraform.
-* "Manage scan outcome": enable "save data profile copies to BigQuery" and use the same project, dataset and auto_dlp_table_name configured/created by Terraform.
-
+* "Select inspection template":  
+   Choose the "existing template" option and use the template that is created by the solution via Terraform (found under DLP > Configuration > Templates > Inspect).
+   This will enable Auto DLP to look for the PII types you configured earlier in Terraform.
+* "Manage scan outcome": 
+    * enable "save data profile copies to BigQuery" and use the same `project`, `bigquery_dataset_name` and `auto_dlp_results_table_name` as configured in Terraform.
+    * enable "Publish to Pub/Sub" and do the following
+        * Select "Send a Pub/Sub notification each time a table is profiled for the first time."
+        * Select "Send a Pub/Sub notification each time a profile is updated."
+        * For all selected options use these values:
+            * Pub/Sub Topic: `projects/<project-id>/topics/<topic-name>.` Where `project-id` and `topic-name` are the values of the Terraform variables `project` and `tagger_pubsub_topic` respectively.
+            * Notification Details:  "Resource Name Only"
+* "Manage service agent container and billing":  
+   * Choose "Select an existing service agent container".
+   * Enter the host project name (as set in the Terraform variable `project`) in the "Service agent container field"
+   * PS: This configuration is only allowed when you set Auto-DLP on an Org or Folder levels. 
+     If you configure Auto-DLP on project level make sure it's the same as the solution host project or re-deploy the terraform
+     module while using the desired DLP service agent in the variable `dlp_service_account`. This important to make sure that the
+     DLP service agent gets the required permissions on the solution.
+            
 ### Post deployment setup
 
 #### Set env variables
@@ -124,9 +150,8 @@ on how to set up scan configurations. Please note the following sections:
 Set the following variables that will be used in next steps:
 
 ```
-export ENV=<same one set in terraform vars>
-export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
-export SA_TAGGER_EMAIL=tagger-${ENV}@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGING_DISPATCHER_EMAIL=tag-dispatcher@${PROJECT_ID}.iam.gserviceaccount.com
+export SA_TAGGER_EMAIL=tagger@${PROJECT_ID}.iam.gserviceaccount.com
 ```
 
 PS: update the SA emails if the default names have been changed in Terraform
@@ -161,15 +186,6 @@ PS:
 * If you have tables to be inspected in the host project, run the above script and include the host project in the list
 * Use the same projects list as set in the Terraform variable `projects_include_list`
 
-## Manual Usage
-
-* In GCP, select the host project
-* Go to Cloud Scheduler
-* Trigger the "Tagging Scheduler"
-* Inspect the status of the run via the queries in the [Reporting section](Reporting).  
-  Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
-* Inspect a sample BigQuery table and validate that the policy tags were applied correctly.   
-
 ## Reporting
 
 Check out this [document](common-reporting.md) for example queries on:
@@ -178,24 +194,45 @@ Check out this [document](common-reporting.md) for example queries on:
 * Displaying a log of all tagging actions and PII findings by the solution
 
 
-## Automated Usage
+## Usage
 
 After deploying the solution, one can call it in different ways:
  
- **[Option 1] CRON Schedules:**    
+  **[Option 1] Auto-DLP Notifications:**  
+  
+  ![alt text](../diagrams/auto%20dlp-usage-tagger%20notification.jpg)
+  
+  After Auto DLP (re)profiles a table it will send a PubSub notification
+  to the Tagger service to apply tags to columns with PII. To test this behaviour you could create 
+  apply an action that triggers Auto DLP to profile or re-profile a table, wait until the target table(s) appears
+  in the Auto DLP UI and then manulay inspect the table to see if policy tags are applied correctly.   
+  There are different actions that could trigger Auto DLP and they are based on the Auto DLP configuration
+  you created earlier (in the schedule section) some of them are:  
+  * Create a new table with PII
+  * Copying an existing one (same as creating new table)
+  * Adding rows to an already profiled table
+  * Changing the schema of an already profiled table
+  
+  PS: Auto DLP configuration determines the frequency for which DLP (re)profiles a table, it could be
+  daily or monthly. It's recommended to use "daily" to be able to test the solution on a timely manner
+  and then switching it to a different schedule if needed for long-term usage.
+  
+ **[Option 2] CRON Schedules:**    
  
   ![alt text](../diagrams/auto%20dlp-usage-cron.jpg)
  
- In this scenario, a BigQuery scan is defined to include several projects, datasets and tables to be tagged once or on a regular schedule. This could be done by using Cloud Scheduler (or any Orchestration tool) to invoke the Tagging Dispatcher service with such scan scope and frequency.  
+ If Auto DLP already profiled some tables, and you want to (re)tag them (or a subset) you could 
+ use the Cloud Scheduler to trigger a tagging run for the tables that Auto DLP already profiled.   
+ Steps: 
+ * In GCP, select the host project
+ * Go to Cloud Scheduler
+ * Trigger the "Tagging Scheduler"
+ * Inspect the status of the run via the queries in the [Reporting section](Reporting).  
+   Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
+ * Inspect a sample BigQuery table and validate that the policy tags were applied correctly.   
  
  In addition, more than one Cloud Scheduler/Trigger could be defined to group tables that have the same inspection schedule (daily, monthly, etc)
  
- **[Option 2] [ROADMAP] Auto-DLP Notifications:**  
- 
- ![alt text](../diagrams/auto%20dlp-usage-tagger%20notification.jpg)
- 
- Once Auto DLP offers a feature to send PubSub notifications on job completion, these notifications could be sent to the Tagger Tasks Topic to trigger a tagging request for that table.
- This might need an extension in the solution code to handle the PubSub message format sent by Auto-DLP.   
 
 
 ## Updating DLP Info Types

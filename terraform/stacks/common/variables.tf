@@ -18,8 +18,6 @@ variable "compute_region" {}
 
 variable "data_region" {}
 
-variable "env" {}
-
 variable "bigquery_dataset_name" {
 }
 
@@ -43,8 +41,6 @@ variable "sa_inspection_dispatcher_tasks" {
 
 variable "sa_inspector" {}
 variable "sa_inspector_tasks" {}
-variable "sa_listener" {}
-variable "sa_listener_tasks" {}
 
 variable "sa_tagger" {
 }

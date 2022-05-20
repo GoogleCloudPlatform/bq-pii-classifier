@@ -52,8 +52,9 @@ resource "google_pubsub_subscription" "subscription" {
 
 # Allow an SA to publish to this topic
 resource "google_pubsub_topic_iam_member" "sa_topic_publisher" {
+  count = length(var.topic_publishers_sa_emails)
   project = var.project
   topic = google_pubsub_topic.topic.id
   role = "roles/pubsub.publisher"
-  member = "serviceAccount:${var.topic_publisher_sa_email}"
+  member = "serviceAccount:${var.topic_publishers_sa_emails[count.index]}"
 }

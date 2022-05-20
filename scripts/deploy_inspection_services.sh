@@ -33,6 +33,3 @@ mvn compile jib:build -Dimage="${INSPECTION_DISPATCHER_IMAGE}"
 cd ../inspector-app
 mvn compile jib:build -Dimage="${INSPECTOR_IMAGE}"
 
-cd ../listener-app
-mvn compile jib:build -Dimage="${LISTENER_IMAGE}"
-

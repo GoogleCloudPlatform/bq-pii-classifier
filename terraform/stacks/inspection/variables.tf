@@ -18,8 +18,6 @@ variable "compute_region" {}
 
 variable "data_region" {}
 
-variable "env" {}
-
 variable "sa_inspection_dispatcher" {
 }
 
@@ -32,12 +30,6 @@ variable "sa_inspector" {
 variable "sa_inspector_tasks" {
 }
 
-variable "sa_listener" {
-}
-
-variable "sa_listener_tasks" {
-}
-
 variable "scheduler_name" {
 }
 
@@ -45,9 +37,6 @@ variable "dispatcher_service_name" {
 }
 
 variable "inspector_service_name" {
-}
-
-variable "listener_service_name" {
 }
 
 variable "dispatcher_pubsub_topic" {
@@ -62,16 +51,8 @@ variable "inspector_pubsub_topic" {
 variable "inspector_pubsub_sub" {
 }
 
-variable "listener_pubsub_topic" {
-}
-
-variable "listener_pubsub_sub" {
-}
-
 variable "dispatcher_service_image" {}
 variable "inspector_service_image" {}
-variable "listener_service_image" {}
-
 
 # BQ scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
@@ -120,7 +101,7 @@ variable "table_scan_limits_json_config" {
   description = "JSON config to specify table scan limits intervals"
 }
 
-variable "tagger_topic" {}
+variable "tagger_topic_id" {}
 
 variable "dlp_min_likelihood" {}
 
@@ -149,12 +130,6 @@ variable "inspector_subscription_ack_deadline_seconds" {}
 
 variable "inspector_subscription_message_retention_duration" {}
 
-# Listener settings.
-variable "listener_service_timeout_seconds" {}
-
-variable "listener_subscription_ack_deadline_seconds" {}
-
-variable "listener_subscription_message_retention_duration" {}
 
 
 

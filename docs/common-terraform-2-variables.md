@@ -18,10 +18,7 @@ Both ways, you must define the below variables:
 project = "<GCP project ID to deploy solution to>"
 compute_region = "<GCP region to deploy compute resources e.g. cloud run, iam, etc>"
 data_region = "<GCP region where the target data resides and where data-related resources will be deployed e.g. data calatog taxonomies, dlp template, bigquery dataset, etc>"
-env = "<dev, tst, prod, poc, etc>"
 ```
-
-PS: the `env` value will be added as a suffix to most resources
 
 ### Configure BigQuery Dataset  
 
@@ -182,7 +179,8 @@ is_dry_run = "False"
 
 ### Configure DLP Service Account
 
-* DLP service account must have Fine-Grained Reader role on the created taxonomies in order to inspect tagged columns for new data.
+DLP service account must have a set of permissions on the resources created by the solution.
+
 Steps:
  * Detect the DLP service account in the host project
      * DLP service account is in the form service-<project number>@dlp-api.iam.gserviceaccount.com
@@ -194,6 +192,8 @@ Steps:
 dlp_service_account = "service-<project number>@dlp-api.iam.gserviceaccount.com"
 
 ```
+
+PS: project number is different from project id/name. You can find both info on the home page of any project.
 
 ### Configure Cloud Scheduler Service Account
 

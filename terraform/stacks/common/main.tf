@@ -93,6 +93,8 @@ locals {
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
 
   timestamp = formatdate("YYMMDDhhmmss", timestamp())
+
+  auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 }
 
 module "data-catalog" {
@@ -110,7 +112,7 @@ module "bigquery" {
   source = "../../modules/bigquery"
   project = var.project
   region = var.data_region
-  dataset = "${var.bigquery_dataset_name}_${var.env}"
+  dataset = var.bigquery_dataset_name
   logging_sink_sa = module.cloud_logging.service_account
 
   # Data for config views
@@ -118,7 +120,6 @@ module "bigquery" {
   dataset_domains_mapping = local.datasets_and_domains_filtered
   projects_domains_mapping = local.project_and_domains_filtered
   is_auto_dlp_mode = var.is_auto_dlp_mode
-  auto_dlp_results_table_name = var.auto_dlp_results_table_name
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
 }
 
@@ -128,7 +129,7 @@ module "cloud_logging" {
   dataset = module.bigquery.results_dataset
   project = var.project
   region = var.compute_region
-  log_sink_name = "${var.log_sink_name}_${var.env}"
+  log_sink_name = var.log_sink_name
 }
 
 // DLP
@@ -143,7 +144,7 @@ module "cloud_scheduler" {
   source = "../../modules/cloud-scheduler"
   project = var.project
   region = var.compute_region
-  scheduler_name = "${var.scheduler_name}-${var.env}"
+  scheduler_name = var.scheduler_name
 
   target_uri = module.pubsub-tagging-dispatcher.topic-id
 
@@ -161,14 +162,14 @@ module "iam" {
   source = "../../modules/iam"
   project = var.project
   region = var.compute_region
-  sa_tagger = "${var.sa_tagger}-${var.env}"
-  sa_tagger_tasks = "${var.sa_tagger_tasks}-${var.env}"
+  sa_tagger = var.sa_tagger
+  sa_tagger_tasks = var.sa_tagger_tasks
   taxonomy_parent_tags = local.created_parent_tags
   iam_mapping = var.iam_mapping
   dlp_service_account = var.dlp_service_account
-  tagger_role = "${var.tagger_role}_${var.env}"
-  sa_tagging_dispatcher = "${var.sa_tagging_dispatcher}-${var.env}"
-  sa_tagging_dispatcher_tasks = "${var.sa_tagging_dispatcher_tasks}-${var.env}"
+  tagger_role = var.tagger_role
+  sa_tagging_dispatcher = var.sa_tagging_dispatcher
+  sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   bq_results_dataset = module.bigquery.results_dataset
 }
 
@@ -177,7 +178,7 @@ module "cloud-run-tagging-dispatcher" {
   project = var.project
   region = var.compute_region
   service_image = var.dispatcher_service_image
-  service_name = "${var.dispatcher_service_name}-${var.env}"
+  service_name = var.dispatcher_service_name
   service_account_email = module.iam.sa_tagging_dispatcher_email
   invoker_service_account_email = module.iam.sa_tagging_dispatcher_tasks_email
   # Dispatcher could take time to list large number of tables
@@ -215,7 +216,7 @@ module "cloud-run-tagging-dispatcher" {
     },
     {
       name = "DLP_TABLE_AUTO",
-      value = module.bigquery.results_table_auto_dlp,
+      value = local.auto_dlp_results_latest_view,
     },
     {
       name = "IS_AUTO_DLP_MODE",
@@ -233,7 +234,7 @@ module "cloud-run-tagger" {
   project = var.project
   region = var.compute_region
   service_image = var.tagger_service_image
-  service_name = "${var.tagger_service_name}-${var.env}"
+  service_name = var.tagger_service_name
   service_account_email = module.iam.sa_tagger_email
   invoker_service_account_email = module.iam.sa_tagger_tasks_email
   # no more than 80 requests at a time to handle BigQuery API rate limiting
@@ -272,7 +273,7 @@ module "cloud-run-tagger" {
     },
     {
       name = "DLP_TABLE_AUTO",
-      value = module.bigquery.results_table_auto_dlp,
+      value = local.auto_dlp_results_latest_view,
     },
     {
       name = "VIEW_INFOTYPE_POLICYTAGS_MAP",
@@ -304,10 +305,10 @@ module "pubsub-tagging-dispatcher" {
   source = "../../modules/pubsub"
   project = var.project
   subscription_endpoint = module.cloud-run-tagging-dispatcher.service_endpoint
-  subscription_name = "${var.dispatcher_pubsub_sub}_${var.env}"
+  subscription_name = var.dispatcher_pubsub_sub
   subscription_service_account = module.iam.sa_tagging_dispatcher_tasks_email
-  topic = "${var.dispatcher_pubsub_topic}_${var.env}"
-  topic_publisher_sa_email = var.cloud_scheduler_account
+  topic = var.dispatcher_pubsub_topic
+  topic_publishers_sa_emails = [var.cloud_scheduler_account]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -320,10 +321,11 @@ module "pubsub-tagger" {
   source = "../../modules/pubsub"
   project = var.project
   subscription_endpoint = module.cloud-run-tagger.service_endpoint
-  subscription_name = "${var.tagger_pubsub_sub}_${var.env}"
+  subscription_name = var.tagger_pubsub_sub
   subscription_service_account = module.iam.sa_tagger_tasks_email
-  topic = "${var.tagger_pubsub_topic}_${var.env}"
-  topic_publisher_sa_email = module.iam.sa_tagging_dispatcher_email
+  topic = var.tagger_pubsub_topic
+  // Tagging Dispatcher and DLP service account must be able to publish messages to the Tagger
+  topic_publishers_sa_emails = [module.iam.sa_tagging_dispatcher_email, var.dlp_service_account]
   # Tagger is using BigQuery queries in BATCH mode to avoid INTERACTIVE query concurency limits and they might take longer time to execute under heavy load
   # 10m is max allowed
   subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds

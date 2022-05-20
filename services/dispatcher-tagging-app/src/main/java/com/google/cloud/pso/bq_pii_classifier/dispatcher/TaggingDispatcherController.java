@@ -21,7 +21,11 @@ import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.Dispatcher;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.*;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,9 +75,7 @@ public class TaggingDispatcherController {
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
-            String requestJsonString = new String(Base64.getDecoder().decode(
-                    requestBody.getMessage().getData()
-            ));
+            String requestJsonString = requestBody.getMessage().dataToUtf8String();
 
             // remove any escape characters (e.g. from Terraform
             requestJsonString = requestJsonString.replace("\\", "");
@@ -107,7 +109,7 @@ public class TaggingDispatcherController {
                     new BigQueryServiceImpl(),
                     new PubSubServiceImpl(),
                     dlpResultsScanner,
-                    new GCSPersistenSetImpl(environment.getGcsFlagsBucket()),
+                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                     "tagging-dispatcher-flags",
                     runId
             );

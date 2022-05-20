@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 // Body.Message is the payload of a Pub/Sub event. Please refer to the docs for
@@ -38,12 +39,12 @@ public class PubSubEvent {
 
         private String messageId;
         private String publishTime;
-        private String data;
+        private byte[] data;
         private Map<String, String> attributes;
 
         public Message() {}
 
-        public Message(String messageId, String publishTime, String data, Map<String, String> attributes) {
+        public Message(String messageId, String publishTime, byte[] data, Map<String, String> attributes) {
             this.messageId = messageId;
             this.publishTime = publishTime;
             this.data = data;
@@ -66,11 +67,11 @@ public class PubSubEvent {
             this.publishTime = publishTime;
         }
 
-        public String getData() {
+        public byte[] getData() {
             return data;
         }
 
-        public void setData(String data) {
+        public void setData(byte[] data) {
             this.data = data;
         }
 
@@ -80,6 +81,10 @@ public class PubSubEvent {
 
         public void setAttributes(Map<String, String> attributes) {
             this.attributes = attributes;
+        }
+
+        public String dataToUtf8String (){
+            return new String(data, StandardCharsets.UTF_8);
         }
 
         @Override

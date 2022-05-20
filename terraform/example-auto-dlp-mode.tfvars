@@ -4,7 +4,6 @@
 project = ""
 compute_region = ""
 data_region = ""
-env = ""
 
 tables_include_list = []
 datasets_include_list = []
