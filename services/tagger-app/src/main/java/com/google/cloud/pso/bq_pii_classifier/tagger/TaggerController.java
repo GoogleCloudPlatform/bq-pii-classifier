@@ -47,7 +47,7 @@ import java.util.Base64;
 public class TaggerController {
 
     private final LoggingHelper logger;
-    private static final Integer functionNumber = 4;
+    private static final Integer functionNumber = 3;
     private Gson gson;
     Environment environment;
 
@@ -76,9 +76,10 @@ public class TaggerController {
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
-            // The pubsub message could come from two different sources with two different formats
+            // The pubsub message could come from different sources with different formats
             // 1. From the Dispatcher as JSON encoded "Operation" object (in standard and auto-dlp modes)
-            // 2. From Auto DLP notifications (PubSub Actions) as Protobuf encoded "DataProfilePubSubMessage" (in AutoDLP mode only)
+            // 2. From Standard DLP inspection job notifications (PubSub Actions) as a string message with the DLP job name
+            // 3. From Auto DLP notifications (PubSub Actions) as Protobuf encoded "DataProfilePubSubMessage" (in AutoDLP mode only)
             // Here we try and parse it directly as an "Operation" object or indirectly via the "DataProfilePubSubMessage" proto
             taggerRequest = parseEvent(requestBody);
 
@@ -93,7 +94,7 @@ public class TaggerController {
                     bigQueryService,
                     environment.getProjectId(),
                     environment.getDlpDataset(),
-                    environment.getIsAutoDlpMode()? environment.getDlpTableAuto(): environment.getDlpTableStandard(),
+                    environment.getIsAutoDlpMode() ? environment.getDlpTableAuto() : environment.getDlpTableStandard(),
                     environment.getConfigViewDatasetDomainMap(),
                     environment.getConfigViewProjectDomainMap(),
                     environment.getConfigViewInfoTypePolicyTagsMap()
@@ -107,7 +108,7 @@ public class TaggerController {
                     "tagger-flags"
             );
 
-             tagger.execute(
+            tagger.execute(
                     taggerRequest,
                     requestBody.getMessage().getMessageId()
             );
@@ -115,18 +116,45 @@ public class TaggerController {
             return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
         } catch (Exception e) {
 
-            String trackingId = taggerRequest == null? defaultTrackingId: taggerRequest.getTrackingId();
+            String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
             return ControllerExceptionHelper.handleException(e, logger, trackingId);
         }
     }
 
-    private Operation parseEvent (PubSubEvent event) throws NonRetryableApplicationException {
+    private Operation parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
 
         String defaultTrackingId = "0000000000000-z";
 
+        // check if the message is sent from a Standard DLP inspection job
+        if (event.getMessage().getAttributes() != null) {
+            String dlpJobName = event.getMessage().getAttributes().getOrDefault("DlpJobName", "");
+            if (!dlpJobName.isBlank()) {
+
+                logger.logInfoWithTracker(defaultTrackingId, String.format(
+                        "Parsed DlpJobName '%s'",
+                        dlpJobName
+                ));
+
+                String trackingId = TrackingHelper.extractTrackingIdFromJobName(dlpJobName);
+                String runId = TrackingHelper.parseRunIdAsPrefix(trackingId);
+
+                Operation taggerRequest = new Operation(
+                        dlpJobName,
+                        runId,
+                        trackingId
+                );
+
+                logger.logInfoWithTracker(taggerRequest.getTrackingId(),
+                        String.format("Parsed Request from Standard DLP: %s", taggerRequest.toString()));
+
+                return taggerRequest;
+            }
+        }
+
         // try to parse the request as a JSON string if it comes from the dispatcher
         // if not, try to parse it as a proto if it comes from Auto DLP
-        try{
+
+        try {
             String requestJsonString = event.getMessage().dataToUtf8String();
 
             // remove any escape characters (e.g. from Terraform
@@ -141,10 +169,10 @@ public class TaggerController {
 
             return taggerRequest;
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
 
-            try{
-                byte [] data = event.getMessage().getData();
+            try {
+                byte[] data = event.getMessage().getData();
 
                 DataProfilePubSubMessage dataProfilePubSubMessage = DataProfilePubSubMessage.parseFrom(data);
 
@@ -168,13 +196,13 @@ public class TaggerController {
 
                 return taggerRequest;
 
-            }catch (InvalidProtocolBufferException invalidProtocolBufferException){
+            } catch (InvalidProtocolBufferException invalidProtocolBufferException) {
 
                 throw new NonRetryableApplicationException(
                         String.format("Couldn't parse PubSub event as Proto: %s : %s",
                                 invalidProtocolBufferException.getClass().getSimpleName(),
                                 invalidProtocolBufferException.getMessage()
-                                ));
+                        ));
             }
         }
     }

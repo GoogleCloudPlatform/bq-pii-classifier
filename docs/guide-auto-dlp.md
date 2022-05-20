@@ -186,15 +186,6 @@ PS:
 * If you have tables to be inspected in the host project, run the above script and include the host project in the list
 * Use the same projects list as set in the Terraform variable `projects_include_list`
 
-## Manual Usage
-
-* In GCP, select the host project
-* Go to Cloud Scheduler
-* Trigger the "Tagging Scheduler"
-* Inspect the status of the run via the queries in the [Reporting section](Reporting).  
-  Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
-* Inspect a sample BigQuery table and validate that the policy tags were applied correctly.   
-
 ## Reporting
 
 Check out this [document](common-reporting.md) for example queries on:
@@ -203,24 +194,45 @@ Check out this [document](common-reporting.md) for example queries on:
 * Displaying a log of all tagging actions and PII findings by the solution
 
 
-## Automated Usage
+## Usage
 
 After deploying the solution, one can call it in different ways:
  
- **[Option 1] CRON Schedules:**    
+  **[Option 1] Auto-DLP Notifications:**  
+  
+  ![alt text](../diagrams/auto%20dlp-usage-tagger%20notification.jpg)
+  
+  After Auto DLP (re)profiles a table it will send a PubSub notification
+  to the Tagger service to apply tags to columns with PII. To test this behaviour you could create 
+  apply an action that triggers Auto DLP to profile or re-profile a table, wait until the target table(s) appears
+  in the Auto DLP UI and then manulay inspect the table to see if policy tags are applied correctly.   
+  There are different actions that could trigger Auto DLP and they are based on the Auto DLP configuration
+  you created earlier (in the schedule section) some of them are:  
+  * Create a new table with PII
+  * Copying an existing one (same as creating new table)
+  * Adding rows to an already profiled table
+  * Changing the schema of an already profiled table
+  
+  PS: Auto DLP configuration determines the frequency for which DLP (re)profiles a table, it could be
+  daily or monthly. It's recommended to use "daily" to be able to test the solution on a timely manner
+  and then switching it to a different schedule if needed for long-term usage.
+  
+ **[Option 2] CRON Schedules:**    
  
   ![alt text](../diagrams/auto%20dlp-usage-cron.jpg)
  
- In this scenario, a BigQuery scan is defined to include several projects, datasets and tables to be tagged once or on a regular schedule. This could be done by using Cloud Scheduler (or any Orchestration tool) to invoke the Tagging Dispatcher service with such scan scope and frequency.  
+ If Auto DLP already profiled some tables, and you want to (re)tag them (or a subset) you could 
+ use the Cloud Scheduler to trigger a tagging run for the tables that Auto DLP already profiled.   
+ Steps: 
+ * In GCP, select the host project
+ * Go to Cloud Scheduler
+ * Trigger the "Tagging Scheduler"
+ * Inspect the status of the run via the queries in the [Reporting section](Reporting).  
+   Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
+ * Inspect a sample BigQuery table and validate that the policy tags were applied correctly.   
  
  In addition, more than one Cloud Scheduler/Trigger could be defined to group tables that have the same inspection schedule (daily, monthly, etc)
  
- **[Option 2] [ROADMAP] Auto-DLP Notifications:**  
- 
- ![alt text](../diagrams/auto%20dlp-usage-tagger%20notification.jpg)
- 
- Once Auto DLP offers a feature to send PubSub notifications on job completion, these notifications could be sent to the Tagger Tasks Topic to trigger a tagging request for that table.
- This might need an extension in the solution code to handle the PubSub message format sent by Auto-DLP.   
 
 
 ## Updating DLP Info Types

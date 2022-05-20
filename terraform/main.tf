@@ -87,8 +87,6 @@ module "common-stack" {
   sa_inspection_dispatcher_tasks = var.sa_inspection_dispatcher_tasks
   sa_inspector = var.sa_inspector
   sa_inspector_tasks = var.sa_inspector_tasks
-  sa_listener = var.sa_listener
-  sa_listener_tasks = var.sa_listener_tasks
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
@@ -117,7 +115,6 @@ module "inspection-stack" {
   dlp_inspection_template_id = module.common-stack.dlp_inspection_template_id
   dlp_service_account = var.dlp_service_account
   inspector_service_image = var.inspector_service_image
-  listener_service_image = var.listener_service_image
   project = var.project
   projects_include_list = var.projects_include_list
   compute_region = var.compute_region
@@ -132,13 +129,8 @@ module "inspection-stack" {
   inspector_pubsub_sub = var.inspector_pubsub_sub
   inspector_pubsub_topic = var.inspector_pubsub_topic
   inspector_service_name = var.inspector_service_name
-  listener_pubsub_sub = var.listener_pubsub_sub
-  listener_pubsub_topic = var.listener_pubsub_topic
-  listener_service_name = var.listener_service_name
   sa_inspector = var.sa_inspector
   sa_inspector_tasks = var.sa_inspector_tasks
-  sa_listener = var.sa_listener
-  sa_listener_tasks = var.sa_listener_tasks
   scheduler_name = var.inspection_scheduler_name
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
   sa_inspection_dispatcher = var.sa_inspection_dispatcher
@@ -154,9 +146,6 @@ module "inspection-stack" {
   inspector_service_timeout_seconds = var.inspector_service_timeout_seconds
   inspector_subscription_ack_deadline_seconds = var.inspector_subscription_ack_deadline_seconds
   inspector_subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
-  listener_service_timeout_seconds = var.listener_service_timeout_seconds
-  listener_subscription_ack_deadline_seconds = var.listener_subscription_ack_deadline_seconds
-  listener_subscription_message_retention_duration = var.listener_subscription_message_retention_duration
 }
 
 

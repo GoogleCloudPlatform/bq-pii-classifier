@@ -27,8 +27,6 @@ run_id,
 tracker,
 inspector_starts,
 inspector_ends,
-listener_starts,
-listener_ends,
 tagger_starts,
 tagger_ends,
 FROM
