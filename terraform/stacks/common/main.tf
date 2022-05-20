@@ -234,7 +234,7 @@ module "cloud-run-tagger" {
   project = var.project
   region = var.compute_region
   service_image = var.tagger_service_image
-  service_name = "${var.tagger_service_name}"
+  service_name = var.tagger_service_name
   service_account_email = module.iam.sa_tagger_email
   invoker_service_account_email = module.iam.sa_tagger_tasks_email
   # no more than 80 requests at a time to handle BigQuery API rate limiting
