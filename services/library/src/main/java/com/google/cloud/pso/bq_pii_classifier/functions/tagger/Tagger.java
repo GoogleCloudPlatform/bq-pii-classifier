@@ -38,7 +38,7 @@ public class Tagger {
 
     private final LoggingHelper logger;
 
-    private static final Integer functionNumber = 4;
+    private static final Integer functionNumber = 3;
     private TaggerConfig config;
 
     BigQueryService bqService;
