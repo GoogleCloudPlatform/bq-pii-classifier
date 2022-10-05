@@ -1,3 +1,9 @@
+### Clone this repository 
+
+In a terminal shell, set and export the following variables.
+
+* git clone https://github.com/GoogleCloudPlatform/bq-pii-classifier.git
+
 ### Env setup
 
 In a terminal shell, set and export the following variables.
@@ -47,6 +53,7 @@ gsutil mb -p $PROJECT_ID -l $COMPUTE_REGION -b on $BUCKET
 Terraform needs to run with a service account to deploy DLP resources. User accounts are not enough.  
 
 ```
+cd bq-pii-classifier.git
 ./scripts/prepare_terraform_service_account.sh
 ```
 
