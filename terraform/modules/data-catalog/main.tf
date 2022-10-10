@@ -16,7 +16,7 @@ locals {
   // get distinct list of parents
   // sort to create and index them in order
   parent_nodes = sort(distinct([
-    for entry in var.nodes : lookup(entry, "classification")
+    for entry in var.classification_taxonomy : lookup(entry, "classification")
     ]))
 }
 
@@ -30,7 +30,7 @@ resource "google_data_catalog_policy_tag" "parent_tags" {
 }
 
 resource "google_data_catalog_policy_tag" "children_tags" {
-  count = length(var.nodes)
+  count = length(var.classification_taxonomy)
   provider = google-beta
   taxonomy = google_data_catalog_taxonomy.domain_taxonomy.id
 
@@ -39,12 +39,12 @@ resource "google_data_catalog_policy_tag" "children_tags" {
   #  get the "classification" field from the element
   #  get the index of the "parent" value from locals.parent_nodes
   parent_policy_tag = google_data_catalog_policy_tag.parent_tags[index
-  (local.parent_nodes, lookup(var.nodes[count.index], "classification", "NA"))].id
+  (local.parent_nodes, lookup(var.classification_taxonomy[count.index], "classification", "NA"))].id
 
-  display_name = lookup(var.nodes[count.index],"policy_tag")
+  display_name = lookup(var.classification_taxonomy[count.index],"policy_tag")
 
   # FIXME: this is a hack to propagate the domain and infotype to the output variable "created_children_tags". Find an alternative
-  description = "${var.domain} | ${lookup(var.nodes[count.index],"info_type", "NA")}"
+  description = "${var.domain} | ${lookup(var.classification_taxonomy[count.index],"info_type", "NA")}"
 }
 
 

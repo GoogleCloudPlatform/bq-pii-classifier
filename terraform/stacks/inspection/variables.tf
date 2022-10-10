@@ -12,47 +12,68 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-variable "project" {}
+variable "project" {
+  type = string
+}
 
-variable "compute_region" {}
+variable "compute_region" {
+  type = string
+}
 
-variable "data_region" {}
+variable "data_region" {
+  type = string
+}
 
 variable "sa_inspection_dispatcher" {
+  type = string
 }
 
 variable "sa_inspection_dispatcher_tasks" {
+  type = string
 }
 
 variable "sa_inspector" {
+  type = string
 }
 
 variable "sa_inspector_tasks" {
+  type = string
 }
 
 variable "scheduler_name" {
+  type = string
 }
 
 variable "dispatcher_service_name" {
+  type = string
 }
 
 variable "inspector_service_name" {
+  type = string
 }
 
 variable "dispatcher_pubsub_topic" {
+  type = string
 }
 
 variable "dispatcher_pubsub_sub" {
+  type = string
 }
 
 variable "inspector_pubsub_topic" {
+  type = string
 }
 
 variable "inspector_pubsub_sub" {
+  type = string
 }
 
-variable "dispatcher_service_image" {}
-variable "inspector_service_image" {}
+variable "dispatcher_service_image" {
+  type = string
+}
+variable "inspector_service_image" {
+  type = string
+}
 
 # BQ scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
@@ -74,22 +95,27 @@ variable "tables_exclude_list" {
 }
 
 variable "cloud_scheduler_account" {
+  type = string
   description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
 variable "dlp_service_account" {
+  type = string
   description = "service account email for DLP to grant permissions to via Terraform"
 }
 
 variable "bigquery_dataset_name" {
+  type = string
 }
 
 variable "standard_dlp_results_table_name" {
+  type = string
 }
 
 
-
-variable "dlp_inspection_template_id" {}
+variable "dlp_inspection_template_id" {
+  type = string
+}
 
 variable "cron_expression" {
   type = string
@@ -101,34 +127,56 @@ variable "table_scan_limits_json_config" {
   description = "JSON config to specify table scan limits intervals"
 }
 
-variable "tagger_topic_id" {}
+variable "tagger_topic_id" {
+  type = string
+}
 
-variable "dlp_min_likelihood" {}
+variable "dlp_min_likelihood" {
+  type = string
+}
 
-variable "dlp_max_findings_per_item" {}
+variable "dlp_max_findings_per_item" {
+  type = number
+}
 
 //How to sample rows if not all rows are scanned. Meaningful only when used in conjunction with either rows_limit or rows_limit_percent. If not specified, rows are scanned in the order BigQuery reads them.
 //
 //RANDOM_START = 2
 //SAMPLE_METHOD_UNSPECIFIED = 0
 //TOP = 1
-variable "dlp_sampling_method" {}
+variable "dlp_sampling_method" {
+  type = number
+}
 
-variable "gcs_flags_bucket_name" {}
+variable "gcs_flags_bucket_name" {
+  type = string
+}
 
 # Dispatcher settings.
-variable "dispatcher_service_timeout_seconds" {}
+variable "dispatcher_service_timeout_seconds" {
+  type = number
+}
 
-variable "dispatcher_subscription_ack_deadline_seconds" {}
+variable "dispatcher_subscription_ack_deadline_seconds" {
+  type = number
+}
 
-variable "dispatcher_subscription_message_retention_duration" {}
+variable "dispatcher_subscription_message_retention_duration" {
+  type = string
+}
 
 # Inspector settings.
-variable "inspector_service_timeout_seconds" {}
+variable "inspector_service_timeout_seconds" {
+  type = number
+}
 
-variable "inspector_subscription_ack_deadline_seconds" {}
+variable "inspector_subscription_ack_deadline_seconds" {
+  type = number
+}
 
-variable "inspector_subscription_message_retention_duration" {}
+variable "inspector_subscription_message_retention_duration" {
+  type = string
+}
 
 
 

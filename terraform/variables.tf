@@ -399,9 +399,8 @@ variable "dlp_sampling_method" {
 // Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
 // Use [] NOT to restrict IAM access.
 variable "data_catalog_taxonomy_activated_policy_types" {
-  type = list
-  default = [
-    "FINE_GRAINED_ACCESS_CONTROL"]
+  type = list(string)
+  default = ["FINE_GRAINED_ACCESS_CONTROL"]
   description = "A lis of policy types for the created taxonomy(s)"
 }
 
