@@ -26,7 +26,7 @@ resource "google_pubsub_subscription" "subscription" {
   enable_message_ordering  = false
 
   # The message sent to a subscriber is guaranteed not to be resent before the message's acknowledgement deadline expires
-  enable_exactly_once_delivery = true
+  enable_exactly_once_delivery = false
 
   # Policy to delete the subscription when in-active
   expiration_policy {
