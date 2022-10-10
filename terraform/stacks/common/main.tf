@@ -92,8 +92,6 @@ locals {
 
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
 
-  timestamp = formatdate("YYMMDDhhmmss", timestamp())
-
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 }
 

@@ -36,26 +36,11 @@ variable "standard_dlp_results_table_name" {
   type = string
 }
 
-variable "sa_inspection_dispatcher" {
-  type = string
-}
-
 variable "sa_tagging_dispatcher" {
   type = string
 }
 
 variable "sa_tagging_dispatcher_tasks" {
-  type = string
-}
-
-variable "sa_inspection_dispatcher_tasks" {
-  type = string
-}
-
-variable "sa_inspector" {
-  type = string
-}
-variable "sa_inspector_tasks" {
   type = string
 }
 

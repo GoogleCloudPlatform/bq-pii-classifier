@@ -1,9 +1,6 @@
 variable "project" {
   type = string
 }
-variable "region" {
-  type = string
-}
 variable "sa_tagging_dispatcher" {
   type = string
 }

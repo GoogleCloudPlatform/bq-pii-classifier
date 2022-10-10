@@ -42,7 +42,3 @@ variable "dataset_domains_mapping" {
     domain = string
   }))
 }
-
-variable "is_auto_dlp_mode" {
-  type = bool
-}

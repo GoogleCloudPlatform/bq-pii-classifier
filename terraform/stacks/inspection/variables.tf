@@ -99,11 +99,6 @@ variable "cloud_scheduler_account" {
   description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
-variable "dlp_service_account" {
-  type = string
-  description = "service account email for DLP to grant permissions to via Terraform"
-}
-
 variable "bigquery_dataset_name" {
   type = string
 }

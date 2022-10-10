@@ -14,8 +14,6 @@
 
 
 locals {
-
-  timestamp = formatdate("YYMMDDhhmmss", timestamp())
   dlp_region = var.data_region == "eu" ? "europe" : var.data_region
 }
 
