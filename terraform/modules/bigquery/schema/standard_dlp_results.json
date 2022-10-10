@@ -10,6 +10,11 @@
         "mode": "NULLABLE",
         "name": "name",
         "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version",
+        "type": "STRING"
       }
     ],
     "mode": "NULLABLE",
@@ -268,6 +273,11 @@
             "fields": [
               {
                 "mode": "NULLABLE",
+                "name": "timestamp",
+                "type": "TIMESTAMP"
+              },
+              {
+                "mode": "NULLABLE",
                 "name": "seconds",
                 "type": "INTEGER"
               },
@@ -322,6 +332,11 @@
             "fields": [
               {
                 "mode": "NULLABLE",
+                "name": "timestamp",
+                "type": "TIMESTAMP"
+              },
+              {
+                "mode": "NULLABLE",
                 "name": "seconds",
                 "type": "INTEGER"
               },
@@ -352,6 +367,11 @@
   },
   {
     "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "timestamp",
+        "type": "TIMESTAMP"
+      },
       {
         "mode": "NULLABLE",
         "name": "seconds",

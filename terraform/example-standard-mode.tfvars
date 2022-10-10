@@ -27,7 +27,8 @@ classification_taxonomy = [
 domain_mapping = [
   {
     project = "",
-    domain = ""
+    domain = "",
+    datasets = [] // leave empty if no dataset overrides is required for this project
   },
   {
     project = "",
@@ -69,7 +70,14 @@ tagger_service_image = ""
 inspection_cron_expression = ""
 tagging_cron_expression = ""
 
-table_scan_limits_json_config = ""
+table_scan_limits_json_config = {
+  limitType: "NUMBER_OF_ROWS",
+  limits: {
+    "10000":"10",
+    "100000":"100",
+    "1000000":"1000"
+  }
+}
 
 promote_mixed_info_types = false
 

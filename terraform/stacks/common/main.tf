@@ -92,8 +92,6 @@ locals {
 
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
 
-  timestamp = formatdate("YYMMDDhhmmss", timestamp())
-
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 }
 
@@ -103,7 +101,7 @@ module "data-catalog" {
   project = var.project
   region = var.data_region
   domain = local.domains[count.index]
-  nodes = var.classification_taxonomy
+  classification_taxonomy = var.classification_taxonomy
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 

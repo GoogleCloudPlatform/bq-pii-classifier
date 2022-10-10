@@ -1,12 +1,32 @@
-variable "project" {}
-variable "region" {}
-variable "scheduler_name" {}
-variable "target_uri" {}
-variable "cron_expression" {}
+variable "project" {
+  type = string
+}
+variable "region" {
+  type = string
+}
+variable "scheduler_name" {
+  type = string
+}
+variable "target_uri" {
+  type = string
+}
+variable "cron_expression" {
+  type = string
+}
 
 # DLP scanning scope
-variable "tables_include_list" {}
-variable "tables_exclude_list" {}
-variable "datasets_include_list" {}
-variable "datasets_exclude_list" {}
-variable "projects_include_list" {}
+variable "tables_include_list" {
+  type = list(string)
+}
+variable "tables_exclude_list" {
+  type = list(string)
+}
+variable "datasets_include_list" {
+  type = list(string)
+}
+variable "datasets_exclude_list" {
+  type = list(string)
+}
+variable "projects_include_list" {
+  type = list(string)
+}

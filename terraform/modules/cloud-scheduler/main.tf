@@ -2,6 +2,8 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloud_scheduler_job
 
 resource "google_cloud_scheduler_job" "scheduler_job" {
+  project = var.project
+  region = var.region
   name             = var.scheduler_name
   description      = "CRON job to trigger BQ Security Classifier"
   schedule         = var.cron_expression

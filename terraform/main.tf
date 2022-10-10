@@ -119,7 +119,7 @@ module "inspection-stack" {
   projects_include_list = var.projects_include_list
   compute_region = var.compute_region
   data_region = var.data_region
-  table_scan_limits_json_config = var.table_scan_limits_json_config
+  table_scan_limits_json_config = jsonencode(var.table_scan_limits_json_config)
   tables_exclude_list = var.tables_exclude_list
   tables_include_list = var.tables_include_list
   tagger_topic_id = module.common-stack.tagger_topic_id

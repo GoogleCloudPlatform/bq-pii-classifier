@@ -26,7 +26,8 @@ classification_taxonomy = [
 domain_mapping = [
   {
     project = "",
-    domain = ""
+    domain = "",
+    datasets = [] // leave empty if no dataset overrides is required for this project
   },
   {
     project = "",

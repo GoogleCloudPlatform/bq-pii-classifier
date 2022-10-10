@@ -12,136 +12,174 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-variable "project" {}
+variable "project" {
+  type = string
+}
 
-variable "compute_region" {}
+variable "compute_region" {
+  type = string
+}
 
-variable "data_region" {}
+variable "data_region" {
+  type = string
+}
 
 variable "bigquery_dataset_name" {
+  type = string
   default = "bq_security_classifier"
 }
 
 variable "auto_dlp_results_table_name" {
+  type = string
   description = "New table name to be created to hold DLP findings in the format 'table'"
   default = "auto_dlp_results"
 }
 
 variable "standard_dlp_results_table_name" {
+  type = string
   default = "standard_dlp_results"
   description = "New table name to be created to hold DLP findings in the format 'table'"
 }
 
 variable "sa_tagging_dispatcher" {
+  type = string
   default = "tag-dispatcher"
 }
 
 variable "sa_inspection_dispatcher" {
+  type = string
   default = "insp-dispatcher"
 }
 
 variable "sa_tagging_dispatcher_tasks" {
+  type = string
   default = "tag-dispatcher-tasks"
 }
 
 variable "sa_inspection_dispatcher_tasks" {
+  type = string
   default = "insp-dispatcher-tasks"
 }
 
 variable "sa_inspector" {
+  type = string
   default = "inspector"
 }
 
 variable "sa_inspector_tasks" {
+  type = string
   default = "inspector-tasks"
 }
 
 variable "sa_tagger" {
+  type = string
   default = "tagger"
 }
 
 variable "sa_tagger_tasks" {
+  type = string
   default = "tagger-tasks"
 }
 
 variable "tagger_role" {
+  type = string
   default = "tagger_role"
 }
 
 variable "log_sink_name" {
+  type = string
   default = "sc_bigquery_log_sink"
 }
 
 variable "tagging_scheduler_name" {
+  type = string
   default = "tagging-scheduler"
 }
 
 variable "inspection_scheduler_name" {
+  type = string
   default = "inspection-scheduler"
 }
 
 variable "tagging_dispatcher_service_name" {
+  type = string
   default = "s1a-tagging-dispatcher"
 }
 
 variable "inspection_dispatcher_service_name" {
+  type = string
   default = "s1b-inspection-dispatcher"
 }
 
 variable "inspector_service_name" {
+  type = string
   default = "s2-inspector"
 }
 
 variable "tagger_service_name" {
+  type = string
   default = "s3-tagger"
 }
 
 
 variable "tagging_dispatcher_pubsub_topic" {
+  type = string
   default = "tagging_dispatcher_topic"
 }
 
 variable "inspection_dispatcher_pubsub_topic" {
+  type = string
   default = "inspection_dispatcher_topic"
 }
 
 variable "tagging_dispatcher_pubsub_sub" {
+  type = string
   default = "tagging_dispatcher_push_sub"
 }
 
 variable "inspection_dispatcher_pubsub_sub" {
+  type = string
   default = "inspection_dispatcher_push_sub"
 }
 
 variable "inspector_pubsub_topic" {
+  type = string
   default = "inspector_topic"
 }
 
 variable "inspector_pubsub_sub" {
+  type = string
   default = "inspector_push_sub"
 }
 
 variable "tagger_pubsub_topic" {
+  type = string
   default = "tagger_topic"
 }
 
 variable "tagger_pubsub_sub" {
+  type = string
   default = "tagger_push_sub"
 }
 
 
-
 # Images
-variable "tagging_dispatcher_service_image" {}
+variable "tagging_dispatcher_service_image" {
+  type = string
+}
 
-variable "tagger_service_image" {}
+variable "tagger_service_image" {
+  type = string
+}
 
 variable "inspection_dispatcher_service_image" {
+  type = string
   description = "Optional. Only needed when is_auto_dlp_mode = false"
   default = "(N/A)"
 }
 
 variable "inspector_service_image" {
+  type = string
   description = "Optional. Only needed when is_auto_dlp_mode = false"
   default = "(N/A)"
 }
@@ -174,7 +212,8 @@ variable "tables_exclude_list" {
 variable "classification_taxonomy" {
   type = list(object({
     info_type = string
-    info_type_category = string # (standard | custom)
+    info_type_category = string
+    # (standard | custom)
     policy_tag = string
     classification = string
   }))
@@ -202,13 +241,22 @@ variable "classification_taxonomy" {
 //  ]
 
 variable "domain_mapping" {
+  type = list(object({
+    project = string,
+    domain = string,
+    datasets = list(object({
+      name = string,
+      domain = string
+    })) // leave empty if no dataset overrides is required for this project
+  }))
   description = "Mapping between domains and GCP projects or BQ Datasets. Dataset-level mapping will overwrite project-level mapping for a given project."
 }
 // Example:
 //domain_mapping = [
 //  {
 //    project = "marketing-project",
-//    domain = "marketing"
+//    domain = "marketing",
+//    datasets = []
 //  },
 //  {
 //    project = "dwh-project",
@@ -228,6 +276,7 @@ variable "domain_mapping" {
 
 
 variable "iam_mapping" {
+  type = map(map(list(string)))
   description = "Dictionary of mappings between domains/classification and IAM members to grant required permissions to read sensitive BQ columns belonging to that domain/classification"
 }
 //Example:
@@ -250,14 +299,17 @@ variable "iam_mapping" {
 //}
 
 variable "dlp_service_account" {
+  type = string
   description = "service account email for DLP to grant permissions to via Terraform"
 }
 
 variable "cloud_scheduler_account" {
+  type = string
   description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
 variable "terraform_service_account" {
+  type = string
   description = "service account used by terraform to deploy to GCP"
 }
 
@@ -279,12 +331,21 @@ variable "inspection_cron_expression" {
 }
 
 variable "table_scan_limits_json_config" {
-  type = string
+
+  type = object({
+    limitType = string, // NUMBER_OF_ROWS or PERCENTAGE_OF_ROWS
+    limits = map(string)
+  })
   description = "JSON config to specify table scan limits intervals"
-  // Example
-  // "{"limitType": "NUMBER_OF_ROWS", "limits": {"10000": "100","100000": "5000", "1000000": "7000"}}"
-  // "{"limitType": "PERCENTAGE_OF_ROWS", "limits": {"10000": "10","100000": "5", "1000000": "1"}}"
-  default = "{\"limitType\": \"NUMBER_OF_ROWS\", \"limits\": {\"10000\": \"100\"}}"
+
+  default = {
+    limitType: "NUMBER_OF_ROWS",
+    limits: {
+      "10000":"10",
+      "100000":"100",
+      "1000000":"1000"
+    }
+  }
 }
 
 variable "is_auto_dlp_mode" {
@@ -305,6 +366,7 @@ variable "promote_mixed_info_types" {
 
 // The threshold for DLP to report an INFO_TYPE as finding
 variable "dlp_min_likelihood" {
+  type = string
   default = "LIKELY"
   description = "Optional. Only needed when is_auto_dlp_mode = false"
 }
@@ -316,6 +378,7 @@ variable "dlp_min_likelihood" {
 // However, It affects BigQuery storage cost for storing more findings and the DLP job execution time
 // Set to 0 for DLP max
 variable "dlp_max_findings_per_item" {
+  type = number
   default = 0
   description = "Optional. Only needed when is_auto_dlp_mode = false"
 }
@@ -328,6 +391,7 @@ variable "dlp_max_findings_per_item" {
 //SAMPLE_METHOD_UNSPECIFIED = 0
 //TOP = 1
 variable "dlp_sampling_method" {
+  type = number
   default = 2
   description = "Optional. Only needed when is_auto_dlp_mode = false"
 }
@@ -335,12 +399,13 @@ variable "dlp_sampling_method" {
 // Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
 // Use [] NOT to restrict IAM access.
 variable "data_catalog_taxonomy_activated_policy_types" {
-  type = list
+  type = list(string)
   default = ["FINE_GRAINED_ACCESS_CONTROL"]
   description = "A lis of policy types for the created taxonomy(s)"
 }
 
 variable "gcs_flags_bucket_name" {
+  type = string
   default = "bq-pii-classifier-flags"
 }
 
@@ -349,7 +414,8 @@ variable "dispatcher_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
   type = number
   # Dispatcher might need relatively long time to process large BigQuery scan scopes
-  default = 540 # 9m
+  default = 540
+  # 9m
 }
 
 variable "dispatcher_subscription_ack_deadline_seconds" {
@@ -357,7 +423,8 @@ variable "dispatcher_subscription_ack_deadline_seconds" {
   type = number
   // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
   // range is 10 to 600
-  default = 600 # 10m
+  default = 600
+  # 10m
 }
 
 variable "dispatcher_subscription_message_retention_duration" {
@@ -366,21 +433,24 @@ variable "dispatcher_subscription_message_retention_duration" {
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
   # min value must be at least equal to the ack_deadline_seconds
   # Dispatcher should have the shortest retention possible because we want to avoid retries (on the app level as well)
-  default = "600s" # 10m
+  default = "600s"
+  # 10m
 }
 
 # Inspector settings.
 variable "inspector_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
   type = number
-  default = 300 # 5m
+  default = 300
+  # 5m
 }
 
 variable "inspector_subscription_ack_deadline_seconds" {
   description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
   type = number
   // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
-  default = 420 # 7m
+  default = 420
+  # 7m
 }
 
 variable "inspector_subscription_message_retention_duration" {
@@ -390,7 +460,8 @@ variable "inspector_subscription_message_retention_duration" {
   # It also sets how long should we keep trying to process one run
   # min value must be at least equal to the ack_deadline_seconds
   # Inspector should have a relatively long retention to handle runs with large number of tables.
-  default = "86400s" # 24h
+  default = "86400s"
+  # 24h
 }
 
 # Tagger settings.
@@ -398,7 +469,8 @@ variable "tagger_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
   type = number
   # Tagger is using BQ batch jobs that might need time to start running and thus a relatively longer timeout
-  default = 540 # 9m
+  default = 540
+  # 9m
 }
 
 variable "tagger_subscription_ack_deadline_seconds" {
@@ -406,7 +478,8 @@ variable "tagger_subscription_ack_deadline_seconds" {
   type = number
   // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
   // range is 10 to 600
-  default = 600 # 10m
+  default = 600
+  # 10m
 }
 
 variable "tagger_subscription_message_retention_duration" {
@@ -416,7 +489,8 @@ variable "tagger_subscription_message_retention_duration" {
   # It also sets how long should we keep trying to process one run
   # min value must be at least equal to the ack_deadline_seconds
   # Inspector should have a relatively long retention to handle runs with large number of tables.
-  default = "86400s" # 24h
+  default = "86400s"
+  # 24h
 }
 
 

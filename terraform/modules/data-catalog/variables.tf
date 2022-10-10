@@ -1,5 +1,9 @@
-variable "project" {}
-variable "region" {}
+variable "project" {
+  type = string
+}
+variable "region" {
+  type = string
+}
 
 variable "domain" {
   type = string
@@ -19,14 +23,20 @@ variable "domain" {
 //parent = "P1"
 //}
 //]
-variable "nodes" {
-  type = list
+variable "classification_taxonomy" {
+  type = list(object({
+    info_type = string
+    info_type_category = string
+    # (standard | custom)
+    policy_tag = string
+    classification = string
+  }))
   description = "A lis of Maps defining children nodes"
 }
 
 // Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
 // Use [] NOT to restrict IAM access.
 variable "data_catalog_taxonomy_activated_policy_types" {
-  type = list
+  type = list(string)
   description = "A lis of policy types for the created taxonomy(s)"
 }
