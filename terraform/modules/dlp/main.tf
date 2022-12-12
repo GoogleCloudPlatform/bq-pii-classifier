@@ -19,7 +19,7 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
 
     dynamic info_types {
       // filter the "standard" info types only
-      for_each = [for x in var.classification_taxonomy: x if lookup(x, "info_type_category") == "standard"]
+      for_each = [for x in var.classification_taxonomy: x if lower(lookup(x, "info_type_category")) == "standard"]
 
       content {
         name = lookup(info_types.value, "info_type")
@@ -27,19 +27,16 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
     }
 
     ### CUSTOM INFOTYPES
+    ## Limit is 30 Custom Info Types https://cloud.google.com/dlp/limits#custom-infotype-limits
 
     custom_info_types {
       info_type {
         name = "CT_PAYMENT_METHOD"
       }
-
       likelihood = "LIKELY"
-
       dictionary {
         word_list {
-          words = [
-            "Debit Card",
-            "Credit Card"]
+          words = ["Debit Card","Credit Card"]
         }
       }
     }
@@ -83,6 +80,7 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
 
     # Increase likelihood for STREET_ADDRESS fields if the column name matches a pattern
     # https://cloud.google.com/dlp/docs/creating-custom-infotypes-likelihood#match-column-values
+
     rule_set {
       info_types {
         name = "STREET_ADDRESS"

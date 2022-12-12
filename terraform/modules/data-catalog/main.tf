@@ -7,7 +7,7 @@ resource "google_data_catalog_taxonomy" "domain_taxonomy" {
   provider = google-beta
   project = var.project
   region = var.region
-  display_name = var.domain
+  display_name = title("${var.domain} Taxonomy")
   description = "A collection of policy tags assigned by BQ security classifier for domain '${var.domain}'"
   activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
