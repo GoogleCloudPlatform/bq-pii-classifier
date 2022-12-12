@@ -82,11 +82,6 @@ module "common-stack" {
   is_auto_dlp_mode = var.is_auto_dlp_mode
   auto_dlp_results_table_name = var.auto_dlp_results_table_name
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
-
-  sa_inspection_dispatcher = var.sa_inspection_dispatcher
-  sa_inspection_dispatcher_tasks = var.sa_inspection_dispatcher_tasks
-  sa_inspector = var.sa_inspector
-  sa_inspector_tasks = var.sa_inspector_tasks
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
@@ -113,7 +108,6 @@ module "inspection-stack" {
   datasets_include_list = var.datasets_include_list
   dispatcher_service_image = var.inspection_dispatcher_service_image
   dlp_inspection_template_id = module.common-stack.dlp_inspection_template_id
-  dlp_service_account = var.dlp_service_account
   inspector_service_image = var.inspector_service_image
   project = var.project
   projects_include_list = var.projects_include_list

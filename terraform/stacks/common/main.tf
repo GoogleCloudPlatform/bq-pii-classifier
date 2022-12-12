@@ -117,7 +117,6 @@ module "bigquery" {
   created_policy_tags = local.created_policy_tags
   dataset_domains_mapping = local.datasets_and_domains_filtered
   projects_domains_mapping = local.project_and_domains_filtered
-  is_auto_dlp_mode = var.is_auto_dlp_mode
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
 }
 
@@ -126,7 +125,6 @@ module "cloud_logging" {
 
   dataset = module.bigquery.results_dataset
   project = var.project
-  region = var.compute_region
   log_sink_name = var.log_sink_name
 }
 
@@ -159,7 +157,6 @@ module "cloud_scheduler" {
 module "iam" {
   source = "../../modules/iam"
   project = var.project
-  region = var.compute_region
   sa_tagger = var.sa_tagger
   sa_tagger_tasks = var.sa_tagger_tasks
   taxonomy_parent_tags = local.created_parent_tags
