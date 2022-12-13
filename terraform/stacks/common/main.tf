@@ -93,15 +93,25 @@ locals {
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
 
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
+
+  taxonomy_numbers = distinct([for x in var.classification_taxonomy: lookup(x,"taxonomy_number")])
+
+  // this return a list of lists like [ ["dwh","1"], ["dwh","2"], ["marketing","1"], ["marketing","2"], etc ]
+  taxonomies_to_be_created = setproduct(local.domains, local.taxonomy_numbers)
 }
 
 module "data-catalog" {
-  count = length(local.domains)
+  count = length(local.taxonomies_to_be_created)
   source = "../../modules/data-catalog"
   project = var.project
   region = var.data_region
-  domain = local.domains[count.index]
-  classification_taxonomy = var.classification_taxonomy
+
+  domain = local.taxonomies_to_be_created[count.index][0]
+  taxonomy_number = local.taxonomies_to_be_created[count.index][1]
+
+  // only use the nodes that are marked for taxonomy number x
+  classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][1]]
+
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 
