@@ -1,6 +1,6 @@
 
-output "dlp_inspection_template_id" {
-  value = module.dlp.template_id
+output "dlp_inspection_templates_ids" {
+  value = module.dlp.templates_ids
 }
 
 output "bq_results_dataset" {

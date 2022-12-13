@@ -122,6 +122,8 @@ variable "classification_taxonomy" {
     info_type_category = string # (standard | custom)
     policy_tag = string
     classification = string
+    inspection_template_number = number
+    taxonomy_number = number
   }))
 }
 
@@ -205,5 +207,21 @@ variable "tagger_subscription_message_retention_duration" {
 
 variable "promote_mixed_info_types" {
   type = bool
+}
+
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name = string
+    likelihood = string
+    dictionary =list(string)
+  }))
+}
+
+variable "custom_info_types_regex" {
+  type = list(object({
+    name = string
+    likelihood = string
+    regex = string
+  }))
 }
 

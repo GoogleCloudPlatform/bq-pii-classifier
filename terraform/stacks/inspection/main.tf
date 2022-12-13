@@ -95,7 +95,7 @@ module "cloud-run-inspector" {
     },
     {
       name = "DLP_INSPECTION_TEMPLATE_ID",
-      value = var.dlp_inspection_template_id,
+      value = jsonencode(var.dlp_inspection_templates_ids),
     },
     {
       name = "MIN_LIKELIHOOD",

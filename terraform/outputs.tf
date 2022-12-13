@@ -31,4 +31,3 @@
 //  value = module.dlp.inspection_template
 //}
 
-

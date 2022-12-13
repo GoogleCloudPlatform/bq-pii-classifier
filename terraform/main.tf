@@ -94,6 +94,9 @@ module "common-stack" {
   tagger_subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
   tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
   promote_mixed_info_types = var.promote_mixed_info_types
+
+  custom_info_types_dictionaries = var.custom_info_types_dictionaries
+  custom_info_types_regex        = var.custom_info_types_regex
 }
 
 module "inspection-stack" {
@@ -107,7 +110,7 @@ module "inspection-stack" {
   datasets_exclude_list = var.datasets_exclude_list
   datasets_include_list = var.datasets_include_list
   dispatcher_service_image = var.inspection_dispatcher_service_image
-  dlp_inspection_template_id = module.common-stack.dlp_inspection_template_id
+  dlp_inspection_templates_ids = module.common-stack.dlp_inspection_templates_ids
   inspector_service_image = var.inspector_service_image
   project = var.project
   projects_include_list = var.projects_include_list

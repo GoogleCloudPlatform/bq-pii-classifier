@@ -134,6 +134,9 @@ module "dlp" {
   project = var.project
   region = var.data_region # create inspection template in the same region as data
   classification_taxonomy = var.classification_taxonomy
+
+  custom_info_types_dictionaries = var.custom_info_types_dictionaries
+  custom_info_types_regex        = var.custom_info_types_regex
 }
 
 module "cloud_scheduler" {
