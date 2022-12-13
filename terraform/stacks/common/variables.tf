@@ -224,4 +224,3 @@ variable "custom_info_types_regex" {
     regex = string
   }))
 }
-

@@ -42,3 +42,5 @@ variable "dataset_domains_mapping" {
     domain = string
   }))
 }
+
+variable "inspection_templates_count" {type = number}

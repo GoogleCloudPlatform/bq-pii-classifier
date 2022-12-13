@@ -98,6 +98,8 @@ locals {
 
   // this return a list of lists like [ ["dwh","1"], ["dwh","2"], ["marketing","1"], ["marketing","2"], etc ]
   taxonomies_to_be_created = setproduct(local.domains, local.taxonomy_numbers)
+
+  inspection_templates_count = max([for x in var.classification_taxonomy: lookup(x,"inspection_template_number")]...)
 }
 
 module "data-catalog" {
@@ -128,6 +130,7 @@ module "bigquery" {
   dataset_domains_mapping = local.datasets_and_domains_filtered
   projects_domains_mapping = local.project_and_domains_filtered
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
+  inspection_templates_count = local.inspection_templates_count
 }
 
 module "cloud_logging" {

@@ -17,10 +17,11 @@ run_id,
 TIMESTAMP_MILLIS(CAST(SUBSTR(run_id, 0, 13) AS INT64)) AS timestamp,
 tracker AS tracking_id,
 'COMPLETE' AS status,
-'Tagger Completed Successfully' AS details
+'Tagger completed the expected ${inspection_templates_count} call(s) successfully' AS details
 FROM
 `${project}.${dataset}.${v_service_calls}`
-WHERE tagger_ends > 0
+-- we expect N number of inspection jobs and N number of tagger runs depending on the number of inspection templates created by the solution
+WHERE tagger_ends = ${inspection_templates_count}
 
 )
 ,

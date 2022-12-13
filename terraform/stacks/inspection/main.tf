@@ -94,7 +94,7 @@ module "cloud-run-inspector" {
       value = var.project,
     },
     {
-      name = "DLP_INSPECTION_TEMPLATE_ID",
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
       value = jsonencode(var.dlp_inspection_templates_ids),
     },
     {

@@ -51,7 +51,8 @@ t.tagger_ends,
 FROM
 dispacthed_requests d
 LEFT JOIN tagger_calls t ON d.dispatched_tracking_id = t.tracker
-WHERE t.tracker IS NULL OR t.tagger_ends = 0
+-- we expect N number of inspection jobs and N number of tagger runs depending on the number of inspection templates created by the solution
+WHERE t.tracker IS NULL OR t.tagger_ends <> ${inspection_templates_count}
 
 UNION ALL
 

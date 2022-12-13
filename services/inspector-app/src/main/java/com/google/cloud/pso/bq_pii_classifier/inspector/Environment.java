@@ -18,7 +18,9 @@ package com.google.cloud.pso.bq_pii_classifier.inspector;
 import com.google.cloud.pso.bq_pii_classifier.functions.inspector.InspectorConfig;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Environment {
@@ -36,7 +38,7 @@ public class Environment {
                 getMinLikelihood(),
                 Integer.parseInt(getMaxFindings()),
                 Integer.parseInt(getSamplingMethod()),
-                getDlpInspectionTemplateId(),
+                new Gson().fromJson(getDlpInspectionTemplatesIds(), ArrayList.class),
                 getTableScanLimitsJsonConfig()
         );
     }
@@ -74,8 +76,8 @@ public class Environment {
         return Utils.getConfigFromEnv("SAMPLING_METHOD", true);
     }
 
-    public String getDlpInspectionTemplateId(){
-        return Utils.getConfigFromEnv("DLP_INSPECTION_TEMPLATE_ID", true);
+    public String getDlpInspectionTemplatesIds(){
+        return Utils.getConfigFromEnv("DLP_INSPECTION_TEMPLATES_IDS", true);
     }
 
     public String getTableScanLimitsJsonConfig(){

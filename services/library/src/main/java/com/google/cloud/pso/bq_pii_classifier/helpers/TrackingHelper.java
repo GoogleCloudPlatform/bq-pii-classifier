@@ -59,12 +59,13 @@ public class TrackingHelper {
 
     /**
      *
-     * @param jobName Dlp Job name in format projects/locations/dlpJobs/i-<tracking-number>
+     * @param jobName Dlp Job name in format projects/locations/dlpJobs/i-<tracking-number>_templateNumber
      * @return tracking-number part
      */
     public static String extractTrackingIdFromJobName(String jobName){
         String [] splits = jobName.split("/");
-        return  splits[splits.length-1].substring(2);
+        String trackingIdWithTemplateNumber =  splits[splits.length-1].substring(2);
+        return trackingIdWithTemplateNumber.split("_")[0];
     }
 
 }
