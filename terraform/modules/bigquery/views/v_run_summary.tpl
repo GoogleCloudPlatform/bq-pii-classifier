@@ -20,8 +20,7 @@ tracker AS tracking_id,
 'Tagger completed the expected ${inspection_templates_count} call(s) successfully' AS details
 FROM
 `${project}.${dataset}.${v_service_calls}`
--- we expect N number of inspection jobs and N number of tagger runs depending on the number of inspection templates created by the solution
-WHERE tagger_ends = ${inspection_templates_count}
+WHERE tagger_ends > 0
 
 )
 ,

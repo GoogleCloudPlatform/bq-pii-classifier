@@ -237,6 +237,10 @@ module "cloud-run-tagging-dispatcher" {
       name = "LOGGING_TABLE",
       value = module.bigquery.logging_table
     },
+    {
+    name = "DLP_INSPECTION_TEMPLATES_IDS",
+    value = jsonencode(module.dlp.templates_ids),
+    },
   ]
 }
 

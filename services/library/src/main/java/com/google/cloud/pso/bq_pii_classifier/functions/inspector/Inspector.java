@@ -73,7 +73,7 @@ public class Inspector {
         );
     }
 
-    public List<DlpJob> execute(Operation request, String trackingId, String pubSubMessageId) throws IOException, NonRetryableApplicationException {
+    public DlpJob execute(InspectorRequest request, String trackingId, String pubSubMessageId) throws IOException, NonRetryableApplicationException {
 
         logger.logFunctionStart(trackingId);
         logger.logInfoWithTracker(trackingId, String.format("Request : %s", request.toString()));
@@ -102,35 +102,27 @@ public class Inspector {
 
         // DLP job config accepts Integer only for table scan limit. Must downcast
         // NumRows from BigInteger to Integer
-        TableSpec targetTableSpec = TableSpec.fromSqlString(request.getEntityKey());
+        Integer tableNumRows = bqService.getTableNumRows(request.getTargetTable()).intValue();
 
-        Integer tableNumRows = bqService.getTableNumRows(targetTableSpec).intValue();
+        InspectJobConfig inspectJobConfig = createJob(
+                request.getTargetTable(),
+                tableScanLimitsConfig,
+                tableNumRows,
+                request.getInspectionTemplate()
+        );
 
-        // create one job per inspection template
-        List<DlpJob> submittedDlpJobs = new ArrayList<>();
-        for(int i=0; i< config.getDlpInspectionTemplatesIds().size(); i++){
-            String inspectionTemplate = config.getDlpInspectionTemplatesIds().get(i);
-            InspectJobConfig inspectJobConfig = createJob(
-                            targetTableSpec,
-                            tableScanLimitsConfig,
-                            tableNumRows,
-                            inspectionTemplate
-                    );
+        CreateDlpJobRequest createDlpJobRequest = CreateDlpJobRequest.newBuilder()
+                .setJobId(request.getTrackingId()) // Letters, numbers, hyphens, and underscores allowed.
+                .setParent(LocationName.of(config.getProjectId(), config.getRegionId()).toString())
+                .setInspectJob(inspectJobConfig)
+                .build();
 
-            CreateDlpJobRequest createDlpJobRequest = CreateDlpJobRequest.newBuilder()
-                    .setJobId(String.format("%s_%s",trackingId, i+1)) // Letters, numbers, hyphens, and underscores allowed.
-                    .setParent(LocationName.of(config.getProjectId(), config.getRegionId()).toString())
-                    .setInspectJob(inspectJobConfig)
-                    .build();
+        DlpJob submittedDlpJob = dlpService.submitJob(createDlpJobRequest);
 
-            DlpJob submittedDlpJob = dlpService.submitJob(createDlpJobRequest);
-            submittedDlpJobs.add(submittedDlpJob);
-
-            logger.logInfoWithTracker(trackingId, String.format("DLP job created successfully id='%s' for inspection template %s",
-                    submittedDlpJob.getName(),
-                    inspectionTemplate
-                    ));
-        }
+        logger.logInfoWithTracker(trackingId, String.format("DLP job created successfully id='%s' for inspection template %s",
+                submittedDlpJob.getName(),
+                request.getInspectionTemplate()
+        ));
 
 
         // Add a flag key marking that we already completed this request and no additional runs
@@ -141,7 +133,7 @@ public class Inspector {
 
         logger.logFunctionEnd(trackingId);
 
-        return submittedDlpJobs;
+        return submittedDlpJob;
     }
 
     private InspectJobConfig createJob(

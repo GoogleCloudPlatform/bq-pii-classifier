@@ -54,7 +54,7 @@ public class TrackingHelper {
         // using UUIDs only resulted in unexpected collisions in some runs.
         // adding table name hash for extra "randomness"
 
-        return String.format("%s-%s-%s", runId, UUID.randomUUID().toString(), table.hashCode());
+        return String.format("%s-%s", runId, UUID.randomUUID());
     }
 
     /**
@@ -64,8 +64,7 @@ public class TrackingHelper {
      */
     public static String extractTrackingIdFromJobName(String jobName){
         String [] splits = jobName.split("/");
-        String trackingIdWithTemplateNumber =  splits[splits.length-1].substring(2);
-        return trackingIdWithTemplateNumber.split("_")[0];
+        return  splits[splits.length-1].substring(2);
     }
 
 }

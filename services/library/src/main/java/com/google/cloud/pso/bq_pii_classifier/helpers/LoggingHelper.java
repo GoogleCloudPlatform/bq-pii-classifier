@@ -111,7 +111,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.DISPATCHED_REQUESTS_LOG,
                 trackingId,
-                String.format("Dispatched tagging request with trackindId `%s`", dispatchedTrackingId),
+                String.format("Dispatched request with trackindId `%s`", dispatchedTrackingId),
                 Level.INFO,
                 attributes
         );

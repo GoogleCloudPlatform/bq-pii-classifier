@@ -19,6 +19,8 @@ package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
 import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 
+import java.util.List;
+
 public class DispatcherConfig {
 
     private String projectId;
@@ -28,12 +30,15 @@ public class DispatcherConfig {
     private DispatcherType dispatcherType;
     private SolutionMode solutionMode;
 
+    private List<String> dlpInspectionTemplatesIds;
+
     public DispatcherConfig(String projectId,
                             String computeRegionId,
                             String dataRegionId,
                             String outputTopic,
                             DispatcherType dispatcherType,
-                            SolutionMode solutionMode
+                            SolutionMode solutionMode,
+                            List<String> dlpInspectionTemplatesIds
                             ) {
         this.projectId = projectId;
         this.computeRegionId = computeRegionId;
@@ -41,6 +46,7 @@ public class DispatcherConfig {
         this.outputTopic = outputTopic;
         this.dispatcherType = dispatcherType;
         this.solutionMode = solutionMode;
+        this.dlpInspectionTemplatesIds = dlpInspectionTemplatesIds;
     }
 
     public DispatcherType getDispatcherType() {
@@ -67,6 +73,10 @@ public class DispatcherConfig {
         return solutionMode;
     }
 
+    public List<String> getDlpInspectionTemplatesIds() {
+        return dlpInspectionTemplatesIds;
+    }
+
     @Override
     public String toString() {
         return "DispatcherConfig{" +
@@ -76,6 +86,7 @@ public class DispatcherConfig {
                 ", outputTopic='" + outputTopic + '\'' +
                 ", dispatcherType=" + dispatcherType +
                 ", solutionMode=" + solutionMode +
+                ", dlpInspectionTemplatesIds=" + dlpInspectionTemplatesIds +
                 '}';
     }
 }
