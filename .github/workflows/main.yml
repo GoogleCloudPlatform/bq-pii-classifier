@@ -30,7 +30,7 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Super Lint Code Base
-        uses: github/super-linter@v4
+        uses: github/super-linter@v5
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_GOOGLE_JAVA_FORMAT: true
