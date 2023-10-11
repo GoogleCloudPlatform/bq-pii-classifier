@@ -1,5 +1,5 @@
 
-# Check out guide-auto-dlp.md on how to use this template
+# Check out guide-discovery-service.md on how to use this template
 
 project = ""
 compute_region = ""

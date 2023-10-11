@@ -77,8 +77,10 @@ Follow the steps in this [document](common-terraform-2-variables.md) and then co
 
 #### Configure Standard mode
 
-Configure the solution NOT to be deployed in Auto DLP mode (i.e. standard mode). In standard mode,
+Configure the solution to be deployed in standard-mode and not in discovery-service mode. In standard mode,
 the solution will be responsible for periodically scanning tables instead building on top of Auto DLP results.
+
+PS: for backward compatibility, this configuration flag is named after the original API name for this feature `Auto DLP`
 
 ```
 is_auto_dlp_mode = false

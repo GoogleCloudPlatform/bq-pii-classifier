@@ -1,5 +1,10 @@
 # BigQuery PII Classifier
 
+### Updates
+
+* Cloud Data Loss Prevention (Cloud DLP) is now a part of Sensitive Data Protection. The API name remains the same: Cloud Data Loss Prevention API (DLP API). For information about the services that make up Sensitive Data Protection, see [Sensitive Data Protection overview](https://cloud.google.com/dlp/docs/sensitive-data-protection-overview).
+* Automatic DLP (Auto-DLP) is now Sensitive Data Protection discovery service (aka. discovery service).
+
 ## Overview
 
 BigQuery PII Classifier is an OSS solution to automate the process of discovering and tagging
@@ -26,7 +31,7 @@ If you're a Googler kindly fill in this short [survery](https://docs.google.com/
 for tracking and reach out to <b>bq-pii-classifier@</b> for support.</i> 
 
 ## Solution Modes
-The solution comes with two modes, [standard-mode](docs/guide-standard-dlp.md) and [auto-dlp-mode](docs/guide-auto-dlp.md).
+The solution comes with two modes, [standard-mode](docs/guide-standard-dlp.md) and [discovery-service-mode](docs/guide-discovery-service.md).
 
 ### Standard Mode
 
@@ -36,21 +41,21 @@ In standard-mode, the solution scope is:
 * Restricting access to the tagged columns based on the confidentiality level
 * Possibility to trigger a "re-tagging" run that uses the last inspection results to overwrite the column policy tags.
 
-For more details and on how to use the solution in `standard mode` follow the [Standard-mode guide](docs/guide-standard-dlp.md).
+For more details and on how to use the solution in `standard-mode` follow the [standard-mode guide](docs/guide-standard-dlp.md).
 
-### Auto-DLP Mode 
+### Discovery Service Mode 
 
-In auto-dlp mode, the solution scope is:
-* Not managing tables inspection, instead it will build on top of Auto-DLP data profiles (Auto-DLP is managed outside of the solution).
-* Apply policy tags to columns based on the PII types detected by Auto-DLP data profiles.
+In discovery-service mode, the solution scope is:
+* Not managing tables inspection, instead it will build on top of sensitive data discovery service (managed outside of the solution).
+* Apply policy tags to columns based on the PII types detected by the discovery service.
 * Restricting access to the tagged columns based on the confidentiality level
 
-For more details and on how to use the solution in `auto-dlp mode` follow the [Auto-dlp mode guide](docs/guide-auto-dlp.md).
+For more details and on how to use the solution in `discovery-service-mode` follow the [discovery-service-mode guide](docs/guide-discovery-service.md).
 
 ### Which mode to use?
 
-Using `Standard-mode` offers the following benefits:
-* **Granular BigQuery scan scope**. Standard-mode could be configured to include/exclude projects, datasets and tables. Where in Auto-DLP, configurations 
+Using `standard-mode` offers the following benefits:
+* **Granular BigQuery scan scope**. Standard-mode could be configured to include/exclude projects, datasets and tables. Where in sensitive data discovery service, configurations 
 are on Organization, folder and project levels. 
 * **Control over DLP sampling size**. Standard-mode let you configure the DLP scan sample size as a function of the table size. For example, full scans of smaller tables
 and sampling a lower percentage/number of records for bigger tables. This feature let you estimate and control DLP inspection cost to a higher degree.
@@ -59,11 +64,11 @@ For example, historical dump tables could be scanned once every x month vs daily
 * **On demand scans**. Standard-mode enables you to invoke an entry-point service on-demand. For example, after a data pipeline 
 finishes you could trigger a call to scan only the table(s) affected by that pipeline.    
 
-Using `Auto-dlp mode` offers the following benefits:
+Using `discovery-service-mode` offers the following benefits:
 * Relying on scalable, native GCP product for inspection/profiling.
-* Relying on Auto-DLP heuristics to determine when to trigger a table scan. 
-* visualizing data profiles (i.e. tables, columns, PII types, metrics, etc) from the GCP console (UI).
-* Accessing GCP Cloud Support for the product (Auto-DLP only, not this custom solution).
+* Relying on sensitive data discovery service heuristics to determine when to trigger a table scan. 
+* Visualizing data profiles (i.e. tables, columns, PII types, metrics, etc) from the GCP console (UI).
+* Accessing GCP Cloud Support for the product (sensitive data discovery service only, not this custom solution).
 
 ## Cost Control
 The main contributing components to cost in this solution are DLP Inspection Jobs and BigQuery
@@ -73,7 +78,7 @@ Analytical Usage, where each component has its own cost control measures.
     You can set the number or percentage of rows to be randomly selected 
 and inspected from each table as a function of the table size. This is done in the Terraform
 configuration as part of the deployment procedures. Please note that setting is only applicable
-in the `Standard-mode` while in `Auto-dlp mode` it's totally up to the Auto-DLP configurations and heuristics
+in the `standard-mode` while in `discovery-service-mode` it's up to the discovery service configurations and heuristics
 to determine the frequency and number of rows to scan from each table.
 
 
