@@ -60,7 +60,7 @@ Follow the steps in this [document](common-terraform-2-variables.md) and then co
 
 Configure the solution to be deployed in data-discovery mode and not standard-mode
 
-PS: for backward compatibility, this configuration flag is named after the original API name for this feature `Auto DLP`
+PS: for backward compatibility, this configuration flag is named after the previous name for this feature `Auto DLP`
 
 ```
 is_auto_dlp_mode = true
