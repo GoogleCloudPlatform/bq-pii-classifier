@@ -1,7 +1,7 @@
 ### Create a Terraform .tfvars file
 
 Create a new .tfvars file and override the variables in the below sections. You can use one of the example
-tfavrs files as a base ([example-standard-mode](terraform/example-standard-mode.tfvars), [example-auto-dlp-mode](terraform/example-auto-dlp-mode.tfvars)). 
+tfavrs files as a base ([example-standard-mode](terraform/example-standard-mode.tfvars), [example-discovery-service-mode](terraform/example-discovery-service-mode.tfvars)). 
 
 ```
 export VARS=my-variables.tfvars
@@ -24,7 +24,7 @@ data_region = "<GCP region where the target data resides and where data-related 
 
 This dataset will be created under the data_region and will
 hold all solution-managed tables and config views. Optionally, it could 
-be used to store Auto DLP findings (configured outside of Terraform)
+be used to store discovery service findings (configured outside of Terraform)
 
 ```
 bigquery_dataset_name = "<>"

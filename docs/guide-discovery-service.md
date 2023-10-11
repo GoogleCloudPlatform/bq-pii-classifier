@@ -1,4 +1,4 @@
-# BigQuery PII Classifier - Auto DLP Mode
+# BigQuery PII Classifier - Discovery-Service Mode
 
 Table of content:
 1. [Architecture](#architecture)
@@ -56,7 +56,7 @@ on the Terraform side.
 
 Follow the steps in this [document](common-terraform-2-variables.md) and then continue here.
 
-#### Configure Auto-DLP mode
+#### Configure discovery-service mode
 
 Configure the solution to be deployed in data-discovery mode and not standard-mode 
 
@@ -139,7 +139,7 @@ on how to set up scan configurations. Please note the following sections:
 * "Manage service agent container and billing":  
    * Choose "Select an existing service agent container".
    * Enter the host project name (as set in the Terraform variable `project`) in the "Service agent container field"
-   * PS: This configuration is only allowed when you set Auto-DLP on an Org or Folder levels. 
+   * PS: This configuration is only allowed when you set discovery service on an Org or Folder levels. 
      If you configure discovery service on project level make sure it's the same as the solution host project or re-deploy the terraform
      module while using the desired DLP service agent in the variable `dlp_service_account`. This important to make sure that the
      DLP service agent gets the required permissions on the solution.
