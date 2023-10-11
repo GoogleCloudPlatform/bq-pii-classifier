@@ -9,7 +9,7 @@ Table of content:
 
 ## Architecture
 
- ![alt text](../diagrams/auto%20dlp-design.jpg)
+ ![alt text](../diagrams/discovery-service-design.jpg)
  
  ### Components
  
@@ -201,7 +201,7 @@ After deploying the solution, one can call it in different ways:
  
   **[Option 1] Discovery Service Notifications:**  
   
-  ![alt text](../diagrams/auto%20dlp-usage-tagger%20notification.jpg)
+  ![alt text](../diagrams/discovery-service-usage-tagger-notification.jpg)
   
   After discovery service (re)profiles a table it will send a PubSub notification
   to the Tagger service to apply tags to columns with PII. To test this behaviour you could create 
@@ -220,7 +220,7 @@ After deploying the solution, one can call it in different ways:
   
  **[Option 2] CRON Schedules:**    
  
-  ![alt text](../diagrams/auto%20dlp-usage-cron.jpg)
+  ![alt text](../diagrams/discovery-service-usage-cron.jpg)
  
  If discovery service already profiled some tables, and you want to (re)tag them (or a subset) you could 
  use the Cloud Scheduler to trigger a tagging run for the tables that discovery service already profiled.   
