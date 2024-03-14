@@ -89,21 +89,21 @@ public class FindingsReaderStandardDlp implements FindingsReader {
                                 "getFieldsToPolicyTagsMap query returned rows with null info_type for column '%s'",
                                 column_name));
             }
-            String info_type = row.get("info_type").getStringValue();
+            String infoType = row.get("info_type").getStringValue();
 
             if (row.get("policy_tag").isNull()) {
                 throw new NonRetryableApplicationException(
                         String.format(
                                 "getFieldsToPolicyTagsMap query returned rows with null policy_tag for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
-                                column_name, info_type));
+                                column_name, infoType));
             }
-            String policy_tag = row.get("policy_tag").getStringValue();
+            String policyTag = row.get("policy_tag").getStringValue();
 
             if (row.get("classification").isNull()) {
                 throw new NonRetryableApplicationException(
                         String.format(
                                 "getFieldsToPolicyTagsMap query returned rows with null classification for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
-                                column_name, info_type));
+                                column_name, infoType));
             }
             String classification = row.get("classification").getStringValue();
 
@@ -112,7 +112,7 @@ public class FindingsReaderStandardDlp implements FindingsReader {
             }
             tableSpecStr = row.get("table_spec").getStringValue();
 
-            fieldsToPolicyTagMap.put(column_name, new PolicyTagInfo(policy_tag, classification));
+            fieldsToPolicyTagMap.put(column_name, new PolicyTagInfo(infoType, policyTag, classification));
         }
 
         if (fieldsToPolicyTagMap.isEmpty())

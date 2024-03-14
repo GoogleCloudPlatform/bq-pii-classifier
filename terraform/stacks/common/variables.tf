@@ -122,6 +122,7 @@ variable "classification_taxonomy" {
     info_type_category = string # (standard | custom)
     policy_tag = string
     classification = string
+    labels = list(string)
   }))
 }
 

@@ -16,6 +16,9 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+
+import java.util.Map;
 import java.util.Set;
 
 public class TaggerConfig {
@@ -32,6 +35,8 @@ public class TaggerConfig {
     private Boolean isPromoteMixedTypes;
     private Boolean isAutoDlpMode;
 
+    private Map<String, InfoTypeInfo> infoTypeMap;
+
     public TaggerConfig(String projectId,
                         Set<String> appOwnedTaxonomies,
                         String dlpDataset,
@@ -42,7 +47,9 @@ public class TaggerConfig {
                         String configViewProjectDomainMap,
                         Boolean isPromoteMixedTypes,
                         Boolean isAutoDlpMode,
-                        Boolean isDryRun) {
+                        Boolean isDryRun,
+                        Map<String, InfoTypeInfo> infoTypeMap
+                        ) {
         this.projectId = projectId;
         this.appOwnedTaxonomies = appOwnedTaxonomies;
         this.dlpDataset = dlpDataset;
@@ -54,6 +61,7 @@ public class TaggerConfig {
         this.isPromoteMixedTypes = isPromoteMixedTypes;
         this.isAutoDlpMode = isAutoDlpMode;
         this.isDryRun = isDryRun;
+        this.infoTypeMap = infoTypeMap;
     }
 
     public  Set<String> getAppOwnedTaxonomies() {
@@ -100,6 +108,10 @@ public class TaggerConfig {
         return isAutoDlpMode;
     }
 
+    public Map<String, InfoTypeInfo> getInfoTypeMap() {
+        return infoTypeMap;
+    }
+
     @Override
     public String toString() {
         return "TaggerConfig{" +
@@ -114,6 +126,7 @@ public class TaggerConfig {
                 ", configViewProjectDomainMap='" + configViewProjectDomainMap + '\'' +
                 ", isPromoteMixedTypes=" + isPromoteMixedTypes +
                 ", isAutoDlpMode=" + isAutoDlpMode +
+                ", infoTypeMap=" + infoTypeMap +
                 '}';
     }
 }

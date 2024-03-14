@@ -31,4 +31,8 @@
 //  value = module.dlp.inspection_template
 //}
 
+#output "info_type_map" {
+#  value = module.common-stack.info_type_map
+#}
+
 

@@ -39,12 +39,18 @@ public class Tagger {
     private final LoggingHelper logger;
 
     private static final Integer functionNumber = 3;
+
+    private static final Map<String, String> COMMON_TABLE_LABELS = new HashMap<>(){{
+        put("dg_data_merged_identifier", "email");
+        put("dg_data_identifiability", "identifiable");
+
+    }};
     private TaggerConfig config;
 
-    BigQueryService bqService;
-    FindingsReader findingsReader;
-    PersistentSet persistentSet;
-    String persistentSetObjectPrefix;
+    private BigQueryService bqService;
+    private FindingsReader findingsReader;
+    private PersistentSet persistentSet;
+    private String persistentSetObjectPrefix;
 
     public Tagger(TaggerConfig config,
                   BigQueryService bqService,
@@ -112,11 +118,21 @@ public class Tagger {
                 logger.logInfoWithTracker(request.getTrackingId()
                         , String.format("Computed Fields to Policy Tags mapping : %s", computedFieldsToPolicyTagsMap.toString()));
 
+                // construct a map of table labels based on the common labels and info type labels
+                Map<String, String> tableLabels = new HashMap<>(COMMON_TABLE_LABELS);
+                tableLabels.putAll(
+                        generateTableLabelsFromDlpFindings(tablePolicyTags, config.getInfoTypeMap())
+                );
+
+                logger.logInfoWithTracker(request.getTrackingId()
+                        , String.format("Computed table labels : %s", tableLabels));
+
                 // Apply policy tags to columns in BigQuery
                 // If isDryRun = True no actual tagging will happen on BigQuery and Dry-Run log entries will be written instead
                 List<TableFieldSchema> updatedFields = applyPolicyTagsAndLabels(
                         targetTableSpec,
                         computedFieldsToPolicyTagsMap,
+                        tableLabels,
                         config.getAppOwnedTaxonomies(),
                         config.getDryRun(),
                         request.getTrackingId());
@@ -298,6 +314,7 @@ public class Tagger {
 
     public List<TableFieldSchema> applyPolicyTagsAndLabels(TableSpec tableSpec,
                                                            Map<String, PolicyTagInfo> fieldsToPolicyTagsMap,
+                                                           Map<String, String> tableLabels,
                                                            Set<String> app_managed_taxonomies,
                                                            Boolean isDryRun,
                                                            String trackingId) throws IOException {
@@ -319,13 +336,6 @@ public class Tagger {
                     policyUpdateLogs);
 
             updatedFields.add(updatedField);
-        }
-
-        // construct a map of table labels based on the classification field of each policy tag
-        Map<String, String> tableLabels = new HashMap<>();
-        for(PolicyTagInfo policyTagInfo: fieldsToPolicyTagsMap.values()){
-            // resource labels must be lowercase
-            tableLabels.put(policyTagInfo.getClassification().toLowerCase(), "yes");
         }
 
         // if it's not a dry run, patch the table with the new schema including new policy tags
@@ -353,6 +363,21 @@ public class Tagger {
             }
         }
         return result;
+    }
+
+    public static Map<String, String> generateTableLabelsFromDlpFindings(TablePolicyTags tablePolicyTags,
+                                                                         Map<String, InfoTypeInfo> infoTypeMap){
+        Map<String, String> tableLabels = new HashMap<>();
+        // loop on all InfoTyps found in that table
+        for(PolicyTagInfo policyTagInfo: tablePolicyTags.getFieldsPolicyTags().values()){
+            String infoType = policyTagInfo.getInfoType();
+            // lookup the labels associated with that info type based on the classification taxonomy (in Terraform)
+            // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
+            for (String infoTypeLabel: infoTypeMap.get(infoType).getLabels()){
+                tableLabels.put(infoTypeLabel, "yes");
+            }
+        }
+        return tableLabels;
     }
 
 }

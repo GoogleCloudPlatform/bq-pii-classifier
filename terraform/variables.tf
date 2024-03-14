@@ -216,6 +216,7 @@ variable "classification_taxonomy" {
     # (standard | custom)
     policy_tag = string
     classification = string
+    labels = list(string)
   }))
 }
 //Example:

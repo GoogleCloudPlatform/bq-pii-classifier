@@ -23,3 +23,7 @@ output "sa_tagger_email" {
   value = module.iam.sa_tagger_email
 }
 
+output "info_type_map" {
+  value = local.info_types_map
+}
+
