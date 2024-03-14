@@ -24,6 +24,7 @@ import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 public interface BigQueryService {
     String getDatasetLocation(String projectId, String datasetId) throws IOException;
@@ -34,7 +35,7 @@ public interface BigQueryService {
 
     List<TableFieldSchema> getTableSchemaFields(TableSpec tableSpec) throws IOException;
 
-    void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException;
+    void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields, Map<String, String> tableLabels) throws IOException;
 
     BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;
 

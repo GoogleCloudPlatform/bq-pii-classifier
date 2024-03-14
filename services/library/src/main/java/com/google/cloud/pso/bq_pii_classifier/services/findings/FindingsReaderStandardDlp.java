@@ -4,6 +4,7 @@ import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PolicyTagInfo;
 import com.google.cloud.pso.bq_pii_classifier.entities.TablePolicyTags;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
@@ -73,7 +74,7 @@ public class FindingsReaderStandardDlp implements FindingsReader {
         TableResult result = bqService.waitAndGetJobResults(queryJob);
 
         // Construct a mapping between field names and DLP infotypes
-        Map<String, String> fieldsToPolicyTagMap = new HashMap<>();
+        Map<String, PolicyTagInfo> fieldsToPolicyTagMap = new HashMap<>();
         String tableSpecStr = "";
         for (FieldValueList row : result.iterateAll()) {
 
@@ -98,12 +99,20 @@ public class FindingsReaderStandardDlp implements FindingsReader {
             }
             String policy_tag = row.get("policy_tag").getStringValue();
 
+            if (row.get("classification").isNull()) {
+                throw new NonRetryableApplicationException(
+                        String.format(
+                                "getFieldsToPolicyTagsMap query returned rows with null classification for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
+                                column_name, info_type));
+            }
+            String classification = row.get("classification").getStringValue();
+
             if (row.get("table_spec").isNull()) {
                 throw new NonRetryableApplicationException("getFieldsToPolicyTagsMap query returned rows with null table_spec");
             }
             tableSpecStr = row.get("table_spec").getStringValue();
 
-            fieldsToPolicyTagMap.put(column_name, policy_tag);
+            fieldsToPolicyTagMap.put(column_name, new PolicyTagInfo(policy_tag, classification));
         }
 
         if (fieldsToPolicyTagMap.isEmpty())

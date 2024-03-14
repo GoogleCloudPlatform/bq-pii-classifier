@@ -15,6 +15,18 @@
         "mode": "NULLABLE",
         "name": "version",
         "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "score",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "sensitivity_score",
+        "type": "RECORD"
       }
     ],
     "mode": "NULLABLE",

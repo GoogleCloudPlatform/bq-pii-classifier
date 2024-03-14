@@ -109,6 +109,7 @@
         o.field_name,
         o.info_type,
         c.policy_tag,
+        c.classification,
         o.max_likelihood
       FROM
         `one_info_type_per_field` o
@@ -119,4 +120,4 @@
       GROUP BY 1, 2,3,4,5,6,7,8
       )
 
-      SELECT table_spec, field_name, info_type, policy_tag FROM info_type_with_policy_tags WHERE info_type IS NOT NULL
+      SELECT table_spec, field_name, info_type, policy_tag, classification FROM info_type_with_policy_tags WHERE info_type IS NOT NULL

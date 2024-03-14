@@ -49,7 +49,8 @@
         -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
         REGEXP_REPLACE(o.column_name, r"(\[\d+\]\.)", '.') AS field_name,
         o.final_info_type AS info_type,
-        c.policy_tag
+        c.policy_tag,
+        c.classification
         FROM column_info_type_base o
         LEFT JOIN datasets_domains dd ON dd.project = o.dataset_project_id AND dd.dataset = o.dataset_id
         LEFT JOIN projects_domains pd ON pd.project = o.dataset_project_id

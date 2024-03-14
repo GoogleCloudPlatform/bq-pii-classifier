@@ -29,6 +29,7 @@ import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class BigQueryServiceImpl implements BigQueryService {
@@ -62,7 +63,7 @@ public class BigQueryServiceImpl implements BigQueryService {
     }
 
     @Override
-    public Job submitJob(String query){
+    public Job submitJob(String query) {
 
         QueryJobConfiguration queryConfig =
                 QueryJobConfiguration.newBuilder(query)
@@ -107,12 +108,20 @@ public class BigQueryServiceImpl implements BigQueryService {
     }
 
     @Override
-    public void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException {
+    public void patchTable(TableSpec tableSpec,
+                           List<TableFieldSchema> updatedFields,
+                           Map<String, String> tableLabels) throws IOException {
+
+        com.google.api.services.bigquery.model.Table newTableModel = new com.google.api.services.bigquery.model.Table()
+                .setSchema(new TableSchema().setFields(updatedFields))
+                .setLabels(tableLabels);
+
+
         bqAPI.tables()
                 .patch(tableSpec.getProject(),
                         tableSpec.getDataset(),
                         tableSpec.getTable(),
-                        new com.google.api.services.bigquery.model.Table().setSchema(new TableSchema().setFields(updatedFields)))
+                        newTableModel)
                 .execute();
     }
 

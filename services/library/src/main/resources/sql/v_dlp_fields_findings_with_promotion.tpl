@@ -176,6 +176,7 @@
                 i.field_name,
                 i.info_type,
                 c.policy_tag,
+                c.classification,
                 i.max_likelihood
             FROM final_info_type i
             LEFT JOIN datasets_domains dd ON dd.project = i.project_id AND dd.dataset = i.dataset_id
@@ -184,7 +185,7 @@
             LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = i.info_type
         )
 
-        SELECT table_spec, field_name, info_type, policy_tag FROM with_policy_tags WHERE info_type IS NOT NULL
+        SELECT table_spec, field_name, info_type, policy_tag, classification FROM with_policy_tags WHERE info_type IS NOT NULL
 
 
 
