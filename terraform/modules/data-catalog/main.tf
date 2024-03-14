@@ -43,8 +43,8 @@ resource "google_data_catalog_policy_tag" "children_tags" {
 
   display_name = lookup(var.classification_taxonomy[count.index],"policy_tag")
 
-  # FIXME: this is a hack to propagate the domain and infotype to the output variable "created_children_tags". Find an alternative
-  description = "${var.domain} | ${lookup(var.classification_taxonomy[count.index],"info_type", "NA")}"
+  # FIXME: this is a hack to propagate the domain, info type and classification to the output variable "created_children_tags". Find an alternative
+  description = "${var.domain} | ${lookup(var.classification_taxonomy[count.index],"classification", "NA")} | ${lookup(var.classification_taxonomy[count.index],"info_type", "NA")}"
 }
 
 

@@ -87,7 +87,7 @@ locals {
   created_taxonomies = join(",", [for taxonomy in module.data-catalog[*].created_taxonomy: taxonomy.name])
 
   // one list of all policy tags generated across domain taxonomies
-  // each element of the list is a map with three attributes (policy_tag_id, domain, info_type)
+  // each element of the list is a map with three attributes (policy_tag_id, domain, classification, info_type)
   created_policy_tags = flatten(module.data-catalog[*].created_children_tags)
 
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
