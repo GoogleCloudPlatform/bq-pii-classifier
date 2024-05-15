@@ -18,15 +18,15 @@ Table of content:
  The Inspection Dispatcher will call the BigQuery API to list all tables included in the scan scope and submit a DLP Inspection request for that table in the Inspector Tasks topic.  
  
  *Inspector Tasks Topic*  
- This PubSub topic decouples the Inspection Dispatcher from the Inspector in order to handle the rate limits of the DLP API and to apply auto-retries with backoffs.  
+ This PubSub topic decouples the Inspection Dispatcher from the Inspector in order to handle the rate limits of the DLP API and to apply auto-retries with backoff.  
  
  *Inspector Service*  
  A Cloud Run service that expects a request to scan one table. It will submit an Inspection job to DLP for that table according to the configured Inspection template and other parameters such as scan limits, results table, notifications topic, etc.  
  
- For cost control, the service will limit the number of rows to be scanned based on the table size and a user defined configuration that determines limit intervals (e.g. 0-1000 rows → sample 100, 1001-10000 → sample 500, etc). This sample will be taken randomly from the table.  
+ For cost control, the service will limit the number of rows to be scanned based on the table size and a user defined configuration that determines limit intervals (e.g. 0-1000 rows → sample 100, 1001-10000 → sample 500, etc,). This sample will be taken randomly from the table.  
  
  *Tagger Tasks Topic*  
- This PubSub topic decouples the DLP API notifications from the Tagger service in order to handle the rate limits of BigQuery column tagging operations and to apply auto-retries with backoffs.  
+ This PubSub topic decouples the DLP API notifications from the Tagger service in order to handle the rate limits of BigQuery column tagging operations and to apply auto-retries with backoff.  
  
  *Tagger Service*
  A Cloud Run service that expects the information of one BigQuery table. It will determine the InfoType of each column based on the latest DLP findings and apply the appropriate policy tag.
@@ -78,7 +78,7 @@ Follow the steps in this [document](common-terraform-2-variables.md) and then co
 #### Configure Standard mode
 
 Configure the solution to be deployed in standard-mode and not in discovery-service mode. In standard mode,
-the solution will be responsible for periodically scanning tables instead building on top of discovert service results.
+the solution will be responsible for periodically scanning tables instead of building on top of discovered service results.
 
 PS: for backward compatibility, this configuration flag is named after the previous name for this feature `Auto DLP`
 
@@ -115,7 +115,7 @@ inspection_cron_expression = "0 0 * * *"
   
 The `tagging_cron_expression` sets the schedule on which the Tagging Dispatcher service will be invoked.  
 This will use the latest DLP findings (i.e. results of a previous Inspection scan) and re-apply the policy tags based on the latest
-data classification taxonomy. This option is meant to be used "on-demand" in the standard mode and
+data classification taxonomy. This option is meant to be used "on-demand" in the standard mode, and
 it's recommended to pause it after deployment to avoid unnecessary runs.
   
 ```
@@ -139,7 +139,14 @@ When using `PERCENTAGE_OF_ROWS` the rows_to_sample should be an integer between 
 20 means 20%.
 
 ```
-table_scan_limits_json_config = "{\"limitType\": \"NUMBER_OF_ROWS\", \"limits\": {\"10000\": \"100\",\"100000\": \"5000\", \"1000000\": \"7000\"}}"
+table_scan_limits_json_config = {
+  limitType: "NUMBER_OF_ROWS",
+  limits: {
+    "10000":"10",
+    "100000":"100",
+    "1000000":"1000"
+  }
+}
 ```
 
 #### Configure what to do with Mixed PII 
@@ -148,15 +155,15 @@ The `promote_mixed_info_types` setting will determine how the solution picks onl
 for columns that have multiple InfoTypes detected by DLP.   
 
 * In case of `false`:   
-The solution will report the infotype of a column as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelihood and number of findings)
+The solution will report the InfoType of a column as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelihood and number of findings)
 * In case of `true`:    
 The solution will compute a score for each reported InfoType based on signals like likelihood and number of findings and pick the InfoType with the highest score.
-If the scores are still a tie, the solution will fallback to "MIXED" infoType.   
+If the scores are still a tie, the solution will fall back to "MIXED" infoType.   
 
 In both cases, columns with final reported InfoType "MIXED" will be mapped to the policy tag configured in the `classification_taxonomy`. 
 
-Internally, this "promotion" logic is defined in a BigQuery view `v_dlp_findings`. There are two versions of this [view](terraform/modules/bigquery/views) and this variable
-controls which one gets deployed by Terraform.  
+Internally, this "promotion" logic is defined in two BigQuery views: [v_dlp_fields_findings_with_promotion](../services/library/src/main/resources/sql/v_dlp_fields_findings_with_promotion.tpl) and [v_dlp_fields_findings_without_promotion](../services/library/src/main/resources/sql/v_dlp_fields_findings_without_promotion.tpl) 
+and this variable controls which one the solution uses at runtime.  
 
 ```
 promote_mixed_info_types = false
@@ -191,7 +198,7 @@ permissions on each data project. To do, run the following script:
 
 From root folder:
 ```
-./scripts/prepare_data_projects_for_standard_dlp_mode.sh <project1> <project2> <etc>
+./scripts/prepare_data_projects_for_standard_mode.sh <project1> <project2> <etc>
 ```
 
 PS: 
@@ -205,11 +212,11 @@ PS:
 * In GCP, select the host project
 * Go to Cloud Scheduler
 * Trigger the "Inspection Scheduler"
-* Inspect the status of the run via the queries in the [Reporting section](Reporting).  
+* Inspect the status of the run via the queries in the [Reporting section](#reporting).  
   Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
 * Inspect a sample BigQuery table and validate that the policy tags were applied correctly.    
 
-PS: Re-tagging runs will have a `run_id` in the form `<timestamp>-i`  
+PS: Inspection runs will have a `run_id` in the form `<timestamp>-i`  
 
 ### Re-tagging Run
 Same as Inspection run but trigger the "Tagging Scheduler" instead.  
