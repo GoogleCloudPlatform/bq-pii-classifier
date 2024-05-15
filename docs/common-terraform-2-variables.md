@@ -1,7 +1,7 @@
-### Create a Terraform .tfvars file
+### Create a Terraform `.tfvars` file
 
-Create a new .tfvars file and override the variables in the below sections. You can use one of the example
-tfavrs files as a base ([example-standard-mode](terraform/example-standard-mode.tfvars), [example-discovery-service-mode](terraform/example-discovery-service-mode.tfvars)). 
+Create a new `.tfvars` file and override the variables in the below sections. You can use one of the example
+`.tfavrs` files as a base ([example-standard-mode](../terraform/example-standard-mode.tfvars), [example-discovery-service-mode](../terraform/example-discovery-service-mode.tfvars)). 
 
 ```
 export VARS=my-variables.tfvars
@@ -9,8 +9,8 @@ export VARS=my-variables.tfvars
 
 ### Configure Basic Variables
 
-Most required variables have default names defined in [variables.tf](terraform/variables.tf).
-You can use the defaults or overwrite them in the .tfvars file you just created.
+Most required variables have default names defined in [variables.tf](../terraform/variables.tf).
+You can use the defaults or overwrite them in the `.tfvars` file you just created.
 
 Both ways, you must define the below variables:
 
@@ -59,7 +59,7 @@ This will enable the solution:
  * Build hierarchical policy tag taxonomies
  * To identify which policy tag to apply to a column based on the PII/InfoType discovered
 
-PS: Custom INFO_TYPEs configured in the [DLP inspection job](terraform/modules/dlp/main.tf) 
+PS: Custom INFO_TYPEs configured in the [DLP inspection job](../terraform/modules/dlp/main.tf) 
 MUST be mapped here. Otherwise, mapping to policy tag ids will fail.  
 
 Dealing with Mixed PII:  
@@ -148,13 +148,13 @@ For example:
 iam_mapping = {
 
   marketing = {
-    High = ["user:marketing-p1-reader@example.com"],
-    Low = ["user:marketing-p2-reader@example.com"]
+    P1 = ["user:marketing-p1-reader@example.com"],
+    P2 = ["user:marketing-p2-reader@example.com"]
   },
 
   finance = {
-    High = ["user:finance-p1-reader@example.com"],
-    Low = ["user:finance-p2-reader@example.com"]
+    P1 = ["user:finance-p1-reader@example.com"],
+    P2 = ["user:finance-p2-reader@example.com"]
   },
 
   dwh = {
@@ -169,7 +169,7 @@ iam_mapping = {
 
 By setting `is_dry_run = "True"` the solution will scan BigQuery tables 
 for PII data, store the scan result, but it will not apply policy tags to columns.
-Instead, the "Tagger" function will only log [actions](functions/bq_security_classifier_functions/src/main/java/com/google/cloud/pso/bq_security_classifier/functions/tagger/ColumnTaggingAction.java).
+Instead, the "Tagger" function will only log [actions](../services/library/src/main/java/com/google/cloud/pso/bq_pii_classifier/functions/tagger/ColumnTaggingAction.java).
 
 Check the Monitoring sections on how to access these logs.  
 
@@ -186,7 +186,7 @@ Steps:
      * DLP service account is in the form service-<project number>@dlp-api.iam.gserviceaccount.com
      * Search in IAM for @dlp-api.iam.gserviceaccount.com (tick the "Include Google-Provided role grants" box)
      * If this host project never used DLP before, run a sample inspection job for GCP to create a service account
- * Set the `dlp_service_account` variable in the terraform variables file
+ * Set the `dlp_service_account` variable in the Terraform variables file
 
 ```
 dlp_service_account = "service-<project number>@dlp-api.iam.gserviceaccount.com"

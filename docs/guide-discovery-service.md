@@ -3,9 +3,9 @@
 Table of content:
 1. [Architecture](#architecture)
 2. [Deployment](#deployment)
-3. [Manual Usage](#manual-usage)
+3. [Manual Usage](#usage)
 4. [Reporting](#reporting)
-5. [Automated Usage](#automated-usage)
+5. [Usage](#usage)
 
 ## Architecture
 
@@ -19,7 +19,7 @@ A Cloud Run service that acts as an entry point for the solution. It expects a B
 The Tagging Dispatcher will list all tables included in the scope that has existing findings by sensitive data discovery service and submit a table tagging request for that table in the Tagger Tasks topic.
 
 *Tagger Tasks Topic:*  
-This PubSub topic decouples the Tagging Dispatcher from the Tagger service in order to handle the rate limits of BigQuery column tagging operations and to apply auto-retries with backoffs.
+This PubSub topic decouples the Tagging Dispatcher from the Tagger service in order to handle the rate limits of BigQuery column tagging operations and to apply auto-retries with backoff.
 
 *Tagger Service:*  
 A Cloud Run service that expects the information of one BigQuery table. It will determine the InfoType of each column based on the latest DLP findings and apply the appropriate policy tag.
@@ -140,7 +140,7 @@ on how to set up scan configurations. Please note the following sections:
     * Choose "Select an existing service agent container".
     * Enter the host project name (as set in the Terraform variable `project`) in the "Service agent container field"
     * PS: This configuration is only allowed when you set discovery service on an Org or Folder levels.
-      If you configure discovery service on project level make sure it's the same as the solution host project or re-deploy the terraform
+      If you configure discovery service on project level make sure it's the same as the solution host project or re-deploy the Terraform
       module while using the desired DLP service agent in the variable `dlp_service_account`. This important to make sure that the
       DLP service agent gets the required permissions on the solution.
 
@@ -207,7 +207,7 @@ After discovery service (re)profiles a table it will send a PubSub notification
 to the Tagger service to apply tags to columns with PII. To test this behaviour you could create
 apply an action that triggers discovery service to profile or re-profile a table, wait until the target table(s) appears
 in the discovery service UI and then manually inspect the table to see if policy tags are applied correctly.   
-There are different actions that could trigger discovery service and they are based on the discovery service configuration
+There are different actions that could trigger discovery service, and they are based on the discovery service configuration
 you created earlier (in the schedule section) some of them are:
 * Create a new table with PII
 * Copying an existing one (same as creating new table)
@@ -228,7 +228,7 @@ Steps:
 * In GCP, select the host project
 * Go to Cloud Scheduler
 * Trigger the "Tagging Scheduler"
-* Inspect the status of the run via the queries in the [Reporting section](Reporting).  
+* Inspect the status of the run via the queries in the [Reporting section](#reporting).  
   Alternatively you can check the logs of each Cloud Run service or just wait for few minutes.
 * Inspect a sample BigQuery table and validate that the policy tags were applied correctly.
 

@@ -19,20 +19,17 @@ gcloud config configurations create $CONFIG
 gcloud config set project $PROJECT_ID
 gcloud config set account $ACCOUNT
 gcloud config set compute/region $COMPUTE_REGION
-gcloud auth login
 
+gcloud auth login
 gcloud auth application-default login
 ```
 
 ### GCP Set up
 
-* Enable App Engine API in the project and create an application (for cloud tasks and scheduler to work)
 * Enable APIs
   * Enable [Cloud Resource Manager API](https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com)
   * Enable [IAM API](https://console.developers.google.com/apis/api/iam.googleapis.com/overview)
   * Enable [Data Catalog API](https://console.developers.google.com/apis/api/datacatalog.googleapis.com/overview)
-  * Enable [Cloud Tasks API](https://console.developers.google.com/apis/api/cloudtasks.googleapis.com/overview)
-  * Enable [Cloud Functions API](https://console.developers.google.com/apis/api/cloudfunctions.googleapis.com/overview)
   * Enable [Artifact Registry](https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview) 
 
 
@@ -56,5 +53,5 @@ We need a Docker Repository to publish images that are used by this solution
 
 ```
 gcloud artifacts repositories create $DOCKER_REPO_NAME --repository-format=docker \
---location=$COMPUTE_REGION --description="Docker repository"
+--project=PROJECT_ID --location=$COMPUTE_REGION --description="Docker repository"
 ```
