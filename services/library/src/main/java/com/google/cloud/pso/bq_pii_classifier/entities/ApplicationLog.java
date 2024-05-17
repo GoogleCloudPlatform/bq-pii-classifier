@@ -21,8 +21,10 @@ public enum ApplicationLog {
     DEFAULT_LOG,
     // Used to log function start/stop
     TRACKER_LOG,
-    // Used to log column Level tagging actions
+    // Used to log column-level tagging actions
     TAG_HISTORY_LOG,
+    // Used to log table-level resource labels actions
+    LABEL_HISTORY_LOG,
     // Used to log success dispatched requests per run
     DISPATCHED_REQUESTS_LOG,
     // Used to log failed dispatched requests per run

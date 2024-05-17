@@ -25,7 +25,8 @@ public class TaggerConfig {
 
     private String projectId;
     private Set<String> appOwnedTaxonomies;
-    private Boolean isDryRun;
+    private Boolean isDryRunTags;
+    private Boolean isDryRunLabels;
     private String dlpDataset;
     private String dlpTableStandard;
     private String dlpTableAuto;
@@ -47,7 +48,8 @@ public class TaggerConfig {
                         String configViewProjectDomainMap,
                         Boolean isPromoteMixedTypes,
                         Boolean isAutoDlpMode,
-                        Boolean isDryRun,
+                        Boolean isDryRunTags,
+                        Boolean isDryRunLabels,
                         Map<String, InfoTypeInfo> infoTypeMap
                         ) {
         this.projectId = projectId;
@@ -60,7 +62,8 @@ public class TaggerConfig {
         this.configViewProjectDomainMap = configViewProjectDomainMap;
         this.isPromoteMixedTypes = isPromoteMixedTypes;
         this.isAutoDlpMode = isAutoDlpMode;
-        this.isDryRun = isDryRun;
+        this.isDryRunTags = isDryRunTags;
+        this.isDryRunLabels = isDryRunLabels;
         this.infoTypeMap = infoTypeMap;
     }
 
@@ -68,8 +71,12 @@ public class TaggerConfig {
         return appOwnedTaxonomies;
     }
 
-    public Boolean getDryRun() {
-        return isDryRun;
+    public Boolean isDryRunTags() {
+        return isDryRunTags;
+    }
+
+    public Boolean isDryRunLabels() {
+        return isDryRunLabels;
     }
 
     public String getProjectId() {
@@ -117,7 +124,8 @@ public class TaggerConfig {
         return "TaggerConfig{" +
                 "projectId='" + projectId + '\'' +
                 ", appOwnedTaxonomies=" + appOwnedTaxonomies +
-                ", isDryRun=" + isDryRun +
+                ", isDryRunTags=" + isDryRunTags +
+                ", isDryRunLabels=" + isDryRunLabels +
                 ", dlpDataset='" + dlpDataset + '\'' +
                 ", dlpTableStandard='" + dlpTableStandard + '\'' +
                 ", dlpTableAuto='" + dlpTableAuto + '\'' +

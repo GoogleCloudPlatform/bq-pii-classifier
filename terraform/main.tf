@@ -59,7 +59,8 @@ module "common-stack" {
   dlp_service_account = var.dlp_service_account
   domain_mapping = var.domain_mapping
   iam_mapping = var.iam_mapping
-  is_dry_run = var.is_dry_run
+  is_dry_run_tags = var.is_dry_run_tags
+  is_dry_run_labels = var.is_dry_run_labels
   project = var.project
   projects_include_list = var.projects_include_list
   compute_region = var.compute_region

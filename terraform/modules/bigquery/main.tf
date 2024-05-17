@@ -78,6 +78,23 @@ resource "google_bigquery_table" "logging_view_tag_history" {
   }
 }
 
+resource "google_bigquery_table" "logging_view_label_history" {
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "v_log_label_history"
+
+  deletion_protection = false
+
+  view {
+    use_legacy_sql = false
+    query = templatefile("modules/bigquery/views/v_log_label_history.tpl",
+      {
+        project = var.project
+        dataset = var.dataset
+        logging_table = google_bigquery_table.logging_table.table_id
+      }
+    )
+  }
+}
 
 resource "google_bigquery_table" "logging_view_steps" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id

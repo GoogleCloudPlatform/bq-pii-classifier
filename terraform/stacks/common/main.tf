@@ -247,8 +247,12 @@ module "cloud-run-tagger" {
   timeout_seconds               = var.tagger_service_timeout_seconds
   environment_variables         = [
     {
-      name  = "IS_DRY_RUN",
-      value = var.is_dry_run,
+      name  = "IS_DRY_RUN_TAGS",
+      value = var.is_dry_run_tags,
+    },
+    {
+      name  = "IS_DRY_RUN_LABELS",
+      value = var.is_dry_run_labels,
     },
     {
       name  = "TAXONOMIES",

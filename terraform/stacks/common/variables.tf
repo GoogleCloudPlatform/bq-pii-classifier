@@ -119,10 +119,11 @@ variable "tables_exclude_list" {
 variable "classification_taxonomy" {
   type = list(object({
     info_type = string
-    info_type_category = string # (standard | custom)
+    info_type_category = string
+    # (standard | custom)
     policy_tag = string
     classification = string
-    labels = list(string)
+    labels = list(object({key = string, value = string}))
   }))
 }
 
@@ -157,9 +158,12 @@ variable "cloud_scheduler_account" {
   description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
-variable "is_dry_run" {
+variable "is_dry_run_tags" {
   type = string
+}
 
+variable "is_dry_run_labels" {
+  type = string
 }
 
 variable "cron_expression" {

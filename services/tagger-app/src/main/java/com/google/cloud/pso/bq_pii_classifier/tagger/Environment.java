@@ -25,8 +25,6 @@ import java.util.Set;
 
 public class Environment {
 
-
-
     public TaggerConfig toConfig (){
         return new TaggerConfig(
                 getProjectId(),
@@ -40,7 +38,8 @@ public class Environment {
                 getConfigViewProjectDomainMap(),
                 getPromoteMixedTypes(),
                 getIsAutoDlpMode(),
-                getIsDryRun(),
+                getIsDryRunTags(),
+                getIsDryRunLabels(),
                 getInfoTypeMap()
         );
     }
@@ -53,8 +52,12 @@ public class Environment {
         return Utils.getConfigFromEnv("TAXONOMIES", true);
     }
 
-    public Boolean getIsDryRun(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN", true));
+    public Boolean getIsDryRunTags(){
+        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
+    }
+
+    public Boolean getIsDryRunLabels(){
+        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
     }
 
     public String getGcsFlagsBucket(){

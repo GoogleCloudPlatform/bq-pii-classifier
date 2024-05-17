@@ -39,12 +39,6 @@ public class Tagger {
     private final LoggingHelper logger;
 
     private static final Integer functionNumber = 3;
-
-    private static final Map<String, String> COMMON_TABLE_LABELS = new HashMap<>(){{
-        put("dg_data_merged_identifier", "email");
-        put("dg_data_identifiability", "identifiable");
-
-    }};
     private TaggerConfig config;
 
     private BigQueryService bqService;
@@ -115,17 +109,22 @@ public class Tagger {
             // When a table is not found a com.google.api.client.googleapis.json.GoogleJsonResponseException
             if (bqService.tableExists(targetTableSpec)) {
 
-                logger.logInfoWithTracker(request.getTrackingId()
-                        , String.format("Computed Fields to Policy Tags mapping : %s", computedFieldsToPolicyTagsMap.toString()));
+                logger.logInfoWithTracker(request.getTrackingId(),
+                        String.format("Computed Fields to Policy Tags mapping : %s",
+                                computedFieldsToPolicyTagsMap.toString()));
 
                 // construct a map of table labels based on the common labels and info type labels
-                Map<String, String> tableLabels = new HashMap<>(COMMON_TABLE_LABELS);
-                tableLabels.putAll(
-                        generateTableLabelsFromDlpFindings(tablePolicyTags, config.getInfoTypeMap())
-                );
+                Map<String, String> tableLabels = new HashMap<>(generateTableLabelsFromDlpFindings(tablePolicyTags,
+                        config.getInfoTypeMap()));
 
-                logger.logInfoWithTracker(request.getTrackingId()
-                        , String.format("Computed table labels : %s", tableLabels));
+                //log found labels for this table
+                for (Map.Entry<String, String> labelEntry : tableLabels.entrySet()) {
+                    logger.logLabelsHistory(targetTableSpec,
+                            labelEntry.getKey(),
+                            labelEntry.getValue(),
+                            config.isDryRunLabels(),
+                            request.getTrackingId());
+                }
 
                 // Apply policy tags to columns in BigQuery
                 // If isDryRun = True no actual tagging will happen on BigQuery and Dry-Run log entries will be written instead
@@ -134,7 +133,8 @@ public class Tagger {
                         computedFieldsToPolicyTagsMap,
                         tableLabels,
                         config.getAppOwnedTaxonomies(),
-                        config.getDryRun(),
+                        config.isDryRunTags(),
+                        config.isDryRunLabels(),
                         request.getTrackingId());
 
                 appliedFieldsToPolicyTags = mapFieldsToPolicyTags(updatedFields);
@@ -316,7 +316,8 @@ public class Tagger {
                                                            Map<String, PolicyTagInfo> fieldsToPolicyTagsMap,
                                                            Map<String, String> tableLabels,
                                                            Set<String> app_managed_taxonomies,
-                                                           Boolean isDryRun,
+                                                           Boolean isDryRunTags,
+                                                           Boolean isDryRunLabels,
                                                            String trackingId) throws IOException {
 
         List<TableFieldSchema> currentFields = bqService.getTableSchemaFields(tableSpec);
@@ -331,16 +332,46 @@ public class Tagger {
                     tableSpec,
                     fieldsToPolicyTagsMap,
                     app_managed_taxonomies,
-                    isDryRun,
+                    isDryRunTags,
                     trackingId,
                     policyUpdateLogs);
 
             updatedFields.add(updatedField);
         }
 
-        // if it's not a dry run, patch the table with the new schema including new policy tags
-        if (!isDryRun) {
+        // if this is a wet run for both tags and labels, patch them in one request
+        if (!isDryRunTags && !isDryRunLabels) {
             bqService.patchTable(tableSpec, updatedFields, tableLabels);
+            String msg = String.format(
+                    "Policy tags and resource labels applied to table %s.",
+                    tableSpec.toSqlString()
+            );
+            logger.logInfoWithTracker(trackingId, msg);
+        } else {
+            if (!isDryRunTags && isDryRunLabels) {
+                bqService.patchTableSchema(tableSpec, updatedFields);
+                String msg = String.format(
+                        "Policy tags applied to table %s.",
+                        tableSpec.toSqlString()
+                );
+                logger.logInfoWithTracker(trackingId, msg);
+            }
+            if (isDryRunTags && !isDryRunLabels) {
+                bqService.patchTableLabels(tableSpec, tableLabels);
+                String msg = String.format(
+                        "Resource labels applied to table %s.",
+                        tableSpec.toSqlString()
+                );
+                logger.logInfoWithTracker(trackingId, msg);
+            }
+            if (isDryRunTags && isDryRunLabels) {
+                String msg = String.format(
+                        "No policy tags or resource labels will be applied to table %s." +
+                                " Both isDryRunTags and isDryRunLabels are set to True",
+                        tableSpec.toSqlString()
+                );
+                logger.logInfoWithTracker(trackingId, msg);
+            }
         }
 
         // log all actions on policy tags after bq.tables.patch operation is successful
@@ -366,15 +397,16 @@ public class Tagger {
     }
 
     public static Map<String, String> generateTableLabelsFromDlpFindings(TablePolicyTags tablePolicyTags,
-                                                                         Map<String, InfoTypeInfo> infoTypeMap){
+                                                                         Map<String, InfoTypeInfo> infoTypeMap) {
         Map<String, String> tableLabels = new HashMap<>();
         // loop on all InfoTyps found in that table
-        for(PolicyTagInfo policyTagInfo: tablePolicyTags.getFieldsPolicyTags().values()){
+        for (PolicyTagInfo policyTagInfo : tablePolicyTags.getFieldsPolicyTags().values()) {
             String infoType = policyTagInfo.getInfoType();
             // lookup the labels associated with that info type based on the classification taxonomy (in Terraform)
             // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
-            for (String infoTypeLabel: infoTypeMap.get(infoType).getLabels()){
-                tableLabels.put(infoTypeLabel, "yes");
+            for (ResourceLabel infoTypeLabel : infoTypeMap.get(infoType).getLabels()) {
+                //TODO: pass the static label value as config
+                tableLabels.put(infoTypeLabel.getKey(), infoTypeLabel.getValue());
             }
         }
         return tableLabels;

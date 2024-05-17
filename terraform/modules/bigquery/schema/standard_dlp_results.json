@@ -515,5 +515,27 @@
     "mode": "NULLABLE",
     "name": "finding_id",
     "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "timestamp",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "seconds",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "nanos",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "job_create_time",
+    "type": "RECORD"
   }
 ]

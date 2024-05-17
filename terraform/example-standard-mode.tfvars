@@ -52,7 +52,7 @@ iam_mapping = {
 
 }
 
-is_dry_run = "False"
+is_dry_run_tags = "False"
 
 dlp_service_account =  "service-<PROJECT_NUMBER>@dlp-api.iam.gserviceaccount.com"
 

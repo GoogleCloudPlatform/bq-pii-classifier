@@ -9,9 +9,9 @@ import java.lang.reflect.Type;
 public class InfoTypeInfo {
 
     private String classification;
-    private List<String> labels;
+    private List<ResourceLabel> labels;
 
-    public InfoTypeInfo(String classification, List<String> labels) {
+    public InfoTypeInfo(String classification, List<ResourceLabel> labels) {
         this.classification = classification;
         this.labels = labels;
     }
@@ -20,7 +20,7 @@ public class InfoTypeInfo {
         return classification;
     }
 
-    public List<String> getLabels() {
+    public List<ResourceLabel> getLabels() {
         return labels;
     }
 

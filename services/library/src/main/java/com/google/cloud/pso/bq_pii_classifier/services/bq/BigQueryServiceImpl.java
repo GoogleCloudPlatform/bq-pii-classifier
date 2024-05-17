@@ -25,6 +25,7 @@ import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.*;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
+import com.google.api.services.bigquery.model.Table;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -111,11 +112,28 @@ public class BigQueryServiceImpl implements BigQueryService {
     public void patchTable(TableSpec tableSpec,
                            List<TableFieldSchema> updatedFields,
                            Map<String, String> tableLabels) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setSchema(new TableSchema().setFields(updatedFields))
+                        .setLabels(tableLabels));
+    }
 
-        com.google.api.services.bigquery.model.Table newTableModel = new com.google.api.services.bigquery.model.Table()
-                .setSchema(new TableSchema().setFields(updatedFields))
-                .setLabels(tableLabels);
+    @Override
+    public void patchTableSchema(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setSchema(new TableSchema().setFields(updatedFields)));
+    }
 
+
+    @Override
+    public void patchTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setLabels(tableLabels));
+    }
+
+    private void patchTable(TableSpec tableSpec, Table newTableModel) throws IOException {
 
         bqAPI.tables()
                 .patch(tableSpec.getProject(),

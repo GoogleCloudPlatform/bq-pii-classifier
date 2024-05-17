@@ -214,6 +214,36 @@
         "mode": "NULLABLE",
         "name": "retryable_ex_reason",
         "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_project_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_dataset_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_table_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_label_key",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_label_value",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_is_dry_run",
+        "type": "BOOLEAN"
       }
     ],
     "mode": "NULLABLE",

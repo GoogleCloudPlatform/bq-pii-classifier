@@ -35,6 +35,9 @@ public interface BigQueryService {
 
     List<TableFieldSchema> getTableSchemaFields(TableSpec tableSpec) throws IOException;
 
+    void patchTableSchema(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException;
+    void patchTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) throws IOException;
+
     void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields, Map<String, String> tableLabels) throws IOException;
 
     BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;

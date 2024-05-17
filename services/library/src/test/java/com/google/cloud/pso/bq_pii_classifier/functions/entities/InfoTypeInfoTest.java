@@ -13,11 +13,13 @@ public class InfoTypeInfoTest {
     @Test
     public void fromFullResource() {
 
-        String input = "{\"BLOOD_TYPE\":{\"classification\":\"Health_PII\",\"labels\":[\"dg_data_category_health\",\"dg_data_category_biometric\"]}, \"STREET_ADDRESS\":{\"classification\":\"Location_PII\",\"labels\":[\"dg_data_category_location\"]}}";
+        String input = "{\"BLOOD_TYPE\":{\"classification\":\"Health_PII\",\"labels\":[{\"key\":\"dg_data_category_health\",\"value\":\"yes\"}]}," +
+                " \"STREET_ADDRESS\":{\"classification\":\"Location_PII\",\"labels\":[{\"key\":\"dg_data_category_location\",\"value\":\"yes\"}]}}";
         Map<String, InfoTypeInfo> map = InfoTypeInfo.fromJsonMap(input);
 
         assertEquals(2, map.size());
         assertEquals("Health_PII", map.get("BLOOD_TYPE").getClassification());
-        assertEquals("Location_PII", map.get("STREET_ADDRESS").getClassification());
+        assertEquals("dg_data_category_health", map.get("BLOOD_TYPE").getLabels().get(0).getKey());
+        assertEquals("yes", map.get("BLOOD_TYPE").getLabels().get(0).getValue());
     }
 }

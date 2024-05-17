@@ -216,7 +216,7 @@ variable "classification_taxonomy" {
     # (standard | custom)
     policy_tag = string
     classification = string
-    labels = list(string)
+    labels = list(object({key = string, value = string}))
   }))
 }
 //Example:
@@ -314,10 +314,16 @@ variable "terraform_service_account" {
   description = "service account used by terraform to deploy to GCP"
 }
 
-variable "is_dry_run" {
+variable "is_dry_run_tags" {
   type = string
   default = "False"
   description = "Applying Policy Tags in the Tagger function (False) or just logging actions (True)"
+}
+
+variable "is_dry_run_labels" {
+  type = string
+  default = "False"
+  description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 
 variable "tagging_cron_expression" {
