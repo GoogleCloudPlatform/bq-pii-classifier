@@ -20,6 +20,9 @@ import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
 import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.DispatcherConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
 
 public class Environment {
 
@@ -30,7 +33,8 @@ public class Environment {
                 getDataRegionId(),
                 getInspectionTopic(),
                 DispatcherType.INSPECTION,
-                SolutionMode.STANDARD_DLP
+                SolutionMode.STANDARD_DLP,
+                new Gson().fromJson(getDlpInspectionTemplatesIds(), ArrayList.class)
         );
     }
 
@@ -50,5 +54,9 @@ public class Environment {
 
     public String getGcsFlagsBucket(){
         return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
+    }
+
+    public String getDlpInspectionTemplatesIds(){
+        return Utils.getConfigFromEnv("DLP_INSPECTION_TEMPLATES_IDS", true);
     }
 }

@@ -17,6 +17,7 @@ package com.google.cloud.pso.bq_pii_classifier.inspector;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.cloud.pso.bq_pii_classifier.functions.inspector.Inspector;
+import com.google.cloud.pso.bq_pii_classifier.functions.inspector.InspectorRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
@@ -82,11 +83,11 @@ public class InspectorController {
 
             logger.logInfoWithTracker(trackingId, String.format("Received payload: %s", requestJsonString));
 
-            Operation operation = gson.fromJson(requestJsonString, Operation.class);
+            InspectorRequest inspectorRequest = gson.fromJson(requestJsonString, InspectorRequest.class);
 
-            trackingId = operation.getTrackingId();
+            trackingId = inspectorRequest.getTrackingId();
 
-            logger.logInfoWithTracker(trackingId, String.format("Parsed Request: %s", operation.toString()));
+            logger.logInfoWithTracker(trackingId, String.format("Parsed Request: %s", inspectorRequest.toString()));
 
             dlpService = new DlpServiceImpl();
             bqService = new BigQueryServiceImpl();
@@ -98,7 +99,7 @@ public class InspectorController {
                     "inspector-flags"
             );
 
-            inspector.execute(operation, trackingId, requestBody.getMessage().getMessageId());
+            inspector.execute(inspectorRequest, trackingId, requestBody.getMessage().getMessageId());
 
             return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
 

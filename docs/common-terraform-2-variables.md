@@ -47,27 +47,54 @@ projects_include_list = []
 datasets_exclude_list = []
 tables_exclude_list = []
 ```
+
+### Configure Custom Info Types
+
+One could define custom InfoTypes to be used by DLP for inspecting tables. Supported
+InfoTypes could be dictionaries or regular expressions.  
+
+Dictionaries are defined as follows:
+```
+custom_info_types_dictionaries = [
+   {
+      name       = "CUSTOM_PAYMENT_METHOD"
+      likelihood = "LIKELY"
+      dictionary = ["Debit Card", "Credit Card"]
+   },
+   ... etc
+]
+```
+
+While regular expressions are defined as follows:
+```
+custom_info_types_regex = [
+  {
+    name       = "CUSTOM_EMAIL"
+    likelihood = "LIKELY"
+    regex      = "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}"
+  }
+]
+```
+
+`likelihood` is matching likelihood to return for this CustomInfoType and could be any of the following values `[VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY]`
+
+PS: If no custom InfoTypes are required use empty lists for the variables (e.g. `custom_info_types_regex = []` ) 
+
+
 ### Configure Data Classification Taxonomy
 
-A mapping between DLP InfoTypes, policy tags and classifications.
+A mapping between DLP InfoTypes (Standard and Custom), policy tags and classifications.  
+Classifications: are parent nodes in the taxonomy to group children nodes.
 
 `classifications`: are parent nodes in the taxonomy to group children nodes.  
-`info_type_category`: is either "standard" or "custom".  Standard types will
-be automatically added the DLP inspection template while Custom types 
-have to be manually configured in Terraform.
+`info_type_category`: is either "standard" or "custom".
+`labels `: is an optional list of resource labels to be applied to tables where a certain PII is detected. Set to `[]`
 
-This will enable the solution:
+This will enable the solution to:
  * Build hierarchical policy tag taxonomies
  * To identify which policy tag to apply to a column based on the PII/InfoType discovered
 
-`labels `: is an optional list of resource labels to be applied to tables where a certain PII is detected. Set to `[]` 
-if not used
-
-Custom InfoTypes:  
-Custom INFO_TYPEs configured in the [DLP inspection job](../terraform/modules/dlp/main.tf) 
-MUST be mapped here. Otherwise, mapping to policy tag ids will fail.  
-
-Dealing with Mixed PII:  
+#### Dealing with Mixed PII:  
 DLP might find that one field contains multiple InfoTypes (e.g. free text fields). Since
 we can only assign one policy tag to a column we need to have a special placeholder for 
 such fields.  
@@ -75,29 +102,66 @@ This placeholder is yet another entry in the classification taxonomy with info_t
 Users can configure the policy tag name and classification level associated to it, but the info_type can't be changed.
 This "MIXED" InfoType is a special flag used by the solution and not a standard or custom DLP InfoType.
 
+#### Dealing with InfoType Count Limitation
+There are two GCP limits that one could hit in defining taxonomies:
+* Max number of elements in a single taxonomy is 100 (including parent and children nodes)
+* Max number of custom InfoTypes per inspection template is 30
+
+in order to get around those, the solution might need to deploy more than 1 taxonomy and/or more than 1 DLP inspection
+template. For that, `inspection_template_number` and `taxonomy_number` are used:
+* `inspection_template_number` is a value starting from `1`. It means that this particular InfoType will be created in the Nth inspection template.
+   This is needed if more than 30 custom InfoTypes are required, otherwise use `1`. Please note that if more than one inspection template 
+   is required, each table will be scanned N times, one per each inspection template.
+* `taxonomy_number` is a value starting from `1`. It means that this particular Policy Tag will be created in the Nth Cloud Data Catalog Taxonomy.
+   This is needed of more than 100 nodes are to be created, otherwise use `1`. For a better visibility, try to locate all nodes
+   under one parent (i.e. classification) in the same taxonomy.
 ```
 
 classification_taxonomy = [
   {
     info_type = "EMAIL_ADDRESS",
-    info_type_category = "standard",
+    info_type_category = "Standard",
     policy_tag = "email",
     classification = "P1",
-    labels   = [{ key = "contains_email_pii", value = "true"}]
+    labels   = [{ key = "contains_email_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
   },
   {
     info_type = "PHONE_NUMBER",
-    info_type_category = "standard",
+    info_type_category = Standard",
     policy_tag = "phone"
     classification = "P2",
-    labels   = [{ key = "contains_phones_pii", value = "true"}]
+    labels   = [{ key = "contains_phones_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "CUSTOM_PAYMENT_METHOD",
+    info_type_category = Custom Dictionary",
+    policy_tag = "payment_method"
+    classification = "P1",
+    labels   = [],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "CUSTOM_EMAIL",
+    info_type_category = Custom Regex",
+    policy_tag = "custom_email"
+    classification = "P2",
+    labels   = [],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
   },
   {
     info_type = "MIXED",
-    info_type_category = "custom",
+    info_type_category = "Custom",
     policy_tag = "mixed_pii"
     classification = "P1",
     labels   = [{ key = "contains_mixed_pii", value = "true"}]
+    inspection_template_number = 1,
+    taxonomy_number            = 1
   },
 
   .. etc

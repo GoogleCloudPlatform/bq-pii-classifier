@@ -16,6 +16,8 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.inspector;
 
+import java.util.List;
+
 public class InspectorConfig {
 
 
@@ -27,10 +29,10 @@ public class InspectorConfig {
     private String minLikelihood;
     private Integer maxFindings;
     private Integer samplingMethod;
-    private String dlpInspectionTemplateId;
+    private List<String> dlpInspectionTemplatesIds;
     private String tableScanLimitsJsonConfig;
 
-    public InspectorConfig(String projectId, String regionId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, String dlpInspectionTemplateId, String tableScanLimitsJsonConfig) {
+    public InspectorConfig(String projectId, String regionId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, List<String> dlpInspectionTemplatesIds, String tableScanLimitsJsonConfig) {
         this.projectId = projectId;
         this.regionId = regionId;
         this.bqResultsDataset = bqResultsDataset;
@@ -39,7 +41,7 @@ public class InspectorConfig {
         this.minLikelihood = minLikelihood;
         this.maxFindings = maxFindings;
         this.samplingMethod = samplingMethod;
-        this.dlpInspectionTemplateId = dlpInspectionTemplateId;
+        this.dlpInspectionTemplatesIds = dlpInspectionTemplatesIds;
         this.tableScanLimitsJsonConfig = tableScanLimitsJsonConfig;
     }
 
@@ -75,8 +77,8 @@ public class InspectorConfig {
         return samplingMethod;
     }
 
-    public String getDlpInspectionTemplateId() {
-        return dlpInspectionTemplateId;
+    public List<String> getDlpInspectionTemplatesIds() {
+        return dlpInspectionTemplatesIds;
     }
 
     public String getTableScanLimitsJsonConfig() {
@@ -94,7 +96,7 @@ public class InspectorConfig {
                 ", minLikelihood='" + minLikelihood + '\'' +
                 ", maxFindings='" + maxFindings + '\'' +
                 ", samplingMethod='" + samplingMethod + '\'' +
-                ", dlpInspectionTemplateId='" + dlpInspectionTemplateId + '\'' +
+                ", dlpInspectionTemplatesIds='" + dlpInspectionTemplatesIds + '\'' +
                 ", tableScanLimitsJsonConfig='" + tableScanLimitsJsonConfig + '\'' +
                 '}';
     }

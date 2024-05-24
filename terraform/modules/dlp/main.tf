@@ -6,9 +6,13 @@ locals {
 }
 
 resource "google_data_loss_prevention_inspect_template" "inspection_template" {
+
+  // create N templates based on the classification_taxonomy.inspection_template_number
+  count = max([for x in var.classification_taxonomy: lookup(x,"inspection_template_number")]...)
+
   parent = "projects/${var.project}/locations/${local.dlp_region}"
   description = "DLP Inspection template used by the BQ security classifier app"
-  display_name = "bq_security_classifier_inspection_template"
+  display_name = "bq_security_classifier_inspection_template_${count.index + 1}"
 
   # Info Types configured here must be mapped in the infoTypeName_policyTagName_map variable
   # passed to the main module, otherwise mapping to policy tags will fail.
@@ -18,8 +22,13 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
     min_likelihood = "LIKELY"
 
     dynamic info_types {
+<<<<<<< HEAD
       // filter the "standard" info types only
       for_each = [for x in var.classification_taxonomy: x if lower(lookup(x, "info_type_category")) == "standard"]
+=======
+      // filter the "standard" info types and the ones marked for the Nth template (while handling the zero-based offset)
+      for_each = [for x in var.classification_taxonomy: x if lower(lookup(x, "info_type_category")) == "standard" && lookup(x, "inspection_template_number") == count.index+1]
+>>>>>>> feature/multi_inspection_templates_and_taxonomies
 
       content {
         name = lookup(info_types.value, "info_type")
@@ -29,6 +38,7 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
     ### CUSTOM INFOTYPES
     ## Limit is 30 Custom Info Types https://cloud.google.com/dlp/limits#custom-infotype-limits
 
+<<<<<<< HEAD
     # Example
 
 #    custom_info_types {
@@ -46,6 +56,57 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
     #### RULE SETS
 
     #Example: Exclude a pattern of emails from the EMAIL_ADDRESS detector
+=======
+    # Dictionary Custom Info Types
+    dynamic custom_info_types {
+      for_each = [for x in var.classification_taxonomy: x if lower(lookup(x, "info_type_category")) == "custom dictionary"
+      && lookup(x, "inspection_template_number") == count.index+1]
+      content {
+        info_type {
+          name = lookup(custom_info_types.value, "info_type")
+        }
+        likelihood = lookup(
+          # search in the list for the object with name = xyz and then get the desired property from that object
+          var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries.*.name,  lookup(custom_info_types.value, "info_type"))],
+          "likelihood"
+        )
+        dictionary {
+          word_list {
+            words = lookup(
+              var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries.*.name,  lookup(custom_info_types.value, "info_type"))],
+              "dictionary"
+            )
+          }
+        }
+      }
+    }
+
+    # Regex Custom Info Types
+    dynamic custom_info_types {
+      for_each = [for x in var.classification_taxonomy: x if lower(lookup(x, "info_type_category")) == "custom regex"
+      && lookup(x, "inspection_template_number") == count.index+1]
+      content {
+        info_type {
+          name = lookup(custom_info_types.value, "info_type")
+        }
+        likelihood = lookup(
+          # search in the list for the object with name = xyz and then get the desired property from that object
+          var.custom_info_types_regex[index(var.custom_info_types_regex.*.name,  lookup(custom_info_types.value, "info_type"))],
+          "likelihood"
+        )
+        regex {
+          pattern = lookup(
+            var.custom_info_types_regex[index(var.custom_info_types_regex.*.name,  lookup(custom_info_types.value, "info_type"))],
+            "regex"
+          )
+        }
+      }
+    }
+
+    #### RULE SETS
+
+    # Example: Exclude a pattern of emails from the EMAIL_ADDRESS detector
+
 #    rule_set {
 #      info_types {
 #        name = "EMAIL_ADDRESS"
@@ -59,6 +120,7 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
 #        }
 #      }
 #    }
+
 
     #Example: Omit matches on PERSON_NAME detector if also matched by EMAIL_ADDRESS  detector
     # i.e. Don't report PERSON_NAME on a column that has EMAIL_ADDRESS matches
@@ -80,7 +142,8 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
 #      }
 #    }
 
-    #Example Increase likelihood for STREET_ADDRESS fields if the column name matches a pattern
+
+    # Example Increase likelihood for STREET_ADDRESS fields if the column name matches a pattern
     # https://cloud.google.com/dlp/docs/creating-custom-infotypes-likelihood#match-column-values
 
 #    rule_set {

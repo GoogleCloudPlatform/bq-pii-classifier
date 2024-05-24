@@ -217,6 +217,8 @@ variable "classification_taxonomy" {
     policy_tag = string
     classification = string
     labels = list(object({key = string, value = string}))
+    inspection_template_number = number
+    taxonomy_number = number
   }))
 }
 //Example:
@@ -226,23 +228,45 @@ variable "classification_taxonomy" {
 //    info_type_category = "standard",
 //    policy_tag = "email",
 //    classification = "P1",
-//    labels   = [{ key = "contains_email_pii", value = "true"}]
+//    labels   = [{ key = "contains_email_pii", value = "true"}],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  },
 //  {
 //    info_type = "PHONE_NUMBER",
 //    info_type_category = "standard",
 //    policy_tag = "phone"
 //    classification = "P2",
-//    labels   = [{ key = "contains_phones_pii", value = "true"}]
+//    labels   = [{ key = "contains_phones_pii", value = "true"}],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  },
 //  {
 //    info_type = "MIXED",
 //    info_type_category = "other",
 //    policy_tag = "mixed_pii"
 //    classification = "P1",
-//    labels = []
+//    labels = [],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  }
 //  ]
+
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name = string
+    likelihood = string
+    dictionary =list(string)
+  }))
+}
+
+variable "custom_info_types_regex" {
+  type = list(object({
+    name = string
+    likelihood = string
+    regex = string
+  }))
+}
 
 variable "domain_mapping" {
   type = list(object({

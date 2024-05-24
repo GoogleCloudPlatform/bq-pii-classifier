@@ -38,6 +38,8 @@ import com.google.privacy.dlp.v2.OutputStorageConfig;
 import com.google.privacy.dlp.v2.StorageConfig;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Inspector {
 
@@ -71,7 +73,7 @@ public class Inspector {
         );
     }
 
-    public DlpJob execute(Operation request, String trackingId, String pubSubMessageId) throws IOException, NonRetryableApplicationException {
+    public DlpJob execute(InspectorRequest request, String trackingId, String pubSubMessageId) throws IOException, NonRetryableApplicationException {
 
         logger.logFunctionStart(trackingId);
         logger.logInfoWithTracker(trackingId, String.format("Request : %s", request.toString()));
@@ -100,27 +102,28 @@ public class Inspector {
 
         // DLP job config accepts Integer only for table scan limit. Must downcast
         // NumRows from BigInteger to Integer
-        TableSpec targetTableSpec = TableSpec.fromSqlString(request.getEntityKey());
+        Integer tableNumRows = bqService.getTableNumRows(request.getTargetTable()).intValue();
 
-        Integer tableNumRows = bqService.getTableNumRows(targetTableSpec).intValue();
-
-        InspectJobConfig jobConfig = createJob(
-                targetTableSpec,
+        InspectJobConfig inspectJobConfig = createJob(
+                request.getTargetTable(),
                 tableScanLimitsConfig,
                 tableNumRows,
-                config
+                request.getInspectionTemplate()
         );
 
         CreateDlpJobRequest createDlpJobRequest = CreateDlpJobRequest.newBuilder()
-                .setJobId(trackingId) // Letters, numbers, hyphens, and underscores allowed.
+                .setJobId(request.getTrackingId()) // Letters, numbers, hyphens, and underscores allowed.
                 .setParent(LocationName.of(config.getProjectId(), config.getRegionId()).toString())
-                .setInspectJob(jobConfig)
+                .setInspectJob(inspectJobConfig)
                 .build();
 
         DlpJob submittedDlpJob = dlpService.submitJob(createDlpJobRequest);
 
-        logger.logInfoWithTracker(trackingId, String.format("DLP job created successfully id='%s'",
-                submittedDlpJob.getName()));
+        logger.logInfoWithTracker(trackingId, String.format("DLP job created successfully id='%s' for inspection template %s",
+                submittedDlpJob.getName(),
+                request.getInspectionTemplate()
+        ));
+
 
         // Add a flag key marking that we already completed this request and no additional runs
         // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has already processed the request
@@ -137,7 +140,7 @@ public class Inspector {
             TableSpec targetTableSpec,
             TableScanLimitsConfig rowsLimitConfig,
             Integer tableNumRows,
-            InspectorConfig config){
+            String inspectionTemplateId){
 
         // 1. Specify which table to inspect
 
@@ -210,7 +213,7 @@ public class Inspector {
 
         // Configure the inspection job we want the service to perform.
         return InspectJobConfig.newBuilder()
-                .setInspectTemplateName(config.getDlpInspectionTemplateId())
+                .setInspectTemplateName(inspectionTemplateId)
                 .setInspectConfig(inspectConfig)
                 .setStorageConfig(storageConfig)
                 .addActions(bqAction)

@@ -67,7 +67,24 @@ public class Tagger {
     }
 
     public Map<String, String> execute(
+            TaggerDlpJobRequest request,
+            String pubSubMessageId
+    ) throws IOException, InterruptedException, NonRetryableApplicationException {
+
+        return execute(request, request.getDlpJobName(), pubSubMessageId);
+    }
+
+    public Map<String, String> execute(
+            TaggerTableSpecRequest request,
+            String pubSubMessageId
+    ) throws IOException, InterruptedException, NonRetryableApplicationException {
+
+        return execute(request, request.getTargetTable().toSqlString(), pubSubMessageId);
+    }
+
+    public Map<String, String> execute(
             Operation request,
+            String lookUpKey,
             String pubSubMessageId
     ) throws IOException, InterruptedException, NonRetryableApplicationException {
 
@@ -92,7 +109,6 @@ public class Tagger {
 
         // lookup key is the DLP "jobId" in case of Standard Mode (to use the clustered column)
         // and "project.dataset.table" in case of Auto DLP (as there are no jobIds in that case)
-        String lookUpKey = request.getEntityKey();
 
         TablePolicyTags tablePolicyTags = findingsReader.getFieldsToPolicyTagsMap(lookUpKey);
 

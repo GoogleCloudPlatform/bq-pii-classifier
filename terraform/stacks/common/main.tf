@@ -95,6 +95,13 @@ locals {
 
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 
+  taxonomy_numbers = distinct([for x in var.classification_taxonomy: lookup(x,"taxonomy_number")])
+
+  // this return a list of lists like [ ["dwh","1"], ["dwh","2"], ["marketing","1"], ["marketing","2"], etc ]
+  taxonomies_to_be_created = setproduct(local.domains, local.taxonomy_numbers)
+
+  inspection_templates_count = max([for x in var.classification_taxonomy: lookup(x,"inspection_template_number")]...)
+
   info_types_map = {
   for item in var.classification_taxonomy : lookup(item, "info_type") => {
     classification = lookup(item, "classification"),
@@ -104,12 +111,17 @@ locals {
 }
 
 module "data-catalog" {
-  count                                        = length(local.domains)
-  source                                       = "../../modules/data-catalog"
-  project                                      = var.project
-  region                                       = var.data_region
-  domain                                       = local.domains[count.index]
-  classification_taxonomy                      = var.classification_taxonomy
+  count = length(local.taxonomies_to_be_created)
+  source = "../../modules/data-catalog"
+  project = var.project
+  region = var.data_region
+
+  domain = local.taxonomies_to_be_created[count.index][0]
+  taxonomy_number = local.taxonomies_to_be_created[count.index][1]
+
+  // only use the nodes that are marked for taxonomy number x
+  classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][1]]
+
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
 
@@ -126,6 +138,7 @@ module "bigquery" {
   dataset_domains_mapping         = local.datasets_and_domains_filtered
   projects_domains_mapping        = local.project_and_domains_filtered
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
+  inspection_templates_count = local.inspection_templates_count
 }
 
 module "cloud_logging" {
@@ -142,6 +155,9 @@ module "dlp" {
   project                 = var.project
   region                  = var.data_region # create inspection template in the same region as data
   classification_taxonomy = var.classification_taxonomy
+
+  custom_info_types_dictionaries = var.custom_info_types_dictionaries
+  custom_info_types_regex        = var.custom_info_types_regex
 }
 
 module "cloud_scheduler" {
@@ -163,15 +179,15 @@ module "cloud_scheduler" {
 }
 
 module "iam" {
-  source                      = "../../modules/iam"
-  project                     = var.project
-  sa_tagger                   = var.sa_tagger
-  sa_tagger_tasks             = var.sa_tagger_tasks
-  taxonomy_parent_tags        = local.created_parent_tags
-  iam_mapping                 = var.iam_mapping
-  dlp_service_account         = var.dlp_service_account
-  tagger_role                 = var.tagger_role
-  sa_tagging_dispatcher       = var.sa_tagging_dispatcher
+  source = "../../modules/iam"
+  project = var.project
+  sa_tagger = var.sa_tagger
+  sa_tagger_tasks = var.sa_tagger_tasks
+  taxonomy_parent_tags = local.created_parent_tags
+  iam_mapping = var.iam_mapping
+  dlp_service_account = var.dlp_service_account
+  tagger_role = var.tagger_role
+  sa_tagging_dispatcher = var.sa_tagging_dispatcher
   sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   bq_results_dataset          = module.bigquery.results_dataset
 }
@@ -228,6 +244,10 @@ module "cloud-run-tagging-dispatcher" {
     {
       name  = "LOGGING_TABLE",
       value = module.bigquery.logging_table
+    },
+    {
+    name = "DLP_INSPECTION_TEMPLATES_IDS",
+    value = jsonencode(module.dlp.templates_ids),
     },
   ]
 }

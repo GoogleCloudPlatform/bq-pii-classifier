@@ -17,6 +17,9 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
+import com.google.cloud.pso.bq_pii_classifier.functions.inspector.InspectorRequest;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerDlpJobRequest;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerTableSpecRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
@@ -149,16 +152,21 @@ public class Dispatcher {
 
         for (SuccessPubSubMessage msg : publishResults.getSuccessMessages()) {
             // this enable us to detect dispatched messages within a runId that fail in later stages (i.e. Tagger)
-            Operation request = (Operation) msg.getMsg();
 
             // Log the dispatched tracking ID to be able to track the progress of this run
-            if(config.getDispatcherType().equals(DispatcherType.INSPECTION) || config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
-                // Inspection Dispatcher (in Standard Mode) and Auto DLP mode outputs contains the table spec (for the inspector service to use)
-                TableSpec tableSpec = TableSpec.fromSqlString(request.getEntityKey());
-                logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), tableSpec);
+            if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)){
+                InspectorRequest request = ((InspectorRequest) msg.getMsg());
+                logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), request.getTargetTable());
             }else{
-                // Tagger Dispatcher in Standard mode outputs contains the table spec (for the inspector service to use)
-                logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId());
+                if(config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
+                    TaggerTableSpecRequest request = ((TaggerTableSpecRequest) msg.getMsg());
+                    logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), request.getTargetTable());
+                }else{
+                    if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)){
+                        TaggerDlpJobRequest request = ((TaggerDlpJobRequest) msg.getMsg());
+                        logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId());
+                    }
+                }
             }
         }
 
@@ -171,19 +179,44 @@ public class Dispatcher {
                                            List<String> tableExcludeList) {
         List<JsonMessage> pubSubMessagesToPublish = new ArrayList<>();
 
-        for (String table : tableIncludeList) {
+        // entity is a table spec string p.d.t in case of Standard Mode Inspection Dispatcher and sent to the Inspector Service
+        // entity is a table spec string p.d.t in case of Auto DLP mode Tagging Dispatcher and sent to the Tagger Service
+        // entity is a dlpJobName in case of Standard Mode Tagging Dispatcher and sent to the Tagger Service
+        for (String entity : tableIncludeList) {
             try {
-                if (!tableExcludeList.contains(table)) {
+                if (!tableExcludeList.contains(entity)) {
 
-                    String trackingId = TrackingHelper.generateTrackingId(runId, table);
+                    String trackingId = TrackingHelper.generateTrackingId(runId, entity);
 
-                    Operation operation = new Operation(table, runId, trackingId);
+                    if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)){
+                        for (int i=0; i < config.getDlpInspectionTemplatesIds().size(); i++){
+                            String inspectionTemplate = config.getDlpInspectionTemplatesIds().get(i);
+                            InspectorRequest operation = new InspectorRequest(
+                                    runId,
+                                    String.format("%s_%s", trackingId,(i+1)), // use tabletrackingid_inspectiontemplatenumber to diff between requests and paths
+                                    TableSpec.fromSqlString(entity),
+                                    config.getDlpInspectionTemplatesIds().get(i));
+                            pubSubMessagesToPublish.add(operation);
+                        }
 
-                    pubSubMessagesToPublish.add(operation);
+                    }else{
+                        if(config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
+                            TaggerTableSpecRequest operation = new TaggerTableSpecRequest(runId, trackingId, TableSpec.fromSqlString(entity));
+                            pubSubMessagesToPublish.add(operation);
+                        }else{
+                            if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)){
+                                TaggerDlpJobRequest operation = new TaggerDlpJobRequest(runId, trackingId, entity);
+                                pubSubMessagesToPublish.add(operation);
+                            }else{
+                                throw new NonRetryableApplicationException(String.format("Solution Mode %s and Dispatcher Type %s are not supported in the Dispatcher logic",
+                                        config.getSolutionMode(), config.getDispatcherType()));
+                            }
+                        }
+                    }
                 }
             } catch (Exception ex) {
                 // log and continue
-                logger.logFailedDispatcherEntityId(runId, table, ex);
+                logger.logFailedDispatcherEntityId(runId, entity, ex);
             }
         }
         return pubSubMessagesToPublish;

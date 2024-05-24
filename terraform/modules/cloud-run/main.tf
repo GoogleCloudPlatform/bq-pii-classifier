@@ -49,7 +49,6 @@ resource "google_cloud_run_service" "service" {
         "autoscaling.knative.dev/maxScale"  = var.max_containers
       }
     }
-
   }
 
   metadata {

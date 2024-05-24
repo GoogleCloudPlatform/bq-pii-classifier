@@ -71,6 +71,10 @@ module "cloud-run-inspection-dispatcher" {
       name = "GCS_FLAGS_BUCKET",
       value = var.gcs_flags_bucket_name,
     },
+    {
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
+      value = jsonencode(var.dlp_inspection_templates_ids),
+    },
     ]
 }
 
@@ -94,8 +98,8 @@ module "cloud-run-inspector" {
       value = var.project,
     },
     {
-      name = "DLP_INSPECTION_TEMPLATE_ID",
-      value = var.dlp_inspection_template_id,
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
+      value = jsonencode(var.dlp_inspection_templates_ids),
     },
     {
       name = "MIN_LIKELIHOOD",

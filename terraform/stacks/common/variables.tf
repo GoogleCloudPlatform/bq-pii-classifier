@@ -124,6 +124,8 @@ variable "classification_taxonomy" {
     policy_tag = string
     classification = string
     labels = list(object({key = string, value = string}))
+    inspection_template_number = number
+    taxonomy_number = number
   }))
 }
 
@@ -212,3 +214,18 @@ variable "promote_mixed_info_types" {
   type = bool
 }
 
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name = string
+    likelihood = string
+    dictionary =list(string)
+  }))
+}
+
+variable "custom_info_types_regex" {
+  type = list(object({
+    name = string
+    likelihood = string
+    regex = string
+  }))
+}

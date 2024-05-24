@@ -14,13 +14,31 @@ tables_exclude_list = []
 
 data_catalog_taxonomy_activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
 
+custom_info_types_dictionaries = [
+  {
+    name       = ""
+    likelihood = ""
+    dictionary = []
+  }
+]
+
+custom_info_types_regex = [
+  {
+    name       = ""
+    likelihood = ""
+    regex      = ""
+  }
+]
+
 classification_taxonomy = [
   {
     info_type = "",
     info_type_category = "",
     policy_tag = "",
     classification = "",
-    labels = []
+    labels = [],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
   },
 ]
 
@@ -76,9 +94,9 @@ tagging_cron_expression = ""
 table_scan_limits_json_config = {
   limitType: "NUMBER_OF_ROWS",
   limits: {
-    "10000":"10",
-    "100000":"100",
-    "1000000":"1000"
+    "10000":"100",
+    "100000":"1000",
+    "1000000":"10000"
   }
 }
 

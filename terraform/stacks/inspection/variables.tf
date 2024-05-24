@@ -108,8 +108,8 @@ variable "standard_dlp_results_table_name" {
 }
 
 
-variable "dlp_inspection_template_id" {
-  type = string
+variable "dlp_inspection_templates_ids" {
+  type = list(string)
 }
 
 variable "cron_expression" {
