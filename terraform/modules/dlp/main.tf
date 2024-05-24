@@ -29,76 +29,78 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
     ### CUSTOM INFOTYPES
     ## Limit is 30 Custom Info Types https://cloud.google.com/dlp/limits#custom-infotype-limits
 
-    custom_info_types {
-      info_type {
-        name = "CT_PAYMENT_METHOD"
-      }
-      likelihood = "LIKELY"
-      dictionary {
-        word_list {
-          words = ["Debit Card","Credit Card"]
-        }
-      }
-    }
+    # Example
+
+#    custom_info_types {
+#      info_type {
+#        name = "CT_PAYMENT_METHOD"
+#      }
+#      likelihood = "LIKELY"
+#      dictionary {
+#        word_list {
+#          words = ["Debit Card","Credit Card"]
+#        }
+#      }
+#    }
 
     #### RULE SETS
 
-    # Exclude a pattern of emails from the EMAIL_ADDRESS detector
-    rule_set {
-      info_types {
-        name = "EMAIL_ADDRESS"
-      }
-      rules {
-        exclusion_rule {
-          regex {
-            pattern = ".+@excluded-example.com"
-          }
-          matching_type = "MATCHING_TYPE_FULL_MATCH"
-        }
-      }
-    }
+    #Example: Exclude a pattern of emails from the EMAIL_ADDRESS detector
+#    rule_set {
+#      info_types {
+#        name = "EMAIL_ADDRESS"
+#      }
+#      rules {
+#        exclusion_rule {
+#          regex {
+#            pattern = ".+@excluded-example.com"
+#          }
+#          matching_type = "MATCHING_TYPE_FULL_MATCH"
+#        }
+#      }
+#    }
 
-    # Omit matches on PERSON_NAME detector if also matched by EMAIL_ADDRESS  detector
+    #Example: Omit matches on PERSON_NAME detector if also matched by EMAIL_ADDRESS  detector
     # i.e. Don't report PERSON_NAME on a column that has EMAIL_ADDRESS matches
     # https://cloud.google.com/dlp/docs/creating-custom-infotypes-rules#omit_matches_on_person_name_detector_if_also_matched_by_email_address_detector
 
-    rule_set {
-      info_types {
-        name = "PERSON_NAME"
-      }
-      rules {
-        exclusion_rule {
-          exclude_info_types {
-            info_types {
-              name = "EMAIL_ADDRESS"
-            }
-          }
-          matching_type = "MATCHING_TYPE_FULL_MATCH"
-        }
-      }
-    }
+#    rule_set {
+#      info_types {
+#        name = "PERSON_NAME"
+#      }
+#      rules {
+#        exclusion_rule {
+#          exclude_info_types {
+#            info_types {
+#              name = "EMAIL_ADDRESS"
+#            }
+#          }
+#          matching_type = "MATCHING_TYPE_FULL_MATCH"
+#        }
+#      }
+#    }
 
-    # Increase likelihood for STREET_ADDRESS fields if the column name matches a pattern
+    #Example Increase likelihood for STREET_ADDRESS fields if the column name matches a pattern
     # https://cloud.google.com/dlp/docs/creating-custom-infotypes-likelihood#match-column-values
 
-    rule_set {
-      info_types {
-        name = "STREET_ADDRESS"
-      }
-      rules {
-        hotword_rule {
-          hotword_regex {
-            pattern = "(street_name|street_address|delivery_address|house_number|city|zip)"
-          }
-          proximity {
-            window_before = 1
-          }
-          likelihood_adjustment {
-            fixed_likelihood = "VERY_LIKELY"
-          }
-        }
-      }
-    }
+#    rule_set {
+#      info_types {
+#        name = "STREET_ADDRESS"
+#      }
+#      rules {
+#        hotword_rule {
+#          hotword_regex {
+#            pattern = "(street_name|street_address|delivery_address|house_number|city|zip)"
+#          }
+#          proximity {
+#            window_before = 1
+#          }
+#          likelihood_adjustment {
+#            fixed_likelihood = "VERY_LIKELY"
+#          }
+#        }
+#      }
+#    }
 
     # to include findings text in the results table (e.g. user@domain.com -> EMAIL_ADDRESS)
     include_quote = false
