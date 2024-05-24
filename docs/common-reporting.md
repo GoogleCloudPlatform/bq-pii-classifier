@@ -35,6 +35,14 @@ ORDER BY tracker;
 ```
 
 
+List computed table-level resource labels accrss all tables 
+
+```
+SELECT last_run_start_time , * FROM `bq_security_classifier.v_log_label_history`
+WHERE run_id = last_run_id
+ORDER BY tracker;
+```
+
 ### Helpful in investigating issues
  
 

@@ -19,7 +19,8 @@ classification_taxonomy = [
     info_type = "",
     info_type_category = "",
     policy_tag = "",
-    classification = ""
+    classification = "",
+    labels = []
   },
 ]
 
@@ -53,6 +54,8 @@ iam_mapping = {
 }
 
 is_dry_run_tags = "False"
+
+is_dry_run_labels = "False"
 
 dlp_service_account =  "service-<PROJECT_NUMBER>@dlp-api.iam.gserviceaccount.com"
 

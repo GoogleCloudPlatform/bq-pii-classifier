@@ -207,7 +207,7 @@ variable "tables_exclude_list" {
 # and mapped in BQ configuration with the generated policy_tag_id. Each policy tag will be created
 # under a parent node based on the 'classification' field
 # info_type_category: "standard" or "custom". Standard types will be added to the DLP inspection template automatically.
-# Custom types must be defined manuanly in th template
+# Custom types must be defined manually in th dlp inspection template
 # INFO_TYPEs configured in the DLP inspection job MUST be mapped here. Otherwise, mapping to policy tag ids will fail
 variable "classification_taxonomy" {
   type = list(object({
@@ -225,19 +225,22 @@ variable "classification_taxonomy" {
 //    info_type = "EMAIL_ADDRESS",
 //    info_type_category = "standard",
 //    policy_tag = "email",
-//    classification = "P1"
+//    classification = "P1",
+//    labels   = [{ key = "contains_email_pii", value = "true"}]
 //  },
 //  {
 //    info_type = "PHONE_NUMBER",
 //    info_type_category = "standard",
 //    policy_tag = "phone"
-//    classification = "P2"
+//    classification = "P2",
+//    labels   = [{ key = "contains_phones_pii", value = "true"}]
 //  },
 //  {
 //    info_type = "MIXED",
 //    info_type_category = "other",
 //    policy_tag = "mixed_pii"
-//    classification = "P1"
+//    classification = "P1",
+//    labels = []
 //  }
 //  ]
 
@@ -348,9 +351,9 @@ variable "table_scan_limits_json_config" {
   default = {
     limitType: "NUMBER_OF_ROWS",
     limits: {
-      "10000":"10",
-      "100000":"100",
-      "1000000":"1000"
+      "10000":"100",
+      "100000":"1000",
+      "1000000":"10000"
     }
   }
 }

@@ -49,9 +49,10 @@ tables_exclude_list = []
 ```
 ### Configure Data Classification Taxonomy
 
-A mapping between DLP InfoTypes, policy tags and classifications.  
-Classifications: are parent nodes in the taxonomy to group children nodes.  
-info_type_category: is either "standard" or "custom".  Standard types will
+A mapping between DLP InfoTypes, policy tags and classifications.
+
+`classifications`: are parent nodes in the taxonomy to group children nodes.  
+`info_type_category`: is either "standard" or "custom".  Standard types will
 be automatically added the DLP inspection template while Custom types 
 have to be manually configured in Terraform.
 
@@ -59,7 +60,11 @@ This will enable the solution:
  * Build hierarchical policy tag taxonomies
  * To identify which policy tag to apply to a column based on the PII/InfoType discovered
 
-PS: Custom INFO_TYPEs configured in the [DLP inspection job](../terraform/modules/dlp/main.tf) 
+`labels `: is an optional list of resource labels to be applied to tables where a certain PII is detected. Set to `[]` 
+if not used
+
+Custom InfoTypes:  
+Custom INFO_TYPEs configured in the [DLP inspection job](../terraform/modules/dlp/main.tf) 
 MUST be mapped here. Otherwise, mapping to policy tag ids will fail.  
 
 Dealing with Mixed PII:  
@@ -77,19 +82,22 @@ classification_taxonomy = [
     info_type = "EMAIL_ADDRESS",
     info_type_category = "standard",
     policy_tag = "email",
-    classification = "P1"
+    classification = "P1",
+    labels   = [{ key = "contains_email_pii", value = "true"}]
   },
   {
     info_type = "PHONE_NUMBER",
     info_type_category = "standard",
     policy_tag = "phone"
-    classification = "P2"
+    classification = "P2",
+    labels   = [{ key = "contains_phones_pii", value = "true"}]
   },
   {
     info_type = "MIXED",
     info_type_category = "custom",
     policy_tag = "mixed_pii"
-    classification = "P1"
+    classification = "P1",
+    labels   = [{ key = "contains_mixed_pii", value = "true"}]
   },
 
   .. etc
@@ -165,16 +173,21 @@ iam_mapping = {
 
 ```
 
-### Configure DryRun
+### Configure DryRun options
 
-By setting `is_dry_run = "True"` the solution will scan BigQuery tables 
-for PII data, store the scan result, but it will not apply policy tags to columns.
-Instead, the "Tagger" function will only log [actions](../services/library/src/main/java/com/google/cloud/pso/bq_pii_classifier/functions/tagger/ColumnTaggingAction.java).
+By setting `is_dry_run_tags = "True"` the solution will not attach the configured policy tags in
+`classification_taxonomy` to BigQuery columns and will only write log messages that can be monitored via the
+`v_log_tag_history` monitoring view
 
-Check the Monitoring sections on how to access these logs.  
 
+Also, by setting `is_dry_run_labels = "True"` the solution will not add the configured resource labels in 
+`classification_taxonomy` to BigQuery tables and will only write log messages that can be monitored via the 
+`v_log_label_history` monitoring view
+
+Add the following variables in the `.tfvars` file:
 ```
-is_dry_run = "False"
+is_dry_run_tags = "False"
+is_dry_run_labels = "False"
 ```
 
 ### Configure DLP Service Account
