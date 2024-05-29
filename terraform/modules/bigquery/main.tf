@@ -184,7 +184,7 @@ resource "google_bigquery_table" "view_run_summary" {
       project = var.project
       dataset = var.dataset
       v_service_calls = google_bigquery_table.view_service_calls.table_id
-      v_broken_steps = google_bigquery_table.logging_view_broken_steps.table_id
+      v_errors_non_retryable = google_bigquery_table.view_errors_non_retryable.table_id
       inspection_templates_count = var.inspection_templates_count
     }
     )
@@ -204,6 +204,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
       project = var.project
       dataset = var.dataset
       v_run_summary = google_bigquery_table.view_run_summary.table_id
+      logging_table = google_bigquery_table.logging_table.table_id
     }
     )
   }
