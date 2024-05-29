@@ -388,7 +388,7 @@ variable "is_auto_dlp_mode" {
 }
 
 // In case of False:
-//  The solution will report the infotype of a filed as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelyhood and number of findings)
+//  The solution will report the infotype of a field as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelyhood and number of findings)
 // In case of True:
 //  The solution will compute a score for each field that DLP finds multiple infotypes for (based on signals like likelyhood and number of findings)
 //  , if the scores are still a tie, the solution will fallback to "MIXED" infoType

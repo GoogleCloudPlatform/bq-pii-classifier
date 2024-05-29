@@ -96,8 +96,7 @@ This will enable the solution to:
 
 #### Dealing with Mixed PII:  
 DLP might find that one field contains multiple InfoTypes (e.g. free text fields). Since
-we can only assign one policy tag to a column we need to have a special placeholder for 
-such fields.  
+we can only assign one policy tag to a column we need to have a special placeholder for such fields.  
 This placeholder is yet another entry in the classification taxonomy with info_type = "MIXED". 
 Users can configure the policy tag name and classification level associated to it, but the info_type can't be changed.
 This "MIXED" InfoType is a special flag used by the solution and not a standard or custom DLP InfoType.

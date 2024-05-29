@@ -130,8 +130,8 @@ public class Tagger {
                                 computedFieldsToPolicyTagsMap.toString()));
 
                 // construct a map of table labels based on the common labels and info type labels
-                Map<String, String> tableLabels = new HashMap<>(generateTableLabelsFromDlpFindings(tablePolicyTags,
-                        config.getInfoTypeMap()));
+                Map<String, String> tableLabels = generateTableLabelsFromDlpFindings(tablePolicyTags,
+                        config.getInfoTypeMap());
 
                 //log found labels for this table
                 for (Map.Entry<String, String> labelEntry : tableLabels.entrySet()) {
@@ -421,8 +421,7 @@ public class Tagger {
             // lookup the labels associated with that info type based on the classification taxonomy (in Terraform)
             // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
             for (ResourceLabel infoTypeLabel : infoTypeMap.get(infoType).getLabels()) {
-                //TODO: pass the static label value as config
-                tableLabels.put(infoTypeLabel.getKey(), infoTypeLabel.getValue());
+                tableLabels.put(infoTypeLabel.getKey().toLowerCase(), infoTypeLabel.getValue().toLowerCase());
             }
         }
         return tableLabels;
