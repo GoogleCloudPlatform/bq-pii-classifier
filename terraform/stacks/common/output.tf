@@ -1,4 +1,3 @@
-
 output "dlp_inspection_templates_ids" {
   value = module.dlp.templates_ids
 }

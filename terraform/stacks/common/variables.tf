@@ -24,6 +24,11 @@ variable "data_region" {
   type = string
 }
 
+variable "source_data_regions" {
+  description = "Supported GCP regions for DLP inspection and tagging. These are the regions to run DLP jobs in and deploy policy tags taxonomies."
+  type = set(string)
+}
+
 variable "bigquery_dataset_name" {
   type = string
 }
