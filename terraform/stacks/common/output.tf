@@ -1,5 +1,5 @@
 output "dlp_inspection_templates_ids" {
-  value = module.dlp.templates_ids
+  value = local.created_dlp_inspection_templates
 }
 
 output "bq_results_dataset" {

@@ -107,9 +107,12 @@ variable "standard_dlp_results_table_name" {
   type = string
 }
 
-
 variable "dlp_inspection_templates_ids" {
-  type = list(string)
+  description = "A list of objects, each representing a deployment of inspection templates per region"
+  type = list(object({
+    ids = list(string)
+    region = string
+  }))
 }
 
 variable "cron_expression" {

@@ -108,6 +108,8 @@ locals {
     labels         = lookup(item, "labels")
   }
   }
+
+  created_dlp_inspection_templates = module.dlp[*].created_inspection_templates
 }
 
 module "data-catalog" {
@@ -150,10 +152,13 @@ module "cloud_logging" {
 }
 
 // DLP
+
+# deploy 1 dlp inspection template in each source data region
 module "dlp" {
+  count = length(var.source_data_regions)
   source                  = "../../modules/dlp"
   project                 = var.project
-  region                  = var.data_region # create inspection template in the same region as data
+  region                  = tolist(var.source_data_regions)[count.index] # create inspection template in the same region as source data
   classification_taxonomy = var.classification_taxonomy
 
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
@@ -247,7 +252,7 @@ module "cloud-run-tagging-dispatcher" {
     },
     {
     name = "DLP_INSPECTION_TEMPLATES_IDS",
-    value = jsonencode(module.dlp.templates_ids),
+    value = jsonencode(local.created_dlp_inspection_templates),
     },
   ]
 }
