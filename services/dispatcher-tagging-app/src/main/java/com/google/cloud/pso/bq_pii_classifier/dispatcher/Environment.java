@@ -30,10 +30,11 @@ public class Environment {
                 getProjectId(),
                 getComputeRegionId(),
                 getDataRegionId(),
+                new Gson().fromJson(getSourceDataRegions().toLowerCase(), ArrayList.class),
                 getTaggerTopic(),
                 DispatcherType.TAGGING,
                 getIsAutoDlpMode() ? SolutionMode.AUTO_DLP : SolutionMode.STANDARD_DLP,
-                new Gson().fromJson(getDlpInspectionTemplatesIds(), ArrayList.class)
+                Utils.parseJsonToMap(getDlpInspectionTemplatesIds(), "region", "ids")
         );
     }
 
@@ -47,6 +48,10 @@ public class Environment {
 
     public String getDataRegionId(){
         return Utils.getConfigFromEnv("DATA_REGION_ID", true);
+    }
+
+    public String getSourceDataRegions(){
+        return Utils.getConfigFromEnv("SOURCE_DATA_REGIONS", true);
     }
 
     public String getTaggerTopic() { return Utils.getConfigFromEnv("TAGGER_TOPIC", true); }

@@ -116,7 +116,7 @@
       LEFT JOIN datasets_domains dd ON dd.project = o.project_id AND dd.dataset = o.dataset_id
       LEFT JOIN projects_domains pd ON pd.project = o.project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-      LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type
+      LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type AND c.region = '${param_region}'
       GROUP BY 1, 2,3,4,5,6,7,8
       )
 

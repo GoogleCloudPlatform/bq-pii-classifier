@@ -7,6 +7,7 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import com.google.cloud.pso.bq_pii_classifier.entities.PolicyTagInfo;
 import com.google.cloud.pso.bq_pii_classifier.entities.TablePolicyTags;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
+import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.common.io.Resources;
 
@@ -45,13 +46,22 @@ public class FindingsReaderStandardDlp implements FindingsReader {
 
         String queryTemplate = Resources.toString(url, StandardCharsets.UTF_8);
 
+        /*
+        Since we have N taxonomies in N regions we need the table location in order to look up the correct set of
+        policy tags.
+        To avoid an API call to fetch the table location we extract the location info from the DLP job id given that
+        we run the dlp job in the same region as the table
+         */
+        String region = Utils.extractDLPRegionFromJobNameToBQRegion(dlpJobName);
+
         return queryTemplate.replace("${project}", dlpProject)
                 .replace("${dataset}", dlpDataset)
                 .replace("${config_view_infotypes_policytags_map}", infoTypesPolicyTagsMapView)
                 .replace("${config_view_dataset_domain_map}", datasetDomainMapView)
                 .replace("${config_view_project_domain_map}", projectDomainMapView)
                 .replace("${results_table}", dlpTable)
-                .replace("${param_lookup_key}", dlpJobName);
+                .replace("${param_lookup_key}", dlpJobName)
+                .replace("${param_region}", region);
     }
 
     /**

@@ -24,6 +24,10 @@ variable "data_region" {
   type = string
 }
 
+variable "source_data_regions" {
+  type = list(string)
+}
+
 variable "sa_inspection_dispatcher" {
   type = string
 }
@@ -78,9 +82,6 @@ variable "inspector_service_image" {
 # BQ scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
 # format: project.dataset.table1, project.dataset.table2, etc
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "datasets_include_list" {
   type = list(string)
 }

@@ -66,7 +66,6 @@ module "common-stack" {
   compute_region                               = var.compute_region
   data_region                                  = var.data_region
   tables_exclude_list                          = var.tables_exclude_list
-  tables_include_list                          = var.tables_include_list
   tagger_service_image                         = var.tagger_service_image
   bigquery_dataset_name                        = var.bigquery_dataset_name
   dispatcher_pubsub_sub                        = var.tagging_dispatcher_pubsub_sub
@@ -118,9 +117,9 @@ module "inspection-stack" {
   projects_include_list           = var.projects_include_list
   compute_region                  = var.compute_region
   data_region                     = var.data_region
+  source_data_regions             = var.source_data_regions
   table_scan_limits_json_config   = jsonencode(var.table_scan_limits_json_config)
   tables_exclude_list             = var.tables_exclude_list
-  tables_include_list             = var.tables_include_list
   tagger_topic_id                 = module.common-stack.tagger_topic_id
   dispatcher_pubsub_sub           = var.inspection_dispatcher_pubsub_sub
   dispatcher_pubsub_topic         = var.inspection_dispatcher_pubsub_topic

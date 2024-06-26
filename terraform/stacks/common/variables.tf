@@ -105,9 +105,6 @@ variable "tagger_service_image" {
 # DLP scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
 # format: project.dataset.table1, project.dataset.table2, etc
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "datasets_include_list" {
   type = list(string)
 }

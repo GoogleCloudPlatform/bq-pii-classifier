@@ -31,7 +31,6 @@ public class Environment {
 
         return new InspectorConfig(
                 getProjectId(),
-                getRegionId(),
                 getBqResultsDataset(),
                 getBqResultsTable(),
                 getDlpNotificationTopic(),
@@ -46,10 +45,6 @@ public class Environment {
 
     public String getProjectId(){
         return Utils.getConfigFromEnv("PROJECT_ID", true);
-    }
-
-    public String getRegionId(){
-        return Utils.getConfigFromEnv("REGION_ID", true);
     }
 
     public String getBqResultsDataset(){

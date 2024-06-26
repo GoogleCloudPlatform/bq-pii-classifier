@@ -19,11 +19,13 @@ package com.google.cloud.pso.bq_pii_classifier.helpers;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -115,6 +117,33 @@ public class Utils {
         Type listType = new TypeToken<List<String>>() {}.getType();
 
         return new Gson().fromJson(jsonArray, listType);
+    }
+
+    public static HashMap<String, List<String>> parseJsonToMap(String jsonString,
+                                                               String keyAttribute,
+                                                               String valuesAttribute){
+        Gson gson = new Gson();
+        JsonArray jsonArray = gson.fromJson(jsonString, JsonArray.class);
+
+        HashMap<String, List<String>> map = new HashMap<>();
+
+        for (JsonElement jsonElement : jsonArray) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            String region = jsonObject.get(keyAttribute).getAsString();
+
+            List<String> templateIds = gson.fromJson(jsonObject.get(valuesAttribute), List.class);
+
+            map.put(region, templateIds);
+        }
+
+        return map;
+    }
+
+    public static String extractDLPRegionFromJobNameToBQRegion(String dlpJobName){
+        // e.g. dlp job name structure projects/<project>/locations/<location>/dlpJobs/<job-id>
+        // dlp region "europe" maps to bq region "eu"
+        String dlpRegion = dlpJobName.split("/")[3];
+        return dlpRegion.equals("europe")? "eu": dlpRegion;
     }
 
 }

@@ -20,33 +20,38 @@ import com.google.cloud.pso.bq_pii_classifier.entities.DispatcherType;
 import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DispatcherConfig {
 
     private String projectId;
     private String computeRegionId;
     private String dataRegionId;
+
+    private List<String> sourceDataRegions;
     private String outputTopic;
     private DispatcherType dispatcherType;
     private SolutionMode solutionMode;
-
-    private List<String> dlpInspectionTemplatesIds;
+    private Map<String, List<String>> dlpInspectionTemplatesIdsPerRegion;
 
     public DispatcherConfig(String projectId,
                             String computeRegionId,
                             String dataRegionId,
+                            List<String> sourceDataRegions,
                             String outputTopic,
                             DispatcherType dispatcherType,
                             SolutionMode solutionMode,
-                            List<String> dlpInspectionTemplatesIds
+                            Map<String, List<String>> dlpInspectionTemplatesIdsPerRegion
                             ) {
-        this.projectId = projectId;
-        this.computeRegionId = computeRegionId;
-        this.dataRegionId = dataRegionId;
-        this.outputTopic = outputTopic;
+        this.projectId = projectId.toLowerCase();
+        this.computeRegionId = computeRegionId.toLowerCase();
+        this.dataRegionId = dataRegionId.toLowerCase();
+        this.sourceDataRegions = sourceDataRegions.stream().map(String::toLowerCase).collect(Collectors.toList());
+        this.outputTopic = outputTopic.toLowerCase();
         this.dispatcherType = dispatcherType;
         this.solutionMode = solutionMode;
-        this.dlpInspectionTemplatesIds = dlpInspectionTemplatesIds;
+        this.dlpInspectionTemplatesIdsPerRegion = dlpInspectionTemplatesIdsPerRegion;
     }
 
     public DispatcherType getDispatcherType() {
@@ -55,6 +60,10 @@ public class DispatcherConfig {
 
     public String getDataRegionId() {
         return dataRegionId;
+    }
+
+    public List<String> getSourceDataRegions() {
+        return sourceDataRegions;
     }
 
     public String getProjectId() {
@@ -73,8 +82,8 @@ public class DispatcherConfig {
         return solutionMode;
     }
 
-    public List<String> getDlpInspectionTemplatesIds() {
-        return dlpInspectionTemplatesIds;
+    public Map<String, List<String>> getDlpInspectionTemplatesIdsPerRegion() {
+        return dlpInspectionTemplatesIdsPerRegion;
     }
 
     @Override
@@ -83,10 +92,11 @@ public class DispatcherConfig {
                 "projectId='" + projectId + '\'' +
                 ", computeRegionId='" + computeRegionId + '\'' +
                 ", dataRegionId='" + dataRegionId + '\'' +
+                ", sourceDataRegions'" + sourceDataRegions + '\'' +
                 ", outputTopic='" + outputTopic + '\'' +
                 ", dispatcherType=" + dispatcherType +
                 ", solutionMode=" + solutionMode +
-                ", dlpInspectionTemplatesIds=" + dlpInspectionTemplatesIds +
+                ", dlpInspectionTemplatesIds=" + dlpInspectionTemplatesIdsPerRegion +
                 '}';
     }
 }

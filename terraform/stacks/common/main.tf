@@ -173,7 +173,6 @@ module "cloud_scheduler" {
 
   target_uri = module.pubsub-tagging-dispatcher.topic-id
 
-  tables_include_list   = var.tables_include_list
   datasets_include_list = var.datasets_include_list
   projects_include_list = var.projects_include_list
   datasets_exclude_list = var.datasets_exclude_list
@@ -221,6 +220,10 @@ module "cloud-run-tagging-dispatcher" {
     {
       name  = "DATA_REGION_ID",
       value = var.data_region,
+    },
+    {
+      name = "SOURCE_DATA_REGIONS",
+      value = jsonencode(var.source_data_regions),
     },
     {
       name  = "PROJECT_ID",
