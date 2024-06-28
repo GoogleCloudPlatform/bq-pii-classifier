@@ -29,18 +29,18 @@ public class AutoDlpResultsScannerImpl implements Scanner {
 
     private String hostProject;
     private String hostDataset;
-    private String dlpFindingsTable;
+    private String dlpLatestFindingsView;
     public BigQueryService bqService;
 
-    public AutoDlpResultsScannerImpl(String hostProject, String hostDataset, String dlpFindingsTable, BigQueryService bqService) {
+    public AutoDlpResultsScannerImpl(String hostProject, String hostDataset, String dlpLatestFindingsView, BigQueryService bqService) {
         this.hostProject = hostProject;
         this.hostDataset = hostDataset;
-        this.dlpFindingsTable = dlpFindingsTable;
+        this.dlpLatestFindingsView = dlpLatestFindingsView;
         this.bqService = bqService;
     }
 
-    public String getDlpFindingsTable() {
-        return dlpFindingsTable;
+    public String getDlpLatestFindingsView() {
+        return dlpLatestFindingsView;
     }
 
     public BigQueryService getBqService(){
@@ -56,8 +56,8 @@ public class AutoDlpResultsScannerImpl implements Scanner {
     }
 
     @Override
-    // List all datasets under this project that was scanned by the latest inspection run
-    // Datasets that no longer exist on BQ are omitted
+    // List all unique datasets under a given project that have DLP findings/profiles
+    // Datasets that no longer exist on BQ are omitted via the join with information schema
     // return: List("project.dataset")
     public List<String> listParents(String project) throws NonRetryableApplicationException, InterruptedException {
 
@@ -70,18 +70,16 @@ public class AutoDlpResultsScannerImpl implements Scanner {
         String formattedQuery = String.format(queryTemplate,
                 hostProject,
                 hostDataset,
-                dlpFindingsTable,
+                dlpLatestFindingsView,
                 project,
                 project
         );
 
-        // Create a job ID so that we can safely retry.
         Job queryJob = bqService.submitJob(formattedQuery);
 
         TableResult result = bqService.waitAndGetJobResults(queryJob);
 
         List<String> projectDatasets = new ArrayList<>();
-        // Construct a mapping between field names and DLP infotypes
         for (FieldValueList row : result.iterateAll()) {
 
             if (row.get("dataset").isNull()) {
@@ -94,7 +92,8 @@ public class AutoDlpResultsScannerImpl implements Scanner {
     }
 
     @Override
-    // List all dlp job IDs for tables in a dataset/project that have DLP findings within the latest inspection run
+    // List all unique tables under a given dataset that have DLP findings/profiles
+    // return: List("project.dataset.table")
     public List<String> listChildren(String project, String dataset) throws InterruptedException, NonRetryableApplicationException {
 
         String queryTemplate = "SELECT DISTINCT CONCAT(column_profile.dataset_project_id, '.', column_profile.dataset_id, '.', column_profile.table_id) AS table FROM %s.%s.%s WHERE column_profile.dataset_project_id = '%s' AND column_profile.dataset_id = '%s'";
@@ -102,7 +101,7 @@ public class AutoDlpResultsScannerImpl implements Scanner {
         String formattedQuery = String.format(queryTemplate,
                 hostProject,
                 hostDataset,
-                dlpFindingsTable,
+                dlpLatestFindingsView,
                 project,
                 dataset
         );
@@ -112,12 +111,11 @@ public class AutoDlpResultsScannerImpl implements Scanner {
 
         TableResult result = bqService.waitAndGetJobResults(queryJob);
 
-        // Construct a mapping between field names and DLP infotypes
         List<String> datasetTables = new ArrayList<>();
         for (FieldValueList row : result.iterateAll()) {
 
             if (row.get("table").isNull()) {
-                throw new NonRetryableApplicationException("processDatasets query returned rows with null 'job_name' field.");
+                throw new NonRetryableApplicationException("processDatasets query returned rows with null 'table' field.");
             }
             String tableSpec = row.get("table").getStringValue();
             datasetTables.add(tableSpec);
