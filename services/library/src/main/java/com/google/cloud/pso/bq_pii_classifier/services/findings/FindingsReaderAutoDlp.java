@@ -20,23 +20,21 @@ public class FindingsReaderAutoDlp implements FindingsReader {
     private BigQueryService bqService;
     private String dlpProject;
 
-    public FindingsReaderAutoDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpTable, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView) {
-        this.bqService = bqService;
-        this.dlpProject = dlpProject;
-        this.dlpDataset = dlpDataset;
-        this.dlpTable = dlpTable;
-        this.datasetDomainMapView = datasetDomainMapView;
-        this.projectDomainMapView = projectDomainMapView;
-        this.infoTypesPolicyTagsMapView = infoTypesPolicyTagsMapView;
-    }
-
     private String dlpDataset;
-    private String dlpTable;
+    private String dlpLatestFindingsView;
     private String datasetDomainMapView;
     private String projectDomainMapView;
     private String infoTypesPolicyTagsMapView;
 
-
+    public FindingsReaderAutoDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpLatestFindingsView, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView) {
+        this.bqService = bqService;
+        this.dlpProject = dlpProject;
+        this.dlpDataset = dlpDataset;
+        this.dlpLatestFindingsView = dlpLatestFindingsView;
+        this.datasetDomainMapView = datasetDomainMapView;
+        this.projectDomainMapView = projectDomainMapView;
+        this.infoTypesPolicyTagsMapView = infoTypesPolicyTagsMapView;
+    }
 
     // inspectedTableSpec:  "project.dataset.table"
     private String generateQuery(String inspectedTableSpec) throws IOException {
@@ -52,7 +50,7 @@ public class FindingsReaderAutoDlp implements FindingsReader {
                 .replace("${config_view_infotypes_policytags_map}", infoTypesPolicyTagsMapView)
                 .replace("${config_view_dataset_domain_map}", datasetDomainMapView)
                 .replace("${config_view_project_domain_map}", projectDomainMapView)
-                .replace("${results_table}", dlpTable)
+                .replace("${results_table}", dlpLatestFindingsView)
                 .replace("${param_lookup_key}", inspectedTableSpec);
     }
 
