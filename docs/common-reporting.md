@@ -90,7 +90,7 @@ WHERE s.run_id = '1643760012003-I'
 ### Execution duration per function
 One could analyze or build charts on top of this dataset to monitor 
 the time taken for each table request (i.e. tracker) along different steps (i.e. Inspector, Listener, Tagger). 
-Please note that the Inspector duration is the time taken to submit a DLP job and not the DLP inspectio itself.
+Please note that the Inspector duration is the time taken to submit a DLP job and not the DLP inspection itself.
 ```
 SELECT  
 t.jsonPayload.global_run_id,
