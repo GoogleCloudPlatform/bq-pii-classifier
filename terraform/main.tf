@@ -146,5 +146,24 @@ module "inspection-stack" {
   inspector_subscription_message_retention_duration  = var.inspector_subscription_message_retention_duration
 }
 
+# Helper functions
+module "bq-remote-func-get-table-policy-tags" {
+  source = "./modules/bq-remote-function"
+  function_name = "get_table_policy_tags" # only underscores allowed
+  cloud_function_src_dir  = "../helpers/bq-remote-functions/get-policy-tags"
+  cloud_function_temp_dir = "/tmp/get-policy-tags.zip"
+  service_account_name = "sa-func-get-policy-tags"
+  function_entry_point = "process_request"
+  env_variables = {}
+  project = var.project
+  compute_region = var.compute_region
+  data_region = var.data_region
+  bigquery_dataset_name = module.common-stack.bq_results_dataset
+  deployment_procedure_path = "modules/bq-remote-function/procedures/deploy_get_policy_tags_remote_func.tpl"
+  cloud_functions_sa_extra_roles = []
+
+  depends_on             = [module.common-stack]
+}
+
 
 
