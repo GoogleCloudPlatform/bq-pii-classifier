@@ -1,17 +1,17 @@
 
-# Check out guide-standard-dlp.md on how to use this template
+# Check out guide-discovery-service.md on how to use this template
 
-project = ""
+project        = ""
 compute_region = ""
-data_region = ""
+data_region    = ""
 
 bigquery_dataset_name = "bq_security_classifier"
 
-tables_include_list = []
+tables_include_list   = []
 datasets_include_list = []
 projects_include_list = []
 datasets_exclude_list = []
-tables_exclude_list = []
+tables_exclude_list   = []
 
 # Set to [FINE_GRAINED_ACCESS_CONTROL] to enforce access control via policy tags. Set to [] otherwise.
 data_catalog_taxonomy_activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
@@ -60,24 +60,6 @@ iam_mapping = {
   },
 }
 
-is_dry_run = "False"
-
-dlp_service_account =  "service-<PROJECT_NUMBER>@dlp-api.iam.gserviceaccount.com"
-
-cloud_scheduler_account = "service-<PROJECT_NUMBER>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-
-terraform_service_account = "bq-pii-classifier-terraform@<PROJECT_ID>.iam.gserviceaccount.com"
-
-is_auto_dlp_mode = false
-
-tagging_dispatcher_service_image = ""
-inspection_dispatcher_service_image = ""
-inspector_service_image = ""
-tagger_service_image = ""
-
-inspection_cron_expression = ""
-tagging_cron_expression = ""
-
 # Set the scan limits based on intervals
 table_scan_limits_json_config = {
   limitType : "NUMBER_OF_ROWS",
@@ -88,5 +70,20 @@ table_scan_limits_json_config = {
   }
 }
 
-promote_mixed_info_types = false
+is_dry_run = "False"
+
+dlp_service_account =  "service-<PROJECT_NUMBER>@dlp-api.iam.gserviceaccount.com"
+
+cloud_scheduler_account = "service-<PROJECT_NUMBER>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+
+terraform_service_account = "bq-pii-classifier-terraform@<PROJECT_ID>.iam.gserviceaccount.com"
+
+is_auto_dlp_mode = true
+
+tagging_dispatcher_service_image    = ""
+
+tagger_service_image                = ""
+
+tagging_cron_expression    = "0 0 1 * *"
+
 
