@@ -4,7 +4,7 @@ no-git/*
 
 TODO.md
 
-*.tfvars
+terraform/tfvars/*
 
 *.DS_Store
 
