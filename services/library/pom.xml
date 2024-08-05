@@ -32,7 +32,7 @@
     <description>Core code of the bq-pii-classifier solution</description>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencyManagement>
