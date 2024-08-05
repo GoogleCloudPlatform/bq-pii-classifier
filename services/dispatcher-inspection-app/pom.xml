@@ -18,12 +18,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.7</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
 
     <groupId>com.google.cloud.pso</groupId>
     <artifactId>bq-pii-classifier-dispatcher-app</artifactId>
@@ -31,9 +25,13 @@
     <name>bq-pii-classifier-inspection-dispatcher-app</name>
     <description>Dispatcher Service of the BQ PII Classifier in Inspection mode</description>
 
-    <properties>
-        <java.version>11</java.version>
-    </properties>
+    <!-- share the parent config from the main pom -->
+    <parent>
+        <groupId>com.google.cloud.pso</groupId>
+        <artifactId>bq-pii-classifier</artifactId>
+        <version>2.0.0</version>
+    </parent>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -51,8 +49,8 @@
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
-        <artifactId>gson</artifactId>
-        <version>2.10.1</version>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
         </dependency>
 
         <dependency>
@@ -70,20 +68,17 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- [START cloudrun_pubsub_jib] -->
-            <!-- [START run_pubsub_jib] -->
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-         <version>3.4.0</version>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.0</version>
                 <configuration>
-                    <to>
-                        <image>gcr.io/PROJECT_ID/pubsub</image>
-                    </to>
+                    <from>
+                        <image>${maven.jib.base_image}</image>
+                    </from>
                 </configuration>
             </plugin>
-            <!-- [END run_pubsub_jib] -->
-            <!-- [END cloudrun_pubsub_jib] -->
+
         </plugins>
     </build>
 
