@@ -16,6 +16,7 @@ output "created_children_tags" {
     domain = trim(element(split("|", entry.description), 0), " ")
     classification = trim(element(split("|", entry.description), 1), " ")
     info_type = trim(element(split("|", entry.description), 2), " ")
+    region = var.region
   }]
 }
 

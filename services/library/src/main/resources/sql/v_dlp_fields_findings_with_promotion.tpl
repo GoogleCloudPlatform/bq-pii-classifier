@@ -182,7 +182,7 @@
             LEFT JOIN datasets_domains dd ON dd.project = i.project_id AND dd.dataset = i.dataset_id
             LEFT JOIN projects_domains pd ON pd.project = i.project_id
              -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-            LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = i.info_type
+            LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = i.info_type AND c.region = '${param_region}'
         )
 
         SELECT table_spec, field_name, info_type, policy_tag, classification FROM with_policy_tags WHERE info_type IS NOT NULL

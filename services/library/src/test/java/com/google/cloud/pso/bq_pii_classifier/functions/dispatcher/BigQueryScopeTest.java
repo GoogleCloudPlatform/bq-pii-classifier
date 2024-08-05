@@ -33,13 +33,11 @@ public class BigQueryScopeTest {
                     "\"datasetExcludeList\":[],\n" +
                     "\"datasetIncludeList\":[],\n" +
                     "\"projectIncludeList\":[\"Project1\", \"Project2\"],\n" +
-                    "\"tableExcludeList\":[],\n" +
-                    "\"tableIncludeList\":[]\n" +
+                    "\"tableExcludeList\":[]\n" +
                     "}";
 
             BigQueryScope expected = new BigQueryScope(
                     new ArrayList<>(Arrays.asList("Project1", "Project2")),
-                    new ArrayList<>(),
                     new ArrayList<>(),
                     new ArrayList<>(),
                     new ArrayList<>()

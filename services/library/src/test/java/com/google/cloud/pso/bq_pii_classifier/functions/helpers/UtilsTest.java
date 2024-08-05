@@ -16,9 +16,11 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.helpers;
 
+
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import org.junit.Test;
-
+import java.util.HashMap;
+import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class UtilsTest {
@@ -42,5 +44,25 @@ public class UtilsTest {
     public void getConfigFromEnv_NotRequired() {
         // should not fail because the VAR is not required
         Utils.getConfigFromEnv("NA_VAR", false);
+    }
+
+    @Test
+    public void testParseJsonToMap() {
+        String jsonString = "[{\"ids\":[\"projects/p/locations/europe/inspectTemplates/1\", \"projects/p/locations/europe/inspectTemplates/2\"],\"region\":\"eu\"},{\"ids\":[\"projects/p/locations/europe-west3/inspectTemplates/1\"],\"region\":\"europe-west3\"}]";
+
+        HashMap<String, List<String>> actual = Utils.parseJsonToMap(jsonString, "region", "ids");
+
+        HashMap<String, List<String>> expected = new HashMap<>();
+        expected.put("eu", List.of("projects/p/locations/europe/inspectTemplates/1", "projects/p/locations/europe/inspectTemplates/2"));
+        expected.put("europe-west3", List.of("projects/p/locations/europe-west3/inspectTemplates/1"));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testExtractDLPRegionFromJobNameToBQRegion() {
+
+        assertEquals("eu", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe/dlpJobs/job"));
+        assertEquals("europe-west3", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe-west3/dlpJobs/job"));
     }
 }

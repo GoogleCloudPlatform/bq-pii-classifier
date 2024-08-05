@@ -35,6 +35,8 @@ import com.google.cloud.pso.bq_pii_classifier.services.scan.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class Dispatcher {
@@ -81,24 +83,20 @@ public class Dispatcher {
          *  We do that by keeping simple flag files in GCS with the pubSubMessageId as file name.
          */
         String flagFileName = String.format("%s/%s", persistentSetObjectPrefix, pubSubMessageId);
-        if(persistentSet.contains(flagFileName)){
+        if (persistentSet.contains(flagFileName)) {
             // log error and ACK and return
             String msg = String.format("PubSub message ID '%s' has been processed before by the dispatcher. The message should be ACK to PubSub to stop retries. Please investigate further why the message was retried in the first place.",
                     pubSubMessageId);
             throw new NonRetryableApplicationException(msg);
-        }else{
+        } else {
             logger.logInfoWithTracker(runId, String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
             persistentSet.add(flagFileName);
         }
 
         /**
-         * Detecting which resources to tag is done bottom up TABLES > DATASETS > PROJECTS where lower levels configs (e.g. Tables)
+         * Detecting which resources to tag is done bottom up DATASETS > PROJECTS where lower levels configs (e.g. dataset)
          * ignore higher level configs (e.g. Datasets)
          * For example:
-         * If TABLES_INCLUDE list is provided:
-         *  * Tag only these tables
-         *  * SKIP tables in TABLES_EXCLUDE list
-         *  * IGNORE all other INCLUDE lists
          * If DATASETS_INCLUDE list is provided:
          *  * Tag only tables in these datasets
          *  * SKIP datasets in DATASETS_EXCLUDE
@@ -115,26 +113,19 @@ public class Dispatcher {
 
         List<JsonMessage> pubSubMessagesToPublish;
 
-        if (!bqScope.getTableIncludeList().isEmpty()) {
-            pubSubMessagesToPublish = processTables(bqScope.getTableIncludeList(), bqScope.getTableExcludeList());
+        if (!bqScope.getDatasetIncludeList().isEmpty()) {
+            pubSubMessagesToPublish = processDatasets(
+                    bqScope.getDatasetIncludeList(),
+                    bqScope.getDatasetExcludeList(),
+                    bqScope.getTableExcludeList());
         } else {
-
-            if (!bqScope.getDatasetIncludeList().isEmpty()) {
-                pubSubMessagesToPublish = processDatasets(
-                        bqScope.getDatasetIncludeList(),
+            if (!bqScope.getProjectIncludeList().isEmpty()) {
+                pubSubMessagesToPublish = processProjects(
+                        bqScope.getProjectIncludeList(),
                         bqScope.getDatasetExcludeList(),
-                        bqScope.getTableExcludeList(),
-                        config.getDataRegionId());
+                        bqScope.getTableExcludeList());
             } else {
-                if (!bqScope.getProjectIncludeList().isEmpty()) {
-                    pubSubMessagesToPublish = processProjects(
-                            bqScope.getProjectIncludeList(),
-                            bqScope.getDatasetExcludeList(),
-                            bqScope.getTableExcludeList(),
-                            config.getDataRegionId());
-                } else {
-                    throw new NonRetryableApplicationException("At least one of of the following params must be not empty [tableIncludeList, datasetIncludeList, projectIncludeList]");
-                }
+                throw new NonRetryableApplicationException("At least one of of the following params must be not empty [tableIncludeList, datasetIncludeList, projectIncludeList]");
             }
         }
 
@@ -154,15 +145,15 @@ public class Dispatcher {
             // this enable us to detect dispatched messages within a runId that fail in later stages (i.e. Tagger)
 
             // Log the dispatched tracking ID to be able to track the progress of this run
-            if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)){
+            if (config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)) {
                 InspectorRequest request = ((InspectorRequest) msg.getMsg());
                 logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), request.getTargetTable());
-            }else{
-                if(config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
+            } else {
+                if (config.getSolutionMode().equals(SolutionMode.AUTO_DLP)) {
                     TaggerTableSpecRequest request = ((TaggerTableSpecRequest) msg.getMsg());
                     logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId(), request.getTargetTable());
-                }else{
-                    if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)){
+                } else {
+                    if (config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)) {
                         TaggerDlpJobRequest request = ((TaggerDlpJobRequest) msg.getMsg());
                         logger.logSuccessDispatcherTrackingId(runId, request.getTrackingId());
                     }
@@ -176,7 +167,10 @@ public class Dispatcher {
     }
 
     public List<JsonMessage> processTables(List<String> tableIncludeList,
-                                           List<String> tableExcludeList) {
+                                           List<String> tableExcludeList,
+                                           List<String> inspectionTemplatesIds,
+                                           String dlpJobRegion
+    ) {
         List<JsonMessage> pubSubMessagesToPublish = new ArrayList<>();
 
         // entity is a table spec string p.d.t in case of Standard Mode Inspection Dispatcher and sent to the Inspector Service
@@ -188,26 +182,28 @@ public class Dispatcher {
 
                     String trackingId = TrackingHelper.generateTrackingId(runId, entity);
 
-                    if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)){
-                        for (int i=0; i < config.getDlpInspectionTemplatesIds().size(); i++){
-                            String inspectionTemplate = config.getDlpInspectionTemplatesIds().get(i);
+                    if (config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.INSPECTION)) {
+
+                        for (int i = 0; i < inspectionTemplatesIds.size(); i++) {
+                            // submit n inspection requests depending on the number of inspection templates in one region
                             InspectorRequest operation = new InspectorRequest(
                                     runId,
-                                    String.format("%s_%s", trackingId,(i+1)), // use tabletrackingid_inspectiontemplatenumber to diff between requests and paths
+                                    String.format("%s_%s", trackingId, (i + 1)), // use tabletrackingid_inspectiontemplatenumber to diff between requests and paths
                                     TableSpec.fromSqlString(entity),
-                                    config.getDlpInspectionTemplatesIds().get(i));
+                                    inspectionTemplatesIds.get(i),
+                                    dlpJobRegion); // run the dlp job in the same region as the source table to avoid network cost
                             pubSubMessagesToPublish.add(operation);
                         }
 
-                    }else{
-                        if(config.getSolutionMode().equals(SolutionMode.AUTO_DLP)){
+                    } else {
+                        if (config.getSolutionMode().equals(SolutionMode.AUTO_DLP)) {
                             TaggerTableSpecRequest operation = new TaggerTableSpecRequest(runId, trackingId, TableSpec.fromSqlString(entity));
                             pubSubMessagesToPublish.add(operation);
-                        }else{
-                            if(config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)){
+                        } else {
+                            if (config.getSolutionMode().equals(SolutionMode.STANDARD_DLP) && config.getDispatcherType().equals(DispatcherType.TAGGING)) {
                                 TaggerDlpJobRequest operation = new TaggerDlpJobRequest(runId, trackingId, entity);
                                 pubSubMessagesToPublish.add(operation);
-                            }else{
+                            } else {
                                 throw new NonRetryableApplicationException(String.format("Solution Mode %s and Dispatcher Type %s are not supported in the Dispatcher logic",
                                         config.getSolutionMode(), config.getDispatcherType()));
                             }
@@ -224,13 +220,12 @@ public class Dispatcher {
 
     public List<JsonMessage> processDatasets(List<String> datasetIncludeList,
                                              List<String> datasetExcludeList,
-                                             List<String> tableExcludeList,
-                                             String dataRegionId) throws IOException, InterruptedException, NonRetryableApplicationException {
-
-        List<String> tablesIncludeList = new ArrayList<>();
+                                             List<String> tableExcludeList
+    ){
+        List<JsonMessage> allJsonMessages = new ArrayList<>();
 
         for (String dataset : datasetIncludeList) {
-
+            String datasetLocation = "";
             try {
 
                 if (!datasetExcludeList.contains(dataset)) {
@@ -239,40 +234,46 @@ public class Dispatcher {
                     String projectId = tokens.get(0);
                     String datasetId = tokens.get(1);
 
-                    String datasetLocation = bqService.getDatasetLocation(projectId, datasetId);
-
-                /*
-                 TODO: Support tagging in multiple locations
-
-                 to support all locations:
-                 1- Taxonomies/PolicyTags have to be created in each required location
-                 2- Update the Tagger Cloud Function to read one mapping per location
-
-                 For now, we don't submit tasks for tables in other locations than the PolicyTag location
-                 */
-                    if (!datasetLocation.toLowerCase().equals(dataRegionId.toLowerCase())) {
+                    datasetLocation = bqService.getDatasetLocation(projectId, datasetId).toLowerCase();
+                    if (!config.getSourceDataRegions().contains(datasetLocation)) {
                         logger.logWarnWithTracker(runId,
                                 String.format(
-                                        "Ignoring dataset %s in location %s. Only location %s is configured",
+                                        "Ignoring dataset %s in region '%s'. Only regions '%s' are configured.",
                                         dataset,
                                         datasetLocation,
-                                        dataRegionId)
+                                        config.getSourceDataRegions())
                         );
                         continue;
                     }
 
-                    // get all tables that have DLP findings
-                    List<String> datasetTables = scanner.listChildren(projectId, datasetId);
-                    tablesIncludeList.addAll(datasetTables);
+                    // get the inspection template to be use in the region of this dataset
+                    if (!config.getDlpInspectionTemplatesIdsPerRegion().keySet().contains(datasetLocation)) {
+                        String msg = String.format(
+                                "No DLP inspection template(s) found for source data region '%s'",
+                                datasetLocation);
+                        throw new NonRetryableApplicationException(msg);
+                    }
+                    List<String> inspectionTemplatesIds = config.getDlpInspectionTemplatesIdsPerRegion().get(datasetLocation);
 
-                    if (datasetTables.isEmpty()) {
+                    // get all tables that have DLP findings
+                    List<String> tablesIncludeList = scanner.listChildren(projectId, datasetId);
+
+                    if (tablesIncludeList.isEmpty()) {
                         String msg = String.format(
                                 "No Tables found under dataset '%s'",
                                 dataset);
 
                         logger.logWarnWithTracker(runId, msg);
                     } else {
-                        logger.logInfoWithTracker(runId, String.format("Tables found in dataset %s : %s", dataset, datasetTables));
+                        logger.logInfoWithTracker(runId, String.format("Tables found in dataset %s : %s", dataset, tablesIncludeList));
+
+                        // accumulate all messages to be omitted after the loop
+                        List<JsonMessage> jsonMessages = processTables(tablesIncludeList,
+                                tableExcludeList,
+                                inspectionTemplatesIds,
+                                datasetLocation.equals("eu")? "europe": datasetLocation);
+
+                        allJsonMessages.addAll(jsonMessages);
                     }
                 }
             } catch (Exception exception) {
@@ -280,15 +281,14 @@ public class Dispatcher {
                 logger.logFailedDispatcherEntityId(runId, dataset, exception);
             }
         }
-        return processTables(tablesIncludeList, tableExcludeList);
+        return allJsonMessages;
     }
 
 
     public List<JsonMessage> processProjects(
             List<String> projectIncludeList,
             List<String> datasetExcludeList,
-            List<String> tableExcludeList,
-            String dataRegionId
+            List<String> tableExcludeList
     ) throws IOException, InterruptedException, NonRetryableApplicationException {
 
         List<String> datasetIncludeList = new ArrayList<>();
@@ -321,7 +321,7 @@ public class Dispatcher {
             }
 
         }
-        return processDatasets(datasetIncludeList, datasetExcludeList, tableExcludeList, dataRegionId);
+        return processDatasets(datasetIncludeList, datasetExcludeList, tableExcludeList);
     }
 
 }

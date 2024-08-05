@@ -88,7 +88,7 @@ locals {
   created_taxonomies = join(",", [for taxonomy in module.data-catalog[*].created_taxonomy : taxonomy.name])
 
   // one list of all policy tags generated across domain taxonomies
-  // each element of the list is a map with three attributes (policy_tag_id, domain, classification, info_type)
+  // each element of the list is a map with three attributes (policy_tag_id, domain, classification, info_type, region)
   created_policy_tags = flatten(module.data-catalog[*].created_children_tags)
 
   created_parent_tags = flatten(module.data-catalog[*].created_parent_tags)
@@ -97,8 +97,8 @@ locals {
 
   taxonomy_numbers = distinct([for x in var.classification_taxonomy: lookup(x,"taxonomy_number")])
 
-  // this return a list of lists like [ ["dwh","1"], ["dwh","2"], ["marketing","1"], ["marketing","2"], etc ]
-  taxonomies_to_be_created = setproduct(local.domains, local.taxonomy_numbers)
+  // this return a list of lists like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
+  taxonomies_to_be_created = setproduct(tolist(var.source_data_regions), local.domains, local.taxonomy_numbers)
 
   inspection_templates_count = max([for x in var.classification_taxonomy: lookup(x,"inspection_template_number")]...)
 
@@ -108,19 +108,21 @@ locals {
     labels         = lookup(item, "labels")
   }
   }
+
+  created_dlp_inspection_templates = module.dlp[*].created_inspection_templates
 }
 
 module "data-catalog" {
   count = length(local.taxonomies_to_be_created)
   source = "../../modules/data-catalog"
   project = var.project
-  region = var.data_region
+  region = local.taxonomies_to_be_created[count.index][0]
 
-  domain = local.taxonomies_to_be_created[count.index][0]
-  taxonomy_number = local.taxonomies_to_be_created[count.index][1]
+  domain = local.taxonomies_to_be_created[count.index][1]
+  taxonomy_number = local.taxonomies_to_be_created[count.index][2]
 
   // only use the nodes that are marked for taxonomy number x
-  classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][1]]
+  classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][2]]
 
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }
@@ -150,10 +152,13 @@ module "cloud_logging" {
 }
 
 // DLP
+
+# deploy 1 dlp inspection template in each source data region
 module "dlp" {
+  count = length(var.source_data_regions)
   source                  = "../../modules/dlp"
   project                 = var.project
-  region                  = var.data_region # create inspection template in the same region as data
+  region                  = tolist(var.source_data_regions)[count.index] # create inspection template in the same region as source data
   classification_taxonomy = var.classification_taxonomy
 
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
@@ -168,7 +173,6 @@ module "cloud_scheduler" {
 
   target_uri = module.pubsub-tagging-dispatcher.topic-id
 
-  tables_include_list   = var.tables_include_list
   datasets_include_list = var.datasets_include_list
   projects_include_list = var.projects_include_list
   datasets_exclude_list = var.datasets_exclude_list
@@ -218,6 +222,10 @@ module "cloud-run-tagging-dispatcher" {
       value = var.data_region,
     },
     {
+      name = "SOURCE_DATA_REGIONS",
+      value = jsonencode(var.source_data_regions),
+    },
+    {
       name  = "PROJECT_ID",
       value = var.project,
     },
@@ -247,7 +255,7 @@ module "cloud-run-tagging-dispatcher" {
     },
     {
     name = "DLP_INSPECTION_TEMPLATES_IDS",
-    value = jsonencode(module.dlp.templates_ids),
+    value = jsonencode(local.created_dlp_inspection_templates),
     },
   ]
 }

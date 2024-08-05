@@ -31,10 +31,11 @@ public class Environment {
                 getProjectId(),
                 getComputeRegionId(),
                 getDataRegionId(),
+                new Gson().fromJson(getSourceDataRegions().toLowerCase(), ArrayList.class),
                 getInspectionTopic(),
                 DispatcherType.INSPECTION,
                 SolutionMode.STANDARD_DLP,
-                new Gson().fromJson(getDlpInspectionTemplatesIds(), ArrayList.class)
+                Utils.parseJsonToMap(getDlpInspectionTemplatesIds(), "region", "ids")
         );
     }
 
@@ -48,6 +49,10 @@ public class Environment {
 
     public String getDataRegionId(){
         return Utils.getConfigFromEnv("DATA_REGION_ID", true);
+    }
+
+    public String getSourceDataRegions(){
+        return Utils.getConfigFromEnv("SOURCE_DATA_REGIONS", true);
     }
 
     public String getInspectionTopic() { return Utils.getConfigFromEnv("INSPECTION_TOPIC", true); }

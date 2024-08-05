@@ -5,13 +5,20 @@ import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 
 public class InspectorRequest extends Operation {
 
-    private TableSpec targetTable;
-    private String inspectionTemplate;
+    private final TableSpec targetTable;
+    private final String inspectionTemplate;
 
-    public InspectorRequest(String runId, String trackingId, TableSpec targetTable, String inspectionTemplate) {
+    private final String jobRegion;
+
+    public InspectorRequest(String runId,
+                            String trackingId,
+                            TableSpec targetTable,
+                            String inspectionTemplate,
+                            String jobRegion) {
         super(runId, trackingId);
         this.targetTable = targetTable;
         this.inspectionTemplate = inspectionTemplate;
+        this.jobRegion = jobRegion;
     }
 
     public TableSpec getTargetTable() {
@@ -22,11 +29,16 @@ public class InspectorRequest extends Operation {
         return inspectionTemplate;
     }
 
+    public String getJobRegion() {
+        return jobRegion;
+    }
+
     @Override
     public String toString() {
         return "InspectorRequest{" +
-                "targetTable=" + targetTable +
+                "targetTable=" + targetTable.toSqlString() +
                 ", inspectionTemplate='" + inspectionTemplate + '\'' +
+                ", jobRegion='" + jobRegion + '\'' +
                 "} " + super.toString();
     }
 }

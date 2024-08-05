@@ -9,7 +9,7 @@ export VARS=my-variables.tfvars
 
 ### Configure Basic Variables
 
-Most required variables have default names defined in [variables.tf](../terraform/variables.tf).
+Most required variables have default values defined in [variables.tf](../terraform/variables.tf).
 You can use the defaults or overwrite them in the `.tfvars` file you just created.
 
 Both ways, you must define the below variables:
@@ -17,7 +17,8 @@ Both ways, you must define the below variables:
 ```
 project = "<GCP project ID to deploy solution to>"
 compute_region = "<GCP region to deploy compute resources e.g. cloud run, iam, etc>"
-data_region = "<GCP region where the target data resides and where data-related resources will be deployed e.g. data calatog taxonomies, dlp template, bigquery dataset, etc>"
+data_region = "<GCP region where application-owned data will be deployed e.g. dlp results table, gcs buckets, etc. >"
+source_data_regions  = "[<List of GCP regions where the source data resides. Policy tags and DLP inspection templates will be deployed there.>]"
 ```
 
 ### Configure BigQuery Dataset  
@@ -41,9 +42,8 @@ datasets format: ["project.dataset", "project.dataset", etc]
 projects format: ["project1", "project2", etc]
 
 ```
-tables_include_list = []
-datasets_include_list = []
 projects_include_list = []
+datasets_include_list = []
 datasets_exclude_list = []
 tables_exclude_list = []
 ```

@@ -26,6 +26,7 @@ variable "created_policy_tags" {
     classification = string,
     info_type = string,
     policy_tag_id = string
+    region = string
   }))
 }
 

@@ -3,10 +3,10 @@
 project = ""
 compute_region = ""
 data_region = ""
+source_data_regions    = []
 
 bigquery_dataset_name = "bq_security_classifier"
 
-tables_include_list = []
 datasets_include_list = []
 projects_include_list = []
 datasets_exclude_list = []

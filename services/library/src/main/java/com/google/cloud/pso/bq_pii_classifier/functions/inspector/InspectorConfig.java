@@ -20,9 +20,7 @@ import java.util.List;
 
 public class InspectorConfig {
 
-
     private String projectId;
-    private String regionId;
     private String bqResultsDataset;
     private String bqResultsTable;
     private String dlpNotificationTopic;
@@ -32,9 +30,8 @@ public class InspectorConfig {
     private List<String> dlpInspectionTemplatesIds;
     private String tableScanLimitsJsonConfig;
 
-    public InspectorConfig(String projectId, String regionId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, List<String> dlpInspectionTemplatesIds, String tableScanLimitsJsonConfig) {
+    public InspectorConfig(String projectId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, List<String> dlpInspectionTemplatesIds, String tableScanLimitsJsonConfig) {
         this.projectId = projectId;
-        this.regionId = regionId;
         this.bqResultsDataset = bqResultsDataset;
         this.bqResultsTable = bqResultsTable;
         this.dlpNotificationTopic = dlpNotificationTopic;
@@ -47,10 +44,6 @@ public class InspectorConfig {
 
     public String getProjectId() {
         return projectId;
-    }
-
-    public String getRegionId() {
-        return regionId;
     }
 
     public String getBqResultsDataset() {
@@ -89,7 +82,6 @@ public class InspectorConfig {
     public String toString() {
         return "InspectorConfig{" +
                 "projectId='" + projectId + '\'' +
-                ", regionId='" + regionId + '\'' +
                 ", bqResultsDataset='" + bqResultsDataset + '\'' +
                 ", bqResultsTable='" + bqResultsTable + '\'' +
                 ", dlpNotificationTopic='" + dlpNotificationTopic + '\'' +

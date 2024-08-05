@@ -26,6 +26,7 @@
         (
 
         SELECT
+        CASE WHEN SPLIT(column_profile.name, "/")[OFFSET(3)] = "europe" THEN "eu" ELSE SPLIT(column_profile.name, "/")[OFFSET(3)] END AS table_region,
         column_profile.dataset_project_id,
         column_profile.dataset_id,
         column_profile.table_id,
@@ -55,6 +56,6 @@
         LEFT JOIN datasets_domains dd ON dd.project = o.dataset_project_id AND dd.dataset = o.dataset_id
         LEFT JOIN projects_domains pd ON pd.project = o.dataset_project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = o.final_info_type
+        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = o.final_info_type AND c.region = o.table_region
         WHERE o.final_info_type IS NOT NULL
         ORDER BY 1,2

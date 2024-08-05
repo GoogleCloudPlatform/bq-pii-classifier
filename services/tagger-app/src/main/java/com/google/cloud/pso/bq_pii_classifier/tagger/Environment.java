@@ -28,8 +28,7 @@ public class Environment {
     public TaggerConfig toConfig (){
         return new TaggerConfig(
                 getProjectId(),
-                new HashSet<>(
-                        Utils.tokenize(getTaxonomies(), ",", true)),
+                new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
                 getDlpDataset(),
                 getDlpTableStandard(),
                 getDlpTableAuto(),

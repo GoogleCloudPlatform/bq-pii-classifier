@@ -15,9 +15,6 @@ variable "cron_expression" {
 }
 
 # DLP scanning scope
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "tables_exclude_list" {
   type = list(string)
 }

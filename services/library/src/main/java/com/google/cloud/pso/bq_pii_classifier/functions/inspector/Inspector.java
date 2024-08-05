@@ -42,17 +42,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Inspector {
-
     private final LoggingHelper logger;
-
     private static final Integer functionNumber = 2;
-
     private InspectorConfig config;
     private DlpService dlpService;
     private BigQueryService bqService;
     private PersistentSet persistentSet;
     private String persistentSetObjectPrefix;
-
 
     public Inspector(InspectorConfig config,
                      DlpService dlpService,
@@ -112,8 +108,10 @@ public class Inspector {
         );
 
         CreateDlpJobRequest createDlpJobRequest = CreateDlpJobRequest.newBuilder()
-                .setJobId(request.getTrackingId()) // Letters, numbers, hyphens, and underscores allowed.
-                .setParent(LocationName.of(config.getProjectId(), config.getRegionId()).toString())
+                // Letters, numbers, hyphens, and underscores allowed.
+                .setJobId(request.getTrackingId())
+                // create the job in the host project, in the source data region to avoid network cost
+                .setParent(LocationName.of(config.getProjectId(), request.getJobRegion()).toString())
                 .setInspectJob(inspectJobConfig)
                 .build();
 
@@ -123,7 +121,6 @@ public class Inspector {
                 submittedDlpJob.getName(),
                 request.getInspectionTemplate()
         ));
-
 
         // Add a flag key marking that we already completed this request and no additional runs
         // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has already processed the request
