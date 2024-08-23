@@ -149,10 +149,10 @@ module "inspection-stack" {
 # Helper functions
 module "bq-remote-func-get-table-policy-tags" {
   source = "./modules/bq-remote-function"
-  function_name = "get_table_policy_tags" # only underscores allowed
+  function_name = var.bq_remote_func_get_policy_tags_name
   cloud_function_src_dir  = "../helpers/bq-remote-functions/get-policy-tags"
   cloud_function_temp_dir = "/tmp/get-policy-tags.zip"
-  service_account_name = "sa-func-get-policy-tags"
+  service_account_name = var.sa_bq_remote_func_get_policy_tags
   function_entry_point = "process_request"
   env_variables = {}
   project = var.project

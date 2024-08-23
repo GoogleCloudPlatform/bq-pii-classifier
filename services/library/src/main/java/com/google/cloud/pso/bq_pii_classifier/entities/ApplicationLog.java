@@ -33,4 +33,6 @@ public enum ApplicationLog {
     NON_RETRYABLE_EXCEPTIONS_LOG,
     // To capture trackers with retryable exceptions during processing
     RETRYABLE_EXCEPTIONS_LOG,
+    // To capture table schema after applying policy tags
+    TABLE_SCHEMA_LOG
 }

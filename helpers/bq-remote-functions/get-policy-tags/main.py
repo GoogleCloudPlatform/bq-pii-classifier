@@ -20,23 +20,69 @@ import functions_framework
 from google.cloud import bigquery
 from google.cloud.datacatalog import PolicyTagManagerClient
 from google.cloud import datacatalog_v1
+from google.cloud import datastore
+import datetime
+import pytz  # Import the pytz library
+import logging
+import google.cloud.logging
+
+
+class DatastoreCache:
+    def __init__(self, kind='PolicyTagsCache'):
+        self.datastore_client = datastore.Client()
+        self.kind = kind
+
+    def get(self, key):
+        """Retrieves a cached value from Datastore."""
+        key = self.datastore_client.key(self.kind, key)
+        entity = self.datastore_client.get(key)
+
+        if entity and 'value' in entity and 'expiration' in entity:
+            # Make now timezone-aware (assuming UTC)
+            now_aware = datetime.datetime.now(pytz.utc)
+
+            if entity['expiration'] > now_aware:
+                return entity['value']
+            else:
+                # Expired entry, delete it
+                self.datastore_client.delete(key)
+
+        return None  # Cache miss or expired entry
+
+    def add(self, key, value, expiration_seconds=3600):
+        """Adds or updates a cached value in Datastore with an expiration time."""
+        key = self.datastore_client.key(self.kind, key)
+        entity = datastore.Entity(key=key)
+
+        # Make expiration timezone-aware (assuming UTC)
+        expiration = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=expiration_seconds)
+
+        entity.update({
+            'value': value,
+            'expiration': expiration
+        })
+        self.datastore_client.put(entity)
 
 
 def get_column_policy_tags(project_id, dataset_id, table_id):
     """Fetches policy tags associated with BigQuery table columns."""
     bq_client = bigquery.Client(project=project_id)
     table_ref = bq_client.dataset(dataset_id).table(table_id)
-    table = bq_client.get_table(table_ref)
+
+    try:
+        table = bq_client.get_table(table_ref)
+    except Exception as e:
+        return None, str(e)
 
     policy_tags = {}
     for field in table.schema:
         if field.policy_tags:
             for tag in field.policy_tags.names:
                 policy_tags[field.name] = tag
-    return policy_tags
+    return policy_tags, None
 
 
-def get_policy_tag_display_names(policy_tags):
+def get_policy_tag_display_names(policy_tags, cache):
     """Looks up the display names of policy tags using Data Catalog."""
     datacatalog_client = datacatalog_v1.PolicyTagManagerClient()
     tag_names = list(policy_tags.values())
@@ -44,8 +90,15 @@ def get_policy_tag_display_names(policy_tags):
     display_names = {}
     for name in tag_names:
         try:
-            tag = datacatalog_client.get_policy_tag(name=name)
-            display_names[name] = tag.display_name
+            # 1) get from datastore
+            cached_policy_tag_display_name = cache.get(name)
+            if cached_policy_tag_display_name:
+                display_names[name] = cached_policy_tag_display_name
+            else:
+                # API call
+                tag = datacatalog_client.get_policy_tag(name=name)
+                display_names[name] = tag.display_name
+                cache.add(name, tag.display_name)
         except Exception as e:
             display_names[name] = f'Failed to retrieve policy tag display name for {name}. Exception: {e}'
 
@@ -75,10 +128,17 @@ def combine_policy_tags(policy_tags_ids, policy_tags_names):
 
 @functions_framework.http
 def process_request(request):
+
+    # Instantiates a client
+    logging_client = google.cloud.logging.Client()
+
+    # Retrieves a Cloud Logging handler based on the environment
+    # you're running in and integrates the handler with the
+    # Python logging module. By default this captures all logs
+    # at INFO level and higher
+    logging_client.setup_logging()
+
     try:
-
-        logger = logging.Client().logger("bq-remote-func-get-policy-tags")
-
         request_json = request.get_json()
 
         # the function should be implemented in a way that receives a batch of calls. Each element in the calls array
@@ -86,17 +146,15 @@ def process_request(request):
         calls = request_json['calls']
 
         calls_count = len(calls)
-        logger.log_text(
-            f"Received {calls_count} calls from BQ. Calls: " + str(calls),
-            severity="INFO"
-        )
+        logging.info(f"Received {calls_count} calls from BQ.")
+
+        # create a cache for policy tags display names
+        cache = DatastoreCache()
 
         replies = []
         for call in calls:
-            logger.log_text(
-                f"Will process bq call " + str(call),
-                severity="INFO"
-            )
+            logging.info(f"Will process bq call " + str(call))
+
             table_spec = call[0].strip('`')
 
             table_spec_splits = table_spec.split(".")
@@ -104,24 +162,20 @@ def process_request(request):
             table_dataset = table_spec_splits[1]
             table_name = table_spec_splits[2]
 
-            policy_tags_ids = get_column_policy_tags(table_project, table_dataset, table_name)
-            policy_tags_names = get_policy_tag_display_names(policy_tags_ids)
-
-            final_result_list = combine_policy_tags(policy_tags_ids, policy_tags_names)
-
-            call_result = {"columns_and_policy_tags": final_result_list}
-            replies.append(call_result)
+            policy_tags_ids, error = get_column_policy_tags(table_project, table_dataset, table_name)
+            if not error:
+                policy_tags_names = get_policy_tag_display_names(policy_tags_ids, cache)
+                final_result_list = combine_policy_tags(policy_tags_ids, policy_tags_names)
+                call_result = {"columns_and_policy_tags": final_result_list, "error": None}
+                replies.append(call_result)
+            else:
+                call_result = {"columns_and_policy_tags": [], "error": error}
+                replies.append(call_result)
 
         return_json = jsonify({"replies": replies})
-        logger.log_text(
-            f"Function call ending. Replies {replies}",
-            severity="INFO"
-        )
+        logging.info(f"Function call ending. Replies count {len(replies)}")
         return return_json, 200
 
     except Exception as e:
-        logger.log_text(
-            str(e),
-            severity="ERROR"
-        )
+        logging.error(f"Error while processing request {str(e)}")
         return jsonify({"errorMessage": str(e)}), 400

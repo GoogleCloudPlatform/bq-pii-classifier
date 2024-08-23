@@ -77,7 +77,7 @@ variable "cf_available_memory" {
 
 variable "cf_timeout_seconds" {
   type = number
-  default = 60
+  default = 3600
 }
 
 variable "cf_max_instance_request_concurrency" {

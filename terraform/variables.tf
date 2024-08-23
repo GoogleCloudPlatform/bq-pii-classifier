@@ -88,6 +88,11 @@ variable "sa_tagger_tasks" {
   default = "tagger-tasks"
 }
 
+variable "sa_bq_remote_func_get_policy_tags" {
+  type = string
+  default = "sa-func-get-policy-tags"
+}
+
 variable "tagger_role" {
   type = string
   default = "tagger_role"
@@ -126,6 +131,11 @@ variable "inspector_service_name" {
 variable "tagger_service_name" {
   type = string
   default = "s3-tagger"
+}
+
+variable "bq_remote_func_get_policy_tags_name" {
+  type = string
+  default = "get_table_policy_tags"
 }
 
 

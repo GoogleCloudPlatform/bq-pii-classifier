@@ -22,6 +22,13 @@ resource "random_id" "run_id" {
   }
 }
 
+##### Enable datastore API because the function is using it as a cache layer
+
+resource "google_project_service" "datastore_api" {
+  service            = "datastore.googleapis.com"
+  disable_on_destroy = false                     # Prevent accidental disabling during Terraform destroy
+}
+
 ##### BigQuery Connection
 
 resource "google_bigquery_connection" "connection" {
@@ -46,7 +53,8 @@ resource "google_project_iam_member" "sa_function_roles" {
   project  = var.project
   for_each = toset(concat([
     "roles/logging.logWriter",
-    "roles/artifactregistry.reader"
+    "roles/artifactregistry.reader",
+    "roles/datastore.user"
   ],
     var.cloud_functions_sa_extra_roles
   ))

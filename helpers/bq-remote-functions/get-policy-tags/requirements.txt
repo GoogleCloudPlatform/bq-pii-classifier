@@ -2,3 +2,5 @@ functions-framework==3.*
 google-cloud-bigquery
 google-cloud-datacatalog
 google-cloud-logging
+google-cloud-datastore
+pytz

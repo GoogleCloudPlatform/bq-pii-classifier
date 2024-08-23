@@ -153,10 +153,10 @@ WITH tables AS (
     project_id,
     dataset_id,
     table_id, 
-    JSON_EXTRACT_ARRAY(results_json, '$.columns_and_policy_tags') AS json_array
+    JSON_EXTRACT_ARRAY(results_json, '$.columns_and_policy_tags') AS json_array,
+    JSON_EXTRACT(results_json, '$.error') AS get_table_schema_error
   FROM call_remote_func
 )
-
 , existing_tags AS (
 
  SELECT
@@ -167,11 +167,12 @@ WITH tables AS (
  JSON_EXTRACT_SCALAR(element, "$.column") AS column_name,
  JSON_EXTRACT_SCALAR(element, "$.policy_tag_id") AS current_policy_tag_id,
  JSON_EXTRACT_SCALAR(element, "$.policy_tag_name") AS current_policy_tag_name,
+ get_table_schema_error,
  m.policy_tag IS NOT NULL AS is_solution_owned_policy_tag
- FROM parsed_json, UNNEST(json_array) element
+ FROM parsed_json
+ LEFT JOIN UNNEST(json_array) element
  LEFT JOIN bq_security_classifier.v_config_infotypes_policytags_map m ON JSON_EXTRACT_SCALAR(element, "$.policy_tag_id") = m.policy_tag 
 )
-
 , dlp_unique_findings AS (
 SELECT 
 SUBSTRING((SPLIT(r.job_name, "/")[OFFSET(5)]),3, 15) AS run_id,
@@ -182,7 +183,7 @@ l.record_location.field_id,
 r.info_type.name AS info_type,
 r.likelihood,
 COUNT(1) AS findings_count
-FROM bq_security_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
+FROM bqsc-host-v1.bq_security_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
 GROUP BY 1,2,3,4,5,6,7
 )
 , dlp_findings_counts AS (
@@ -204,6 +205,7 @@ e.run_id,
 e.project_id,
 e.dataset_id,
 e.table_id,
+e.get_table_schema_error,
 e.column_name,
 e.current_policy_tag_id,
 e.current_policy_tag_name,
@@ -213,6 +215,5 @@ d.dlp_findings_summary, -- all info types that DLP detected on that column
 FROM existing_tags e
 LEFT JOIN bq_security_classifier.v_tagging_actions t ON e.project_id = t.project_id AND e.dataset_id = t.dataset_id AND e.table_id = t.table_id AND e.column_name = t.field_id AND e.run_id = t.run_id
 LEFT JOIN dlp_findings_counts d ON  e.project_id = d.project_id AND e.dataset_id = d.dataset_id AND e.table_id = d.table_id AND e.column_name = d.column_name AND e.run_id = d.run_id
-
 WHERE e.run_id = '<RUN-ID>'
 ```
