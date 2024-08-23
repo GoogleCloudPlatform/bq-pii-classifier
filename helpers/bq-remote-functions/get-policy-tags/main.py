@@ -43,8 +43,12 @@ def get_policy_tag_display_names(policy_tags):
 
     display_names = {}
     for name in tag_names:
-        tag = datacatalog_client.get_policy_tag(name=name)
-        display_names[name] = tag.display_name
+        try:
+            tag = datacatalog_client.get_policy_tag(name=name)
+            display_names[name] = tag.display_name
+        except Exception as e:
+            display_names[name] = f'Failed to retrieve policy tag display name for {name}. Exception: {e}'
+
     return display_names
 
 
@@ -77,7 +81,7 @@ def process_request(request):
 
         request_json = request.get_json()
 
-        # the function should be implemented in a way that recieves a batch of calls. Each element in the calls array
+        # the function should be implemented in a way that receives a batch of calls. Each element in the calls array
         # is 1 record-level invocation in BQ SQL
         calls = request_json['calls']
 

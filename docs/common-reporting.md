@@ -182,7 +182,7 @@ l.record_location.field_id,
 r.info_type.name AS info_type,
 r.likelihood,
 COUNT(1) AS findings_count
-FROM bqsc-host-v1.bq_security_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
+FROM bq_security_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
 GROUP BY 1,2,3,4,5,6,7
 )
 , dlp_findings_counts AS (
