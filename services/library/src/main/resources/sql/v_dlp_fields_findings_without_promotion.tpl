@@ -117,7 +117,7 @@
       LEFT JOIN projects_domains pd ON pd.project = o.project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
       LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type AND c.region = '${param_region}'
-      GROUP BY 1, 2,3,4,5,6,7,8
+      GROUP BY 1, 2,3,4,5,6,7,8,9
       )
 
       SELECT table_spec, field_name, info_type, policy_tag, classification FROM info_type_with_policy_tags WHERE info_type IS NOT NULL

@@ -1,14 +1,6 @@
- WITH config AS
+  WITH config AS
     (
-    -- keep this in a WITH view to facilitate unit testing by creating static input
        SELECT * FROM `${project}.${dataset}.${config_view_infotypes_policytags_map}`
-
-    #  SELECT 'dm1' AS domain, 'EMAIL_ADDRESS' AS info_type, 'd1_email_policy_tag' AS policy_tag UNION ALL
-    #  SELECT 'dm1' AS domain, 'PERSON_NAME' AS info_type, 'd1_person_policy_tag' AS policy_tag UNION ALL
-    #  SELECT 'dm1' AS domain, 'STREET_ADDRESS' AS info_type, 'd1_street_address_policy_tag' AS policy_tag UNION ALL
-    #  SELECT 'dm2' AS domain, 'EMAIL_ADDRESS' AS info_type, 'd2_email_policy_tag' AS policy_tag UNION ALL
-    #  SELECT 'dm2' AS domain, 'PERSON_NAME' AS info_type, 'd2_person_policy_tag' AS policy_tag UNION ALL
-    #  SELECT 'dm2' AS domain, 'STREET_ADDRESS' AS info_type, 'd2_street_address_policy_tag' AS policy_tag
     )
     , likelihood AS
     (
@@ -22,18 +14,14 @@
     , datasets_domains AS
     (
         SELECT * FROM `${project}.${dataset}.${config_view_dataset_domain_map}`
-        # SELECT 'p1' AS project, 'ds1' AS dataset, 'dm1' AS domain UNION ALL
-        # SELECT 'p1' AS project, 'ds2' AS dataset, 'dm2' AS domain
     )
     , projects_domains AS
     (
         SELECT * FROM `${project}.${dataset}.${config_view_project_domain_map}`
-        # SELECT 'p1' AS project, 'dm1' AS domain UNION ALL
-        # SELECT 'p1' AS project, 'dm2' AS domain
     )
     , dlp_results_core AS
     (
-        -- get the latest DLP scan results for a table 
+        -- get the latest DLP scan results for a table
     SELECT
     job_name AS dlp_job_name,
     l.record_location.record_key.big_query_key.table_reference.project_id AS project_id,
@@ -41,12 +29,14 @@
     l.record_location.record_key.big_query_key.table_reference.table_id AS table_id,
     l.record_location.field_id.name AS field_name,
     o.info_type.name AS info_type,
-    o.likelihood
+    o.likelihood,
+    COUNT(1) AS findings
     FROM `${project}.${dataset}.${results_table}` o
     , UNNEST(location.content_locations) l
 
-    -- job_name filter is not pushed when we use it in the outer query
+        -- job_name filter is not pushed when we use it in the outer query
     WHERE job_name  = '${param_lookup_key}'
+    GROUP BY 1,2,3,4,5,6,7
 
 
     )
@@ -64,25 +54,12 @@
         -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
         REGEXP_REPLACE(field_name, r"(\[\d+\]\.)", '.') AS field_name,
         info_type,
-        likelihood
+        likelihood,
+        findings
     FROM dlp_results_core
 
-
-            -- test one field, one likelihood
-    # SELECT 'field1' AS field_name, 'EMAIL_ADDRESS' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec  UNION ALL
-    # SELECT 'field1' AS field_name, 'PERSON_NAME' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # -- test one field, diff likelihood
-    # SELECT 'field2' AS field_name, 'EMAIL_ADDRESS' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # SELECT 'field2' AS field_name, 'PERSON_NAME' AS info_type, 'VERY_LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # -- test one field
-    # SELECT 'field3' AS field_name, 'EMAIL_ADDRESS' AS info_type, 'POSSIBLE' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # -- test one field, one likelyhood, different count of findings
-    # SELECT 'field4' AS field_name, 'STREET_ADDRESS' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # SELECT 'field4' AS field_name, 'STREET_ADDRESS' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec UNION ALL
-    # SELECT 'field4' AS field_name, 'PERSON_NAME' AS info_type, 'LIKELY' AS likelihood, 'p1' AS project_id, 'ds1' AS dataset_id, 'p1.ds1.t1' AS table_spec
-
-
     )
+
     , info_type_scores AS
         (
         SELECT
@@ -93,30 +70,13 @@
         o.field_name,
         o.info_type,
         o.likelihood,
+        o.findings,
         lh.likelihood_rank,
-        COUNT(1) findings,
         # Calculate a score for each field/info_type/likelihood finding
-        lh.likelihood_rank * COUNT(1) AS info_type_weight
+        lh.likelihood_rank * o.findings AS info_type_weight
         FROM `dlp_results` o
         INNER JOIN likelihood lh ON o.likelihood = lh.likelihood
-        GROUP BY 1,2,3,4,5,6,7,8
-
-        -- -- Unit tests
-        -- -- Normal case
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'first_name' AS field_name, 'PERSON_NAME' AS info_type, 5 AS likelihood_rank, 10 AS findings, 5*10 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-        -- UNION ALL
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'first_name' AS field_name, 'EMAIL_ADDRESS' AS info_type, 2 AS likelihood_rank, 1 AS findings, 2*1 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-        -- UNION ALL
-        -- -- Merging case
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'email' AS field_name, 'EMAIL_ADDRESS' AS info_type, 5 AS likelihood_rank, 10 AS findings, 5*10 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-        -- UNION ALL
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'email' AS field_name, 'EMAIL_ADDRESS' AS info_type, 4 AS likelihood_rank, 2 AS findings, 4*2 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-        -- UNION ALL
-        -- -- Tie score case
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'street' AS field_name, 'STREET_ADDRESS' AS info_type, 3 AS likelihood_rank, 4 AS findings, 3*4 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-        -- UNION ALL
-        -- SELECT 'p1.ds1.t1' AS table_spec, 'street' AS field_name, 'PERSON_NAME' AS info_type, 2 AS likelihood_rank, 6 AS findings, 2*6 AS info_type_weight, 'p1' AS project_id, 'ds1' AS dataset_id
-
+        GROUP BY 1,2,3,4,5,6,7,8,9
         )
         , merge_same_info_type_scores AS
         (
@@ -138,6 +98,7 @@
             FROM  info_type_scores o
             GROUP BY 1,2,3,4,5,6
         )
+
         , fields_with_mixed_pii AS
         (
 
@@ -186,6 +147,18 @@
         )
 
         SELECT table_spec, field_name, info_type, policy_tag, classification FROM with_policy_tags WHERE info_type IS NOT NULL
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

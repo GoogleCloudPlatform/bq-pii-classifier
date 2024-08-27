@@ -64,43 +64,48 @@ class DatastoreCache:
         self.datastore_client.put(entity)
 
 
-def get_column_policy_tags(project_id, dataset_id, table_id):
-    """Fetches policy tags associated with BigQuery table columns."""
+def get_columns_and_policy_tags(project_id, dataset_id, table_id):
+    """Fetches all columns and their associated policy tags associated for a BigQuery table columns."""
     bq_client = bigquery.Client(project=project_id)
     table_ref = bq_client.dataset(dataset_id).table(table_id)
 
     try:
         table = bq_client.get_table(table_ref)
     except Exception as e:
-        return None, str(e)
+        # return no results and the exception
+        return None, e
 
-    policy_tags = {}
+    columns_and_policy_tags = {}
     for field in table.schema:
-        if field.policy_tags:
-            for tag in field.policy_tags.names:
-                policy_tags[field.name] = tag
-    return policy_tags, None
+        policy_tag = None
+        if field.policy_tags and len(field.policy_tags > 0):
+            # one field can have max one policy tag
+            policy_tag = field.policy_tags.get(0)
+        columns_and_policy_tags[field.name] = policy_tag
+    # return the results and no exception
+    return columns_and_policy_tags, None
 
 
 def get_policy_tag_display_names(policy_tags, cache):
     """Looks up the display names of policy tags using Data Catalog."""
     datacatalog_client = datacatalog_v1.PolicyTagManagerClient()
-    tag_names = list(policy_tags.values())
+    tag_ids = list(policy_tags.values())
 
     display_names = {}
-    for name in tag_names:
-        try:
-            # 1) get from datastore
-            cached_policy_tag_display_name = cache.get(name)
-            if cached_policy_tag_display_name:
-                display_names[name] = cached_policy_tag_display_name
-            else:
-                # API call
-                tag = datacatalog_client.get_policy_tag(name=name)
-                display_names[name] = tag.display_name
-                cache.add(name, tag.display_name)
-        except Exception as e:
-            display_names[name] = f'Failed to retrieve policy tag display name for {name}. Exception: {e}'
+    for tag_id in tag_ids:
+        if tag_id:
+            try:
+                # 1) get from datastore
+                cached_policy_tag_display_name = cache.get(tag_id)
+                if cached_policy_tag_display_name:
+                    display_names[tag_id] = cached_policy_tag_display_name
+                else:
+                    # API call
+                    tag = datacatalog_client.get_policy_tag(name=tag_id)
+                    display_names[tag_id] = tag.display_name
+                    cache.add(tag_id, tag.display_name)
+            except Exception as e:
+                display_names[tag_id] = f'Failed to retrieve policy tag display name for {tag_id}. Exception: {e}'
 
     return display_names
 
@@ -117,7 +122,9 @@ def combine_policy_tags(policy_tags_ids, policy_tags_names):
     """
     result = []
     for column, policy_tag_id in policy_tags_ids.items():
-        policy_tag_name = policy_tags_names.get(policy_tag_id, "Not Found")
+        policy_tag_name = None
+        if policy_tag_id:
+            policy_tag_name = policy_tags_names.get(policy_tag_id, "Not Found. This should not happen.")
         result.append({
             "column": column,
             "policy_tag_id": policy_tag_id,
@@ -164,14 +171,16 @@ def process_request(request):
             table_dataset = table_spec_splits[1]
             table_name = table_spec_splits[2]
 
-            policy_tags_ids, error = get_column_policy_tags(table_project, table_dataset, table_name)
+            cols_and_policy_tags, error = get_columns_and_policy_tags(table_project, table_dataset, table_name)
             if not error:
-                policy_tags_names = get_policy_tag_display_names(policy_tags_ids, cache)
-                final_result_list = combine_policy_tags(policy_tags_ids, policy_tags_names)
-                call_result = {"columns_and_policy_tags": final_result_list, "error": None}
+                policy_tags_names = get_policy_tag_display_names(cols_and_policy_tags, cache)
+                final_result_list = combine_policy_tags(cols_and_policy_tags, policy_tags_names)
+                logging.info(f"No error path; table {table_spec}; cols_and_policy_tags len {len(cols_and_policy_tags)}; policy_tags_names len {len(policy_tags_names)}; final results len {len(final_result_list)}")
+                call_result = {"columns_and_policy_tags": final_result_list}
                 replies.append(call_result)
             else:
-                call_result = {"columns_and_policy_tags": [], "error": error}
+                logging.error(f"Failed to get schema for table {table_spec}. Error: {error}")
+                call_result = {"columns_and_policy_tags": [], "error": str(error)}
                 replies.append(call_result)
 
         return_json = jsonify({"replies": replies})
