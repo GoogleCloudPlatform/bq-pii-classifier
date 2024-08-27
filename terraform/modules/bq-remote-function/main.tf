@@ -29,6 +29,20 @@ resource "google_project_service" "datastore_api" {
   disable_on_destroy = false                     # Prevent accidental disabling during Terraform destroy
 }
 
+resource "google_firestore_database" "datastore_mode_database" {
+  project                           = var.project
+  name                              = var.datastore_database_name
+  location_id                       = var.compute_region
+  type                              = "DATASTORE_MODE"
+  concurrency_mode                  = "OPTIMISTIC"
+  app_engine_integration_mode       = "DISABLED"
+  point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_DISABLED"
+  delete_protection_state           = "DELETE_PROTECTION_DISABLED"
+  deletion_policy                   = "DELETE"
+
+  depends_on = [google_project_service.datastore_api]
+}
+
 ##### BigQuery Connection
 
 resource "google_bigquery_connection" "connection" {
@@ -113,7 +127,9 @@ resource "google_cloudfunctions2_function" "function" {
     max_instance_request_concurrency = var.cf_max_instance_request_concurrency
     available_cpu                    = var.cf_available_cpu
     environment_variables            = merge(var.env_variables,
-      {name = "TERRAFORM_RUN_ID", value = random_id.run_id.hex}) # to force TF to deploy the function on each run
+      {name = "TERRAFORM_RUN_ID", value = random_id.run_id.hex},
+      {name = "DATASTORE_CACHE_DB_NAME", value = google_firestore_database.datastore_mode_database.name}
+    ) # to force TF to deploy the function on each run
     ingress_settings                 = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision   = true
     service_account_email            = google_service_account.sa_function.email

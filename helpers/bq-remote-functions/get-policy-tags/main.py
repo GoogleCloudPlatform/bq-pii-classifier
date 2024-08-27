@@ -13,7 +13,7 @@
 # * See the License for the specific language governing permissions and
 # * limitations under the License.
 # */
-
+import os
 from flask import jsonify
 from google.cloud import logging
 import functions_framework
@@ -28,8 +28,8 @@ import google.cloud.logging
 
 
 class DatastoreCache:
-    def __init__(self, kind='PolicyTagsCache'):
-        self.datastore_client = datastore.Client()
+    def __init__(self, kind='PolicyTagsCache', database_name='(default)'):
+        self.datastore_client = datastore.Client(database=database_name)
         self.kind = kind
 
     def get(self, key):
@@ -129,6 +129,8 @@ def combine_policy_tags(policy_tags_ids, policy_tags_names):
 @functions_framework.http
 def process_request(request):
 
+    datastore_cache_db_name = os.environ.get("DATASTORE_CACHE_DB_NAME")
+
     # Instantiates a client
     logging_client = google.cloud.logging.Client()
 
@@ -149,7 +151,7 @@ def process_request(request):
         logging.info(f"Received {calls_count} calls from BQ.")
 
         # create a cache for policy tags display names
-        cache = DatastoreCache()
+        cache = DatastoreCache(database_name=datastore_cache_db_name)
 
         replies = []
         for call in calls:
