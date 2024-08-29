@@ -77,12 +77,13 @@ def get_columns_and_policy_tags(project_id, dataset_id, table_id):
 
     columns_and_policy_tags = {}
     for field in table.schema:
-        policy_tag = None
         if field.policy_tags:
             # field.policy_tags.names is an iterator, but it will contain max one policy tag
             for tag in field.policy_tags.names:
                 columns_and_policy_tags[field.name] = tag
-        columns_and_policy_tags[field.name] = policy_tag
+        else:
+            # if no policy tag attached, still include the column in the final output
+            columns_and_policy_tags[field.name] = None
     # return the results and no exception
     return columns_and_policy_tags, None
 

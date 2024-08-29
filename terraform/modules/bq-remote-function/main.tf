@@ -17,7 +17,7 @@
 resource "random_id" "run_id" {
   byte_length = 8
   keepers = {
-    # This ensures a new ID is generated every time
+    # this will ensure the function gets redeployed only when the code changes
     timestamp = timestamp()
   }
 }
