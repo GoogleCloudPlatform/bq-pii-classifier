@@ -16,39 +16,34 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.inspector;
 
+import java.util.List;
+
 public class InspectorConfig {
 
-
     private String projectId;
-    private String regionId;
     private String bqResultsDataset;
     private String bqResultsTable;
     private String dlpNotificationTopic;
     private String minLikelihood;
     private Integer maxFindings;
     private Integer samplingMethod;
-    private String dlpInspectionTemplateId;
+    private List<String> dlpInspectionTemplatesIds;
     private String tableScanLimitsJsonConfig;
 
-    public InspectorConfig(String projectId, String regionId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, String dlpInspectionTemplateId, String tableScanLimitsJsonConfig) {
+    public InspectorConfig(String projectId, String bqResultsDataset, String bqResultsTable, String dlpNotificationTopic, String minLikelihood, Integer maxFindings, Integer samplingMethod, List<String> dlpInspectionTemplatesIds, String tableScanLimitsJsonConfig) {
         this.projectId = projectId;
-        this.regionId = regionId;
         this.bqResultsDataset = bqResultsDataset;
         this.bqResultsTable = bqResultsTable;
         this.dlpNotificationTopic = dlpNotificationTopic;
         this.minLikelihood = minLikelihood;
         this.maxFindings = maxFindings;
         this.samplingMethod = samplingMethod;
-        this.dlpInspectionTemplateId = dlpInspectionTemplateId;
+        this.dlpInspectionTemplatesIds = dlpInspectionTemplatesIds;
         this.tableScanLimitsJsonConfig = tableScanLimitsJsonConfig;
     }
 
     public String getProjectId() {
         return projectId;
-    }
-
-    public String getRegionId() {
-        return regionId;
     }
 
     public String getBqResultsDataset() {
@@ -75,8 +70,8 @@ public class InspectorConfig {
         return samplingMethod;
     }
 
-    public String getDlpInspectionTemplateId() {
-        return dlpInspectionTemplateId;
+    public List<String> getDlpInspectionTemplatesIds() {
+        return dlpInspectionTemplatesIds;
     }
 
     public String getTableScanLimitsJsonConfig() {
@@ -87,14 +82,13 @@ public class InspectorConfig {
     public String toString() {
         return "InspectorConfig{" +
                 "projectId='" + projectId + '\'' +
-                ", regionId='" + regionId + '\'' +
                 ", bqResultsDataset='" + bqResultsDataset + '\'' +
                 ", bqResultsTable='" + bqResultsTable + '\'' +
                 ", dlpNotificationTopic='" + dlpNotificationTopic + '\'' +
                 ", minLikelihood='" + minLikelihood + '\'' +
                 ", maxFindings='" + maxFindings + '\'' +
                 ", samplingMethod='" + samplingMethod + '\'' +
-                ", dlpInspectionTemplateId='" + dlpInspectionTemplateId + '\'' +
+                ", dlpInspectionTemplatesIds='" + dlpInspectionTemplatesIds + '\'' +
                 ", tableScanLimitsJsonConfig='" + tableScanLimitsJsonConfig + '\'' +
                 '}';
     }

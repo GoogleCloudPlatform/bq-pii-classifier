@@ -27,13 +27,11 @@ module "inspection_cloud_scheduler" {
 
   target_uri = module.pubsub-inspection-dispatcher.topic-id
 
-  tables_include_list = var.tables_include_list
   datasets_include_list = var.datasets_include_list
   projects_include_list = var.projects_include_list
   datasets_exclude_list = var.datasets_exclude_list
   tables_exclude_list = var.tables_exclude_list
   cron_expression = var.cron_expression
-
 }
 
 module "cloud-run-inspection-dispatcher" {
@@ -64,12 +62,20 @@ module "cloud-run-inspection-dispatcher" {
       value = var.data_region,
     },
     {
+      name = "SOURCE_DATA_REGIONS",
+      value = jsonencode(var.source_data_regions),
+    },
+    {
       name = "PROJECT_ID",
       value = var.project,
     },
     {
       name = "GCS_FLAGS_BUCKET",
       value = var.gcs_flags_bucket_name,
+    },
+    {
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
+      value = jsonencode(var.dlp_inspection_templates_ids),
     },
     ]
 }
@@ -86,16 +92,12 @@ module "cloud-run-inspector" {
 
   environment_variables =  [
     {
-      name = "REGION_ID",
-      value = local.dlp_region,
-    },
-    {
       name = "PROJECT_ID",
       value = var.project,
     },
     {
-      name = "DLP_INSPECTION_TEMPLATE_ID",
-      value = var.dlp_inspection_template_id,
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
+      value = jsonencode(var.dlp_inspection_templates_ids),
     },
     {
       name = "MIN_LIKELIHOOD",

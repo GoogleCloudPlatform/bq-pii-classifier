@@ -17,11 +17,18 @@ variable "project" {
 }
 
 variable "compute_region" {
+  description = "GCP region to deploy compute resources (e.g. Cloud Run)"
   type = string
 }
 
 variable "data_region" {
+  description = "GCP region to store application data (e.g. DLP results, logs, etc)"
   type = string
+}
+
+variable "source_data_regions" {
+  description = "Supported GCP regions for DLP inspection and tagging. These are the regions to run DLP jobs in and deploy policy tags taxonomies."
+  type = set(string)
 }
 
 variable "bigquery_dataset_name" {
@@ -81,6 +88,11 @@ variable "sa_tagger_tasks" {
   default = "tagger-tasks"
 }
 
+variable "sa_bq_remote_func_get_policy_tags" {
+  type = string
+  default = "sa-func-get-policy-tags"
+}
+
 variable "tagger_role" {
   type = string
   default = "tagger_role"
@@ -119,6 +131,11 @@ variable "inspector_service_name" {
 variable "tagger_service_name" {
   type = string
   default = "s3-tagger"
+}
+
+variable "bq_remote_func_get_policy_tags_name" {
+  type = string
+  default = "get_table_policy_tags"
 }
 
 
@@ -187,9 +204,6 @@ variable "inspector_service_image" {
 # DLP scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
 # format: project.dataset.table1, project.dataset.table2, etc
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "datasets_include_list" {
   type = list(string)
 }
@@ -207,7 +221,7 @@ variable "tables_exclude_list" {
 # and mapped in BQ configuration with the generated policy_tag_id. Each policy tag will be created
 # under a parent node based on the 'classification' field
 # info_type_category: "standard" or "custom". Standard types will be added to the DLP inspection template automatically.
-# Custom types must be defined manuanly in th template
+# Custom types must be defined manually in th dlp inspection template
 # INFO_TYPEs configured in the DLP inspection job MUST be mapped here. Otherwise, mapping to policy tag ids will fail
 variable "classification_taxonomy" {
   type = list(object({
@@ -216,6 +230,9 @@ variable "classification_taxonomy" {
     # (standard | custom)
     policy_tag = string
     classification = string
+    labels = list(object({key = string, value = string}))
+    inspection_template_number = number
+    taxonomy_number = number
   }))
 }
 //Example:
@@ -224,21 +241,46 @@ variable "classification_taxonomy" {
 //    info_type = "EMAIL_ADDRESS",
 //    info_type_category = "standard",
 //    policy_tag = "email",
-//    classification = "P1"
+//    classification = "P1",
+//    labels   = [{ key = "contains_email_pii", value = "true"}],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  },
 //  {
 //    info_type = "PHONE_NUMBER",
 //    info_type_category = "standard",
 //    policy_tag = "phone"
-//    classification = "P2"
+//    classification = "P2",
+//    labels   = [{ key = "contains_phones_pii", value = "true"}],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  },
 //  {
 //    info_type = "MIXED",
 //    info_type_category = "other",
 //    policy_tag = "mixed_pii"
-//    classification = "P1"
+//    classification = "P1",
+//    labels = [],
+//    inspection_template_number = 1,
+//    taxonomy_number = 1
 //  }
 //  ]
+
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name = string
+    likelihood = string
+    dictionary =list(string)
+  }))
+}
+
+variable "custom_info_types_regex" {
+  type = list(object({
+    name = string
+    likelihood = string
+    regex = string
+  }))
+}
 
 variable "domain_mapping" {
   type = list(object({
@@ -313,10 +355,16 @@ variable "terraform_service_account" {
   description = "service account used by terraform to deploy to GCP"
 }
 
-variable "is_dry_run" {
+variable "is_dry_run_tags" {
   type = string
   default = "False"
   description = "Applying Policy Tags in the Tagger function (False) or just logging actions (True)"
+}
+
+variable "is_dry_run_labels" {
+  type = string
+  default = "False"
+  description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 
 variable "tagging_cron_expression" {
@@ -341,9 +389,9 @@ variable "table_scan_limits_json_config" {
   default = {
     limitType: "NUMBER_OF_ROWS",
     limits: {
-      "10000":"10",
-      "100000":"100",
-      "1000000":"1000"
+      "10000":"100",
+      "100000":"1000",
+      "1000000":"10000"
     }
   }
 }
@@ -354,7 +402,7 @@ variable "is_auto_dlp_mode" {
 }
 
 // In case of False:
-//  The solution will report the infotype of a filed as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelyhood and number of findings)
+//  The solution will report the infotype of a field as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelyhood and number of findings)
 // In case of True:
 //  The solution will compute a score for each field that DLP finds multiple infotypes for (based on signals like likelyhood and number of findings)
 //  , if the scores are still a tie, the solution will fallback to "MIXED" infoType

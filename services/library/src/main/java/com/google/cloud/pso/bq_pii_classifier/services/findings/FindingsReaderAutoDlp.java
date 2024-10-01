@@ -4,6 +4,7 @@ import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PolicyTagInfo;
 import com.google.cloud.pso.bq_pii_classifier.entities.TablePolicyTags;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
@@ -74,7 +75,7 @@ public class FindingsReaderAutoDlp implements FindingsReader {
         TableResult result = bqService.waitAndGetJobResults(queryJob);
 
         // Construct a mapping between field names and DLP infotypes
-        Map<String, String> fieldsToPolicyTagMap = new HashMap<>();
+        Map<String, PolicyTagInfo> fieldsToPolicyTagMap = new HashMap<>();
         for (FieldValueList row : result.iterateAll()) {
 
             if (row.get("field_name").isNull()) {
@@ -88,17 +89,25 @@ public class FindingsReaderAutoDlp implements FindingsReader {
                                 "getFieldsToPolicyTagsMap query returned rows with null info_type for column '%s'",
                                 column_name));
             }
-            String info_type = row.get("info_type").getStringValue();
+            String infoType = row.get("info_type").getStringValue();
 
             if (row.get("policy_tag").isNull()) {
                 throw new NonRetryableApplicationException(
                         String.format(
                                 "getFieldsToPolicyTagsMap query returned rows with null policy_tag for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
-                                column_name, info_type));
+                                column_name, infoType));
             }
-            String policy_tag = row.get("policy_tag").getStringValue();
+            String policyTag = row.get("policy_tag").getStringValue();
 
-            fieldsToPolicyTagMap.put(column_name, policy_tag);
+            if (row.get("classification").isNull()) {
+                throw new NonRetryableApplicationException(
+                        String.format(
+                                "getFieldsToPolicyTagsMap query returned rows with null classification for column '%s' of info_type '%s'. Checkout the classification taxonomy configuration and the DLP inspection template. All InfoTypes defined in the inspection template must have corresponding entries in the classification taxonomies.",
+                                column_name, infoType));
+            }
+            String classification = row.get("classification").getStringValue();
+
+            fieldsToPolicyTagMap.put(column_name, new PolicyTagInfo(infoType, policyTag, classification));
         }
 
         if (fieldsToPolicyTagMap.isEmpty())

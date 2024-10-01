@@ -78,6 +78,23 @@ resource "google_bigquery_table" "logging_view_tag_history" {
   }
 }
 
+resource "google_bigquery_table" "logging_view_label_history" {
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "v_log_label_history"
+
+  deletion_protection = false
+
+  view {
+    use_legacy_sql = false
+    query = templatefile("modules/bigquery/views/v_log_label_history.tpl",
+      {
+        project = var.project
+        dataset = var.dataset
+        logging_table = google_bigquery_table.logging_table.table_id
+      }
+    )
+  }
+}
 
 resource "google_bigquery_table" "logging_view_steps" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
@@ -129,6 +146,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
       dataset = var.dataset
       v_service_calls = google_bigquery_table.view_service_calls.table_id
       logging_table = google_bigquery_table.logging_table.table_id
+      inspection_templates_count = var.inspection_templates_count
     }
     )
   }
@@ -166,7 +184,8 @@ resource "google_bigquery_table" "view_run_summary" {
       project = var.project
       dataset = var.dataset
       v_service_calls = google_bigquery_table.view_service_calls.table_id
-      v_broken_steps = google_bigquery_table.logging_view_broken_steps.table_id
+      v_errors_non_retryable = google_bigquery_table.view_errors_non_retryable.table_id
+      inspection_templates_count = var.inspection_templates_count
     }
     )
   }
@@ -185,6 +204,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
       project = var.project
       dataset = var.dataset
       v_run_summary = google_bigquery_table.view_run_summary.table_id
+      logging_table = google_bigquery_table.logging_table.table_id
     }
     )
   }
@@ -248,7 +268,7 @@ resource "google_bigquery_table" "view_tracking_id_map" {
 
 locals {
   infotypes_policytags_map_select_statements = [for entry in var.created_policy_tags:
-  "SELECT '${lookup(entry,"domain","NA")}' AS domain, '${lookup(entry,"info_type","NA")}' AS info_type, '${lookup(entry,"policy_tag_id","NA")}' AS policy_tag"
+  "SELECT '${lookup(entry,"region")}' AS region, '${lookup(entry,"domain")}' AS domain, '${lookup(entry,"classification")}' AS classification, '${lookup(entry,"info_type")}' AS info_type, '${lookup(entry,"policy_tag_id")}' AS policy_tag"
   ]
 
   project_domain_map_select_statements = [for entry in var.projects_domains_mapping:

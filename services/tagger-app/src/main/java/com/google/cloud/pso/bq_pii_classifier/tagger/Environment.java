@@ -15,21 +15,20 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.tagger;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Environment {
 
-
-
     public TaggerConfig toConfig (){
         return new TaggerConfig(
                 getProjectId(),
-                new HashSet<>(
-                        Utils.tokenize(getTaxonomies(), ",", true)),
+                new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
                 getDlpDataset(),
                 getDlpTableStandard(),
                 getDlpTableAuto(),
@@ -38,7 +37,9 @@ public class Environment {
                 getConfigViewProjectDomainMap(),
                 getPromoteMixedTypes(),
                 getIsAutoDlpMode(),
-                getIsDryRun()
+                getIsDryRunTags(),
+                getIsDryRunLabels(),
+                getInfoTypeMap()
         );
     }
 
@@ -50,8 +51,12 @@ public class Environment {
         return Utils.getConfigFromEnv("TAXONOMIES", true);
     }
 
-    public Boolean getIsDryRun(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN", true));
+    public Boolean getIsDryRunTags(){
+        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
+    }
+
+    public Boolean getIsDryRunLabels(){
+        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
     }
 
     public String getGcsFlagsBucket(){
@@ -89,5 +94,10 @@ public class Environment {
     public Boolean getIsAutoDlpMode(){
         return Boolean.valueOf(Utils.getConfigFromEnv("IS_AUTO_DLP_MODE", true));
     }
+
+    public Map<String, InfoTypeInfo> getInfoTypeMap(){
+        return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
+    }
+
 
 }

@@ -46,4 +46,14 @@ do
      --member="serviceAccount:${SA_DLP_EMAIL}" \
       --role="roles/bigquery.dataViewer"
 
+  # Cloud Function remote_get_table_policy_tags needs to read tables policy tags (metadata)
+    gcloud projects add-iam-policy-binding "${project}" \
+       --member="serviceAccount:${SA_BQ_REMOTE_FUNC_GET_POLICY_TAGS}" \
+        --role="roles/bigquery.metadataViewer"
+
+  # Cloud Function remote_get_table_policy_tags needs to read taxonomy data (metadata)
+      gcloud projects add-iam-policy-binding "${project}" \
+         --member="serviceAccount:${SA_BQ_REMOTE_FUNC_GET_POLICY_TAGS}" \
+          --role="roles/datacatalog.viewer"
+
 done

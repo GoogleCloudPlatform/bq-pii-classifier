@@ -16,13 +16,17 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+
+import java.util.Map;
 import java.util.Set;
 
 public class TaggerConfig {
 
     private String projectId;
     private Set<String> appOwnedTaxonomies;
-    private Boolean isDryRun;
+    private Boolean isDryRunTags;
+    private Boolean isDryRunLabels;
     private String dlpDataset;
     private String dlpTableStandard;
     private String dlpTableAuto;
@@ -31,6 +35,8 @@ public class TaggerConfig {
     private String configViewProjectDomainMap;
     private Boolean isPromoteMixedTypes;
     private Boolean isAutoDlpMode;
+
+    private Map<String, InfoTypeInfo> infoTypeMap;
 
     public TaggerConfig(String projectId,
                         Set<String> appOwnedTaxonomies,
@@ -42,7 +48,10 @@ public class TaggerConfig {
                         String configViewProjectDomainMap,
                         Boolean isPromoteMixedTypes,
                         Boolean isAutoDlpMode,
-                        Boolean isDryRun) {
+                        Boolean isDryRunTags,
+                        Boolean isDryRunLabels,
+                        Map<String, InfoTypeInfo> infoTypeMap
+                        ) {
         this.projectId = projectId;
         this.appOwnedTaxonomies = appOwnedTaxonomies;
         this.dlpDataset = dlpDataset;
@@ -53,15 +62,21 @@ public class TaggerConfig {
         this.configViewProjectDomainMap = configViewProjectDomainMap;
         this.isPromoteMixedTypes = isPromoteMixedTypes;
         this.isAutoDlpMode = isAutoDlpMode;
-        this.isDryRun = isDryRun;
+        this.isDryRunTags = isDryRunTags;
+        this.isDryRunLabels = isDryRunLabels;
+        this.infoTypeMap = infoTypeMap;
     }
 
     public  Set<String> getAppOwnedTaxonomies() {
         return appOwnedTaxonomies;
     }
 
-    public Boolean getDryRun() {
-        return isDryRun;
+    public Boolean isDryRunTags() {
+        return isDryRunTags;
+    }
+
+    public Boolean isDryRunLabels() {
+        return isDryRunLabels;
     }
 
     public String getProjectId() {
@@ -100,12 +115,17 @@ public class TaggerConfig {
         return isAutoDlpMode;
     }
 
+    public Map<String, InfoTypeInfo> getInfoTypeMap() {
+        return infoTypeMap;
+    }
+
     @Override
     public String toString() {
         return "TaggerConfig{" +
                 "projectId='" + projectId + '\'' +
                 ", appOwnedTaxonomies=" + appOwnedTaxonomies +
-                ", isDryRun=" + isDryRun +
+                ", isDryRunTags=" + isDryRunTags +
+                ", isDryRunLabels=" + isDryRunLabels +
                 ", dlpDataset='" + dlpDataset + '\'' +
                 ", dlpTableStandard='" + dlpTableStandard + '\'' +
                 ", dlpTableAuto='" + dlpTableAuto + '\'' +
@@ -114,6 +134,7 @@ public class TaggerConfig {
                 ", configViewProjectDomainMap='" + configViewProjectDomainMap + '\'' +
                 ", isPromoteMixedTypes=" + isPromoteMixedTypes +
                 ", isAutoDlpMode=" + isAutoDlpMode +
+                ", infoTypeMap=" + infoTypeMap +
                 '}';
     }
 }

@@ -138,11 +138,6 @@ locals {
       lookup(parent_tag, "display_name", "NA"),
       ["IAM_MEMBERS_LOOKUP_FAILED"]
       )
-//      iam_members = lookup(var.iam_mapping,
-//      "${lookup(parent_tag, "domain", "NA")}_${lookup(parent_tag, "display_name", "NA")}",
-//      ["IAM_MEMBERS_LOOKUP_FAILED"]
-//      )
-
     }]
 
   // flatten the iam_members list inside of parent_tags_with_members_list

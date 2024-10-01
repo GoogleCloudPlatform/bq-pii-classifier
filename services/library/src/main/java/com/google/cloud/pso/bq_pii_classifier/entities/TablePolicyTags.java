@@ -5,10 +5,10 @@ import java.util.Map;
 public class TablePolicyTags {
 
     private TableSpec tableSpec;
-    private Map<String, String> fieldsPolicyTags;
+    private Map<String, PolicyTagInfo> fieldsPolicyTags;
 
 
-    public TablePolicyTags(TableSpec tableSpec, Map<String, String> fieldsPolicyTags) {
+    public TablePolicyTags(TableSpec tableSpec, Map<String, PolicyTagInfo> fieldsPolicyTags) {
         this.tableSpec = tableSpec;
         this.fieldsPolicyTags = fieldsPolicyTags;
     }
@@ -17,7 +17,7 @@ public class TablePolicyTags {
         return tableSpec;
     }
 
-    public Map<String, String> getFieldsPolicyTags() {
+    public Map<String, PolicyTagInfo> getFieldsPolicyTags() {
         return fieldsPolicyTags;
     }
 

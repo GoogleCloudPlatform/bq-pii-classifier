@@ -23,8 +23,10 @@ variable "logging_sink_sa" {
 variable "created_policy_tags" {
   type = list(object({
     domain = string,
+    classification = string,
     info_type = string,
     policy_tag_id = string
+    region = string
   }))
 }
 
@@ -42,3 +44,5 @@ variable "dataset_domains_mapping" {
     domain = string
   }))
 }
+
+variable "inspection_templates_count" {type = number}
