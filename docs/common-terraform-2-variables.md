@@ -83,6 +83,59 @@ PS: If no custom InfoTypes are required use empty lists for the variables (e.g. 
 
 ### Configure Data Classification Taxonomy
 
+```
+
+classification_taxonomy = [
+  {
+    info_type = "EMAIL_ADDRESS",
+    info_type_category = "Standard",
+    policy_tag = "email",
+    classification = "P1",
+    labels   = [{ key = "contains_email_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "PHONE_NUMBER",
+    info_type_category = "Standard",
+    policy_tag = "phone"
+    classification = "P2",
+    labels   = [{ key = "contains_phones_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "CUSTOM_PAYMENT_METHOD",
+    info_type_category = "Custom Dictionary",
+    policy_tag = "payment_method"
+    classification = "P1",
+    labels   = [{ key = "contains_custom_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "CUSTOM_EMAIL",
+    info_type_category = "Custom Regex",
+    policy_tag = "custom_email"
+    classification = "P2",
+    labels   = [{ key = "contains_custom_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    info_type = "MIXED",
+    info_type_category = "Custom",
+    policy_tag = "mixed_pii"
+    classification = "P1",
+    labels   = [{ key = "contains_mixed_pii", value = "true"}]
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+
+  .. etc
+  ]
+```
+
 A mapping between DLP InfoTypes (Standard and Custom), policy tags and classifications.  
 Classifications: are parent nodes in the taxonomy to group children nodes.
 
@@ -116,58 +169,7 @@ template. For that, `inspection_template_number` and `taxonomy_number` are used:
 * `taxonomy_number` is a value starting from `1`. It means that this particular Policy Tag will be created in the Nth Cloud Data Catalog Taxonomy.
    This is needed of more than 100 nodes are to be created, otherwise use `1`. For a better visibility, try to locate all nodes
    under one parent (i.e. classification) in the same taxonomy.
-```
 
-classification_taxonomy = [
-  {
-    info_type = "EMAIL_ADDRESS",
-    info_type_category = "Standard",
-    policy_tag = "email",
-    classification = "P1",
-    labels   = [{ key = "contains_email_pii", value = "true"}],
-    inspection_template_number = 1,
-    taxonomy_number            = 1
-  },
-  {
-    info_type = "PHONE_NUMBER",
-    info_type_category = Standard",
-    policy_tag = "phone"
-    classification = "P2",
-    labels   = [{ key = "contains_phones_pii", value = "true"}],
-    inspection_template_number = 1,
-    taxonomy_number            = 1
-  },
-  {
-    info_type = "CUSTOM_PAYMENT_METHOD",
-    info_type_category = Custom Dictionary",
-    policy_tag = "payment_method"
-    classification = "P1",
-    labels   = [],
-    inspection_template_number = 1,
-    taxonomy_number            = 1
-  },
-  {
-    info_type = "CUSTOM_EMAIL",
-    info_type_category = Custom Regex",
-    policy_tag = "custom_email"
-    classification = "P2",
-    labels   = [],
-    inspection_template_number = 1,
-    taxonomy_number            = 1
-  },
-  {
-    info_type = "MIXED",
-    info_type_category = "Custom",
-    policy_tag = "mixed_pii"
-    classification = "P1",
-    labels   = [{ key = "contains_mixed_pii", value = "true"}]
-    inspection_template_number = 1,
-    taxonomy_number            = 1
-  },
-
-  .. etc
-  ]
-```
 
 ### Configure Domain Mapping
 
@@ -213,7 +215,8 @@ while the second level of dicts are in the format of "<classification> = [list o
 are the ones configured in `domain_mapping`.  
 
 For users: "user:username@example.com"
-For groups: "group:groupname@example.com"  
+For groups: "group:groupname@example.com"
+For service accounts: "serviceAccount:saname@example.com"
 
 For example:  
 
@@ -255,39 +258,13 @@ Also, by setting `is_dry_run_labels = "True"` the solution will not add the conf
 `classification_taxonomy` to BigQuery tables and will only write log messages that can be monitored via the 
 `v_log_label_history` monitoring view.
 
-
-### Configure DLP Service Account
-
-DLP service account must have a set of permissions on the resources created by the solution.
-
-Steps:
- * Detect the DLP service account in the host project
-     * DLP service account is in the form service-<project number>@dlp-api.iam.gserviceaccount.com
-     * Search in IAM for @dlp-api.iam.gserviceaccount.com (tick the "Include Google-Provided role grants" box)
-     * If this host project never used DLP before, run a sample inspection job for GCP to create a service account
- * Set the `dlp_service_account` variable in the Terraform variables file
-
-```
-dlp_service_account = "service-<project number>@dlp-api.iam.gserviceaccount.com"
-```
-
-PS: project number is different from project id/name. You can find both info on the home page of any project.
-
-### Configure Cloud Scheduler Service Account
-
-We will need to grant the Cloud Scheduler account permissions to use parts of the solution 
-
-```
-cloud_scheduler_account = "service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-```
-
 ### Configure Terraform Service Account
 
 Terraform needs to run with a service account to deploy DLP resources. User accounts are not enough.  
 
-This service account is created in a previous step of the deployment. Use the full email of the created account.
+This service account is created in a previous step of the deployment. Use only the name of the created account.
 ```
-terraform_service_account = "bq-pii-classifier-terraform@<host project>.iam.gserviceaccount.com"
+terraform_service_account = "bq-pii-classifier-terraform"
 ```
 
 

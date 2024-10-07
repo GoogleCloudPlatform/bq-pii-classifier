@@ -15,13 +15,17 @@
 provider "google" {
   project                     = var.project
   region                      = var.compute_region
-  impersonate_service_account = var.terraform_service_account
+  impersonate_service_account = local.terraform_service_account_email
 }
 
 provider "google-beta" {
   project                     = var.project
   region                      = var.compute_region
-  impersonate_service_account = var.terraform_service_account
+  impersonate_service_account = local.terraform_service_account_email
+}
+
+data google_project "gcp_project" {
+  project_id = var.project
 }
 
 locals {
@@ -36,6 +40,20 @@ locals {
     "serviceAccount:${module.inspection-stack[0].sa_inspection_dispatcher_email}",
     "serviceAccount:${module.inspection-stack[0].sa_inspector_email}"
   ]
+
+  tagging_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_service_image}"
+
+  inspection_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.inspection_dispatcher_service_image}"
+
+  inspector_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.inspector_service_image}"
+
+  tagger_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_service_image}"
+
+  dlp_service_account_email =  "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
+
+  cloud_scheduler_account_email = "service-${data.google_project.gcp_project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+
+  terraform_service_account_email = "${var.terraform_service_account}@${var.project}.iam.gserviceaccount.com"
 }
 
 
@@ -51,12 +69,12 @@ module "gcs" {
 module "common-stack" {
   source                                       = "./stacks/common"
   classification_taxonomy                      = var.classification_taxonomy
-  cloud_scheduler_account                      = var.cloud_scheduler_account
+  cloud_scheduler_account                      = local.cloud_scheduler_account_email
   cron_expression                              = var.tagging_cron_expression
   datasets_exclude_list                        = var.datasets_exclude_list
   datasets_include_list                        = var.datasets_include_list
-  dispatcher_service_image                     = var.tagging_dispatcher_service_image
-  dlp_service_account                          = var.dlp_service_account
+  dispatcher_service_image                     = local.tagging_dispatcher_service_image_uri
+  dlp_service_account                          = local.dlp_service_account_email
   domain_mapping                               = var.domain_mapping
   iam_mapping                                  = var.iam_mapping
   is_dry_run_tags                              = var.is_dry_run_tags
@@ -66,7 +84,7 @@ module "common-stack" {
   compute_region                               = var.compute_region
   data_region                                  = var.data_region
   tables_exclude_list                          = var.tables_exclude_list
-  tagger_service_image                         = var.tagger_service_image
+  tagger_service_image                         = local.tagger_service_image_uri
   bigquery_dataset_name                        = var.bigquery_dataset_name
   dispatcher_pubsub_sub                        = var.tagging_dispatcher_pubsub_sub
   dispatcher_pubsub_topic                      = var.tagging_dispatcher_pubsub_topic
@@ -98,6 +116,7 @@ module "common-stack" {
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
   custom_info_types_regex        = var.custom_info_types_regex
   source_data_regions            = var.source_data_regions
+  taxonomy_name_suffix           = var.taxonomy_name_suffix
 }
 
 module "inspection-stack" {
@@ -106,13 +125,13 @@ module "inspection-stack" {
   count  = var.is_auto_dlp_mode ? 0 : 1
 
   bigquery_dataset_name           = module.common-stack.bq_results_dataset
-  cloud_scheduler_account         = var.cloud_scheduler_account
+  cloud_scheduler_account         = local.cloud_scheduler_account_email
   cron_expression                 = var.inspection_cron_expression
   datasets_exclude_list           = var.datasets_exclude_list
   datasets_include_list           = var.datasets_include_list
-  dispatcher_service_image        = var.inspection_dispatcher_service_image
+  dispatcher_service_image        = local.inspection_dispatcher_service_image_uri
   dlp_inspection_templates_ids    = module.common-stack.dlp_inspection_templates_ids
-  inspector_service_image         = var.inspector_service_image
+  inspector_service_image         = local.inspector_service_image_uri
   project                         = var.project
   projects_include_list           = var.projects_include_list
   compute_region                  = var.compute_region

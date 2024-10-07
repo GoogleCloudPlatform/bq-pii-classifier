@@ -6,7 +6,7 @@ Get the latest run_id
 DECLARE last_run_id STRING;
 DECLARE last_run_start_time TIMESTAMP;
 
-SET (last_run_id, last_run_start_time ) = (SELECT AS STRUCT TRIM(MAX(run_id)), TIMESTAMP_MILLIS(CAST(SUBSTR(MAX(run_id), 0, 13) AS INT64)) FROM `bq_security_classifier.v_steps`);
+SET (last_run_id, last_run_start_time ) = (SELECT AS STRUCT TRIM(MAX(run_id)), TIMESTAMP_MILLIS(CAST(SUBSTR(MAX(run_id), 0, 13) AS INT64)) FROM `bq_pii_classifier.v_steps`);
 
 SELECT last_run_id, last_run_start_time;
 ```
@@ -15,13 +15,13 @@ SELECT last_run_id, last_run_start_time;
 
 Monitor counts of complete vs incomplete tables
 ```roomsql
-SELECT * FROM `bq_security_classifier.v_run_summary_counts`
+SELECT * FROM `bq_pii_classifier.v_run_summary_counts`
 WHERE run_id = last_run_id
 ```
 
 List all complete vs incomplete tables
 ```roomsql
-SELECT * FROM `bq_security_classifier.v_run_summary`
+SELECT * FROM `bq_pii_classifier.v_run_summary`
 WHERE run_id = last_run_id
 ```
 
@@ -29,7 +29,7 @@ WHERE run_id = last_run_id
 List column tagging actions across all tables
 
 ```roomsql
-SELECT last_run_start_time , * FROM `bq_security_classifier.v_tagging_actions`
+SELECT last_run_start_time , * FROM `bq_pii_classifier.v_tagging_actions`
 WHERE run_id = last_run_id
 ORDER BY tracker;
 ```
@@ -38,7 +38,7 @@ ORDER BY tracker;
 List computed table-level resource labels accrss all tables 
 
 ```roomsql
-SELECT last_run_start_time , * FROM `bq_security_classifier.v_log_label_history`
+SELECT last_run_start_time , * FROM `bq_pii_classifier.v_log_label_history`
 WHERE run_id = last_run_id
 ORDER BY tracker;
 ```
@@ -49,26 +49,26 @@ ORDER BY tracker;
 Monitor failed runs (per table)
 
 ```roomsql
-SELECT last_run_start_time , * FROM `bq_security_classifier.v_broken_steps` 
+SELECT last_run_start_time , * FROM `bq_pii_classifier.v_broken_steps` 
 WHERE run_id = last_run_id;
 ```
 
 List Non-Retryable errors. Table trackers with Non-Retryable errors implies that these tables will not be tagged in this run. 
 ```roomsql
-SELECT * FROM `bq_security_classifier.v_errors_non_retryable`
+SELECT * FROM `bq_pii_classifier.v_errors_non_retryable`
 WHERE run_id = last_run_id;
 ```
 
 List Retryable errors. These errors are transit errors that are retried by the solution. 
 ```roomsql
-SELECT * FROM `bq_security_classifier.v_errors_retryable`
+SELECT * FROM `bq_pii_classifier.v_errors_retryable`
 WHERE run_id = last_run_id;
 ```
 
 Monitor the number of invocations of each Cloud Run (per table).
 
 ```roomsql
-SELECT * FROM bq_security_classifier.v_service_calls
+SELECT * FROM bq_pii_classifier.v_service_calls
 WHERE run_id = last_run_id
 ORDER BY inspector_starts DESC
 ```
@@ -89,8 +89,8 @@ m.tablespec,
 m.project_id,
 m.dataset_id,
 m.table_id
-FROM `bq_security_classifier.v_run_summary` s
-LEFT JOIN `bq_security_classifier.v_tracking_id_to_table_map` m ON s.tracking_id = m.tracking_id
+FROM `bq_pii_classifier.v_run_summary` s
+LEFT JOIN `bq_pii_classifier.v_tracking_id_to_table_map` m ON s.tracking_id = m.tracking_id
 WHERE s.run_id = '1643760012003-I'
 ```
 
@@ -110,7 +110,7 @@ MIN(timestamp) AS start,
 MAX(timestamp) AS finish,
 TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), SECOND) AS duration_seconds
 
-FROM bq_security_classifier.run_googleapis_com_stdout t
+FROM bq_pii_classifier.run_googleapis_com_stdout t
 WHERE t.jsonPayload.global_app_log = 'TRACKER_LOG'
 AND t.jsonPayload.function_lifecycle_event IN ("START", "END")
 GROUP BY 1,2,3
@@ -137,7 +137,7 @@ WITH tables AS (
     jsonPayload.dispatched_tablespec_dataset AS dataset_id,
     jsonPayload.dispatched_tablespec_table AS table_id,
 
-  FROM `bq_security_classifier.run_googleapis_com_stdout`
+  FROM `bq_pii_classifier.run_googleapis_com_stdout`
   WHERE jsonPayload.global_app_log = 'DISPATCHED_REQUESTS_LOG'
 )
 , call_remote_func AS (
@@ -146,7 +146,7 @@ WITH tables AS (
     project_id,
     dataset_id,
     table_id, 
-    bq_security_classifier.remote_get_table_policy_tags(CONCAT(project_id, ".", dataset_id, ".", table_id)) AS results_json 
+    bq_pii_classifier.remote_get_table_policy_tags(CONCAT(project_id, ".", dataset_id, ".", table_id)) AS results_json 
   FROM tables
 )
 , parsed_json AS (
@@ -173,7 +173,7 @@ WITH tables AS (
  m.policy_tag IS NOT NULL AS is_solution_owned_policy_tag
  FROM parsed_json
  LEFT JOIN UNNEST(json_array) element
- LEFT JOIN bq_security_classifier.v_config_infotypes_policytags_map m ON JSON_EXTRACT_SCALAR(element, "$.policy_tag_id") = m.policy_tag 
+ LEFT JOIN bq_pii_classifier.v_config_infotypes_policytags_map m ON JSON_EXTRACT_SCALAR(element, "$.policy_tag_id") = m.policy_tag 
 )
 , dlp_unique_findings AS (
 SELECT 
@@ -185,7 +185,7 @@ l.record_location.field_id,
 r.info_type.name AS info_type,
 r.likelihood,
 COUNT(1) AS findings_count
-FROM bqsc-host-v1.bq_security_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
+FROM bq_pii_classifier.standard_dlp_results r, UNNEST(location.content_locations) l
 GROUP BY 1,2,3,4,5,6,7
 )
 , dlp_findings_counts AS (
@@ -215,7 +215,7 @@ e.is_solution_owned_policy_tag, -- if the current policy tag part of the bq-pii-
 t.info_type AS solution_promoted_info_type, -- the final info type that the bq-pii-classifier assigned to this column in case of multiple dlp findings. This depends on the `promote_mixed_info_types` setting in terraform.
 d.dlp_findings_summary, -- all info types that DLP detected on that column
 FROM existing_tags e
-LEFT JOIN bq_security_classifier.v_tagging_actions t ON e.project_id = t.project_id AND e.dataset_id = t.dataset_id AND e.table_id = t.table_id AND e.column_name = t.field_id AND e.run_id = t.run_id
+LEFT JOIN bq_pii_classifier.v_tagging_actions t ON e.project_id = t.project_id AND e.dataset_id = t.dataset_id AND e.table_id = t.table_id AND e.column_name = t.field_id AND e.run_id = t.run_id
 LEFT JOIN dlp_findings_counts d ON  e.project_id = d.project_id AND e.dataset_id = d.dataset_id AND e.table_id = d.table_id AND e.column_name = d.column_name AND e.run_id = d.run_id
 WHERE e.run_id = '<RUN-ID>'
 ```

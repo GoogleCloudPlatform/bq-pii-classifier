@@ -1,60 +1,101 @@
 
 # Check out guide-standard-dlp.md on how to use this template
 
-project = ""
-compute_region = ""
-data_region = ""
-source_data_regions    = []
+# host project to deploy the solution
+project = "example-gcp-project"
 
-bigquery_dataset_name = "bq_security_classifier"
+# GCP region to deploy the solution's compute resources (e.g. Cloud Run)
+compute_region = "europe-west3"
 
-datasets_include_list = []
+# GCP region to deploy the solution's data resources (e.g. BigQuery datasets, buckets, etc)
+data_region = "europe-west3"
+
+# GCP regions for BigQuery datasets to be scanned for PII. Configuring N regions will deploy N policy tag taxonomies, one in each region
+source_data_regions    = ["europe-west3", "eu"]
+
+# BigQuery dataset to include solution's resources
+bigquery_dataset_name = "bq_pii_classifier"
+
+# Scope of projects, datasets and tables to be scanned for PII
 projects_include_list = []
+datasets_include_list = ["example-project.example_dataset"]
 datasets_exclude_list = []
 tables_exclude_list = []
 
 # Set to [FINE_GRAINED_ACCESS_CONTROL] to enforce access control via policy tags. Set to [] otherwise.
 data_catalog_taxonomy_activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
 
+# Example. Set to `[]` of not needed and remove from `classification_taxonomy`. Each custom info type must have a corresponding entry in `classification_taxonomy`
 custom_info_types_dictionaries = [
   {
-    name       = ""
-    likelihood = ""
-    dictionary = []
+    name       = "CUSTOM_PAYMENT_METHOD"
+    likelihood = "LIKELY"
+    dictionary = ["Debit Card", "Credit Card"]
   }
 ]
 
+# Example. Set to `[]` of not needed and remove from `classification_taxonomy`. Each custom info type must have a corresponding entry in `classification_taxonomy`
 custom_info_types_regex = [
   {
-    name       = ""
-    likelihood = ""
-    regex      = ""
+    name       = "CUSTOM_EMAIL"
+    likelihood = "LIKELY"
+    regex      = "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}"
   }
 ]
 
+# PII types to be scanned and their hierarchy and metadata
 classification_taxonomy = [
   {
-    info_type = "",
-    info_type_category = "",
-    policy_tag = "",
-    classification = "EXAMPLE_PII_LEVEL_1",
-    labels = [],
+    info_type = "EMAIL_ADDRESS",
+    info_type_category = "Standard",
+    policy_tag = "email",
+    classification = "P1",
+    labels   = [{ key = "contains_email_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
   },
-  # Keep this placeholder info type for mixed info types and change the classification
   {
-    info_type                  = "MIXED",
-    info_type_category         = "Custom",
-    policy_tag                 = "mixed_pii",
-    classification             = "EXAMPLE_PII_LEVEL_2",
-    labels = [],
+    info_type = "PHONE_NUMBER",
+    info_type_category = "Standard",
+    policy_tag = "phone"
+    classification = "P2",
+    labels   = [{ key = "contains_phones_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
   },
-
+  {
+    # Example. Remove if needed. Each custom info type must have a corresponding entry here in `classification_taxonomy`
+    info_type = "CUSTOM_PAYMENT_METHOD",
+    info_type_category = "Custom Dictionary",
+    policy_tag = "payment_method"
+    classification = "P1",
+    labels   = [{ key = "contains_custom_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    # Example. Remove if needed. Each custom info type must have a corresponding entry here in `classification_taxonomy`
+    info_type = "CUSTOM_EMAIL",
+    info_type_category = "Custom Regex",
+    policy_tag = "custom_email"
+    classification = "P2",
+    labels   = [{ key = "contains_custom_pii", value = "true"}],
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
+  {
+    # Don't remove. Special placeholder for mixed PII types
+    info_type = "MIXED",
+    info_type_category = "Custom",
+    policy_tag = "mixed_pii"
+    classification = "P1",
+    labels   = [{ key = "contains_mixed_pii", value = "true"}]
+    inspection_template_number = 1,
+    taxonomy_number            = 1
+  },
 ]
 
+# To segregate access of columns tagged as PII that belongs to multiple functional areas. You can use one or more domains.
 domain_mapping = [
   {
     project = "example_data_project_1",
@@ -73,40 +114,45 @@ domain_mapping = [
   }
 ]
 
+# Defining who should have access to columns tagged as PII in each functional area (i.e. domains) and PII group (i.e. classification)
 # For each domain defined in `domain_mapping`, there should be an key in this map. E.g. "domain_1"
 # For each `classification` defined in `classification_taxonomy` there should be a value for that key. E.g. "P1", "P2", etc
 iam_mapping = {
   example_domain_a = {
-    EXAMPLE_PII_LEVEL_1 = ["<IAM principles who should have access to columns with policy tags under this classification level, in that domain >"],
-    EXAMPLE_PII_LEVEL_2 = ["<IAM principles who should have access to columns with policy tags under this classification level, in that domain >"]
+    P1 = ["user:example-user@example.com", "group:example-group@example.com", "serviceAccount:example-sa@example.com"],
+    P2 = ["user:example-user@example.com", "group:example-group@example.com", "serviceAccount:example-sa@example.com"]
   },
   example_domain_b = {
-    EXAMPLE_PII_LEVEL_1 = ["<IAM principles who should have access to columns with policy tags under this classification level, in that domain >"],
-    EXAMPLE_PII_LEVEL_2 = ["<IAM principles who should have access to columns with policy tags under this classification level, in that domain >"]
+    P1 = ["user:example-user@example.com", "group:example-group@example.com", "serviceAccount:example-sa@example.com"],
+    P2 = ["user:example-user@example.com", "group:example-group@example.com", "serviceAccount:example-sa@example.com"]
   },
 }
 
+# To attach policy tags to columns or not. is_dry_run_tags = False means to attach policy tags
 is_dry_run_tags = "False"
 
+# To attach resource labels to BigQuery tables or not. is_dry_run_labels = False means to attach labels
 is_dry_run_labels = "False"
 
-dlp_service_account =  "service-<PROJECT_NUMBER>@dlp-api.iam.gserviceaccount.com"
+# Terraform service account name used to deploy this Terraform module
+terraform_service_account = "bq-pii-classifier-terraform"
 
-cloud_scheduler_account = "service-<PROJECT_NUMBER>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-
-terraform_service_account = "bq-pii-classifier-terraform@<PROJECT_ID>.iam.gserviceaccount.com"
-
+# To use discovery service mode or not
 is_auto_dlp_mode = false
 
-tagging_dispatcher_service_image = ""
-inspection_dispatcher_service_image = ""
-inspector_service_image = ""
-tagger_service_image = ""
+# Names and tags for container images use by Cloud Run
+tagging_dispatcher_service_image = "bqsc-tagging-dispatcher-service:latest"
+inspection_dispatcher_service_image = "bqsc-inspection-dispatcher-service:latest"
+inspector_service_image = "bqsc-inspector-service:latest"
+tagger_service_image = "bqsc-tagger-service:latest"
 
-inspection_cron_expression = ""
-tagging_cron_expression = ""
+# CRON expression for Cloud Scheduler. How often to scan all tables in the configured scan scope
+inspection_cron_expression = "0 0 * * *"
 
-# Set the scan limits based on intervals
+# CRON expression for Cloud Scheduler. How often to re-tag all tables in the configured scan scope
+tagging_cron_expression = "0 12 1 * *"
+
+# How many rows to sample from a table by DLP to scan based on the table size. Scan limits based on intervals of a table's row count
 table_scan_limits_json_config = {
   limitType: "NUMBER_OF_ROWS",
   limits: {
@@ -116,5 +162,6 @@ table_scan_limits_json_config = {
   }
 }
 
+# Boolean. For the solution to run a heuristic when DLP detects multiple InfoTypes in one column in an attempt to promote only one type over the others
 promote_mixed_info_types = false
 

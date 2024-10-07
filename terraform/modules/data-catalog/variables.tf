@@ -31,3 +31,9 @@ variable "data_catalog_taxonomy_activated_policy_types" {
 }
 
 variable "taxonomy_number" {type = number}
+
+variable "taxonomy_name_suffix" {
+  type = string
+  default = ""
+  description = "Suffix added to taxonomy display name to make it unique within an org"
+}

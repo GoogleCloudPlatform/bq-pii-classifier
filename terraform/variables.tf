@@ -33,7 +33,7 @@ variable "source_data_regions" {
 
 variable "bigquery_dataset_name" {
   type = string
-  default = "bq_security_classifier"
+  default = "bq_pii_classifier"
 }
 
 variable "auto_dlp_results_table_name" {
@@ -181,6 +181,11 @@ variable "tagger_pubsub_sub" {
 
 
 # Images
+variable "gar_docker_repo_name" {
+  type = string
+  default = "bq-pii-classifier"
+}
+
 variable "tagging_dispatcher_service_image" {
   type = string
 }
@@ -339,16 +344,6 @@ variable "iam_mapping" {
 //    P2 = ["user:dwh-p2-reader@example.com"]
 //  }
 //}
-
-variable "dlp_service_account" {
-  type = string
-  description = "service account email for DLP to grant permissions to via Terraform"
-}
-
-variable "cloud_scheduler_account" {
-  type = string
-  description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-}
 
 variable "terraform_service_account" {
   type = string
@@ -541,6 +536,11 @@ variable "tagger_subscription_message_retention_duration" {
   # 24h
 }
 
+variable "taxonomy_name_suffix" {
+  type = string
+  default = ""
+  description = "Suffix added to taxonomy display name to make it unique within an org"
+}
 
 
 

@@ -125,6 +125,7 @@ module "data-catalog" {
   classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][2]]
 
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
+  taxonomy_name_suffix = var.taxonomy_name_suffix
 }
 
 

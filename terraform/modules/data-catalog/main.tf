@@ -7,7 +7,7 @@ resource "google_data_catalog_taxonomy" "domain_taxonomy" {
   provider = google-beta
   project = var.project
   region = var.region
-  display_name = title("${var.domain} Taxonomy ${var.taxonomy_number}")
+  display_name = title("${var.domain} Taxonomy ${var.taxonomy_number}${var.taxonomy_name_suffix}")
   description = "Policy tags assigned by BQ PII Classifier for domain '${var.domain}' - ${var.taxonomy_number} in region '${var.region}'"
   activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
 }

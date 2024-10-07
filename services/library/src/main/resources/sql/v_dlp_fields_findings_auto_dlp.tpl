@@ -49,8 +49,8 @@
         -- DLP reports column names for nested repeated records with the array index of the finding.
         -- normalize the column names for nested repeated records by removing the '[index]' part and selecting distinct
         -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
-        REGEXP_REPLACE(o.column_name, r"(\[\d+\]\.)", '.') AS field_name,
-        o.final_info_type AS info_type,
+        REGEXP_REPLACE(l.column_name, r"(\[\d+\]\.)", '.') AS field_name,
+        l.final_info_type AS info_type,
         c.policy_tag,
         c.classification
         FROM latest_profiles l
