@@ -235,9 +235,9 @@ variable "classification_taxonomy" {
     # (standard | custom)
     policy_tag = string
     classification = string
-    labels = list(object({key = string, value = string}))
-    inspection_template_number = number
-    taxonomy_number = number
+    labels = optional(list(object({key = string, value = string})), [])
+    inspection_template_number = optional(number, 1)
+    taxonomy_number = optional(number, 1)
   }))
 }
 //Example:

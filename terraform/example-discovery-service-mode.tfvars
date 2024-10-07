@@ -53,6 +53,7 @@ classification_taxonomy = [
     info_type_category = "Standard",
     policy_tag = "email",
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_email_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -62,6 +63,7 @@ classification_taxonomy = [
     info_type_category = "Standard",
     policy_tag = "phone"
     classification = "P2",
+    # optional fields
     labels   = [{ key = "contains_phones_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -72,6 +74,7 @@ classification_taxonomy = [
     info_type_category = "Custom Dictionary",
     policy_tag = "payment_method"
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_custom_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -82,6 +85,7 @@ classification_taxonomy = [
     info_type_category = "Custom Regex",
     policy_tag = "custom_email"
     classification = "P2",
+    # optional fields
     labels   = [{ key = "contains_custom_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -92,6 +96,7 @@ classification_taxonomy = [
     info_type_category = "Custom",
     policy_tag = "mixed_pii"
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_mixed_pii", value = "true"}]
     inspection_template_number = 1,
     taxonomy_number            = 1

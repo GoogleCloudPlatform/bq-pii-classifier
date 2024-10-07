@@ -91,6 +91,7 @@ classification_taxonomy = [
     info_type_category = "Standard",
     policy_tag = "email",
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_email_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -100,6 +101,7 @@ classification_taxonomy = [
     info_type_category = "Standard",
     policy_tag = "phone"
     classification = "P2",
+    # optional fields
     labels   = [{ key = "contains_phones_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -109,6 +111,7 @@ classification_taxonomy = [
     info_type_category = "Custom Dictionary",
     policy_tag = "payment_method"
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_custom_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -118,6 +121,7 @@ classification_taxonomy = [
     info_type_category = "Custom Regex",
     policy_tag = "custom_email"
     classification = "P2",
+    # optional fields
     labels   = [{ key = "contains_custom_pii", value = "true"}],
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -127,6 +131,7 @@ classification_taxonomy = [
     info_type_category = "Custom",
     policy_tag = "mixed_pii"
     classification = "P1",
+    # optional fields
     labels   = [{ key = "contains_mixed_pii", value = "true"}]
     inspection_template_number = 1,
     taxonomy_number            = 1
@@ -140,8 +145,8 @@ A mapping between DLP InfoTypes (Standard and Custom), policy tags and classific
 Classifications: are parent nodes in the taxonomy to group children nodes.
 
 `classifications`: are parent nodes in the taxonomy to group children nodes.  
-`info_type_category`: is either "standard" or "custom".
-`labels`: is an optional list of resource labels to be applied to tables where a certain PII is detected. Set to `[]` if not used.
+`info_type_category`: is either "standard" or "custom".  
+`labels`: [Optional] list of resource labels to be applied to tables where a certain PII is detected
 
 This will enable the solution to:
  * Build hierarchical policy tag taxonomies
@@ -162,7 +167,7 @@ There are two GCP limits that one could hit in defining taxonomies:
 * Max number of custom InfoTypes per inspection template is 30
 
 in order to get around those, the solution might need to deploy more than 1 taxonomy and/or more than 1 DLP inspection
-template. For that, `inspection_template_number` and `taxonomy_number` are used:
+template. For that, the optional `inspection_template_number` and `taxonomy_number` fields are used:
 * `inspection_template_number` is a value starting from `1`. It means that this particular InfoType will be created in the Nth inspection template.
    This is needed if more than 30 custom InfoTypes are required, otherwise use `1`. Please note that if more than one inspection template 
    is required, each table will be scanned N times, one per each inspection template.
