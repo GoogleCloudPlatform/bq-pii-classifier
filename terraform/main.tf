@@ -54,6 +54,12 @@ locals {
   cloud_scheduler_account_email = "service-${data.google_project.gcp_project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 
   terraform_service_account_email = "${var.terraform_service_account}@${var.project}.iam.gserviceaccount.com"
+
+  // create a list of distinct projects where data to be inspected resides
+  data_projects = distinct(concat(
+    flatten([for dataset in var.datasets_include_list : split(".", dataset)[0]]), // parse project_name from "project_name.dataset_name"
+    var.projects_include_list // concat to the list of projects
+  ))
 }
 
 
@@ -167,7 +173,7 @@ module "inspection-stack" {
   inspector_subscription_message_retention_duration  = var.inspector_subscription_message_retention_duration
 }
 
-# Helper functions
+# Helper functions for data analysis
 module "bq-remote-func-get-table-policy-tags" {
   source = "./modules/bq-remote-function"
   function_name = var.bq_remote_func_get_policy_tags_name
@@ -185,6 +191,23 @@ module "bq-remote-func-get-table-policy-tags" {
 
   depends_on             = [module.common-stack]
 }
+
+## Assign permissions for the service accounts used in this solution on the data projects
+## One can move this module to another Terraform pipeline that control project IAM access
+#module "data_projects_permissions_in_standard_mode" {
+#  source = "modules/data_project_permissions_in_standard_mode"
+#  // deploy this module only if we are in standard mode
+#  count  = var.is_auto_dlp_mode? 0: length(local.data_projects)
+#
+#  target_project = local.data_projects[count.index]
+#  sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
+#  sa_dlp_email = local.dlp_service_account_email
+#  sa_inspection_dispatcher_email = module.inspection-stack.sa_inspection_dispatcher_email
+#  sa_inspector_email = module.inspection-stack.sa_inspector_email
+#  sa_tagger_email = module.common-stack.sa_tagger_email
+#  sa_tagging_dispatcher_email = module.common-stack.sa_tagging_dispatcher_email
+#}
+
 
 
 
