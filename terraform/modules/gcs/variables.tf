@@ -13,3 +13,7 @@ variable "gcs_flags_bucket_name" {
 variable "gcs_flags_bucket_admins" {
   type = list(string)
 }
+
+variable "terraform_data_deletion_protection" {
+  type = bool
+}

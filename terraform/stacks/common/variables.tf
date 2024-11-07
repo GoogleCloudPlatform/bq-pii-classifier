@@ -237,3 +237,7 @@ variable "taxonomy_name_suffix" {
   default = ""
   description = "Suffix added to taxonomy display name to make it unique within an org"
 }
+
+variable "terraform_data_deletion_protection" {
+  type = bool
+}

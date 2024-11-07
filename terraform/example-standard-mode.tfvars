@@ -170,3 +170,5 @@ table_scan_limits_json_config = {
 # Boolean. For the solution to run a heuristic when DLP detects multiple InfoTypes in one column in an attempt to promote only one type over the others
 promote_mixed_info_types = false
 
+# Set to true to prevent Terraform from deleting BigQuery dataset and GCS buckets without alert (recommended for production usage or when DLP cost is high and you like to retain the scan results)
+terraform_data_deletion_protection = true

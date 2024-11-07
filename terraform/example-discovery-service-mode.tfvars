@@ -156,6 +156,9 @@ tagger_service_image = "bqsc-tagger-service:latest"
 # CRON expression for Cloud Scheduler. How often to tag all tables in the configured scan scope based on Auto-DLP results
 tagging_cron_expression = "0 12 1 * *"
 
+# Set to true to prevent Terraform from deleting BigQuery dataset and GCS buckets without alert (recommended for production usage or when DLP cost is high and you like to retain the scan results)
+terraform_data_deletion_protection = true
+
 
 
 

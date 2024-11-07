@@ -64,6 +64,7 @@ module "gcs" {
   region                  = var.compute_region # because it's used by the cloud run services
   # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
   gcs_flags_bucket_admins = var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
 module "common-stack" {
@@ -117,6 +118,7 @@ module "common-stack" {
   custom_info_types_regex        = var.custom_info_types_regex
   source_data_regions            = var.source_data_regions
   taxonomy_name_suffix           = var.taxonomy_name_suffix
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
 module "inspection-stack" {

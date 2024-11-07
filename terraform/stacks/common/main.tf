@@ -142,6 +142,7 @@ module "bigquery" {
   projects_domains_mapping        = local.project_and_domains_filtered
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
   inspection_templates_count = local.inspection_templates_count
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
 module "cloud_logging" {

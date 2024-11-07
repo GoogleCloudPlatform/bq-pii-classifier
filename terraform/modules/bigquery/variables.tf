@@ -46,3 +46,7 @@ variable "dataset_domains_mapping" {
 }
 
 variable "inspection_templates_count" {type = number}
+
+variable "terraform_data_deletion_protection" {
+  type = bool
+}

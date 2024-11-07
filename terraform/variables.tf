@@ -542,6 +542,11 @@ variable "taxonomy_name_suffix" {
   description = "Suffix added to taxonomy display name to make it unique within an org"
 }
 
+variable "terraform_data_deletion_protection" {
+  type = bool
+  # Allow destroying BQ datasets and GCS buckets. Set to true for production use
+  default = false
+}
 
 
 
