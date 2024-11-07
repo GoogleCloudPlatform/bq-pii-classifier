@@ -16,29 +16,29 @@
 # limitations under the License.
 #
 
-#gcloud iam service-accounts create "${TF_SA}" \
-#    --description="Used by Terraform to deploy GCP resources" \
-#    --display-name="Terraform Service Account"
+gcloud iam service-accounts create "${TF_SA}" \
+    --description="Used by Terraform to deploy GCP resources" \
+    --display-name="Terraform Service Account"
 
 roles=(
-   "roles/iam.roleAdmin"
-#  "roles/resourcemanager.projectIamAdmin"
-#  "roles/serviceusage.serviceUsageAdmin"
-#  "roles/iam.serviceAccountAdmin"
-#  "roles/iam.serviceAccountUser"
-#  "roles/iam.serviceAccountTokenCreator"
-#  "roles/bigquery.dataEditor"
-#  "roles/bigquery.user"
-#  "roles/bigquery.connectionAdmin"
-#  "roles/run.admin"
-#  "roles/pubsub.admin"
-#  "roles/logging.configWriter"
-#  "roles/datastore.owner"
-#  "roles/cloudfunctions.developer"
-#  "roles/dlp.admin"
-#  "roles/datacatalog.admin"
-#  "roles/cloudscheduler.admin"
-#  "roles/storage.admin"
+  "roles/iam.roleAdmin"
+  "roles/resourcemanager.projectIamAdmin"
+  "roles/serviceusage.serviceUsageAdmin"
+  "roles/iam.serviceAccountAdmin"
+  "roles/iam.serviceAccountUser"
+  "roles/iam.serviceAccountTokenCreator"
+  "roles/bigquery.dataEditor"
+  "roles/bigquery.user"
+  "roles/bigquery.connectionAdmin"
+  "roles/run.admin"
+  "roles/pubsub.admin"
+  "roles/logging.configWriter"
+  "roles/datastore.owner"
+  "roles/cloudfunctions.developer"
+  "roles/dlp.admin"
+  "roles/datacatalog.admin"
+  "roles/cloudscheduler.admin"
+  "roles/storage.admin"
 )
 
 for role in "${roles[@]}"; do

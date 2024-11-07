@@ -192,21 +192,22 @@ module "bq-remote-func-get-table-policy-tags" {
   depends_on             = [module.common-stack]
 }
 
-## Assign permissions for the service accounts used in this solution on the data projects
-## One can move this module to another Terraform pipeline that control project IAM access
-#module "data_projects_permissions_in_standard_mode" {
-#  source = "modules/data_project_permissions_in_standard_mode"
-#  // deploy this module only if we are in standard mode
-#  count  = var.is_auto_dlp_mode? 0: length(local.data_projects)
-#
-#  target_project = local.data_projects[count.index]
-#  sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
-#  sa_dlp_email = local.dlp_service_account_email
-#  sa_inspection_dispatcher_email = module.inspection-stack.sa_inspection_dispatcher_email
-#  sa_inspector_email = module.inspection-stack.sa_inspector_email
-#  sa_tagger_email = module.common-stack.sa_tagger_email
-#  sa_tagging_dispatcher_email = module.common-stack.sa_tagging_dispatcher_email
-#}
+# Assign permissions for the service accounts used in this solution on the data projects when using standard mode.
+# For this to run, the terraform service account must have permissions to set IAM policies on each data project. You can achieve this by running scripts/prepare_terraform_service_account_on_data_projects.sh "data-project-1" "data-project-2".
+# If you can't grant the terraform account such access, this step can also be done via scripts/prepare_data_projects_for_standard_mode.sh by an authorized user
+module "data_projects_permissions_in_standard_mode" {
+  source = "./modules/data_project_permissions_in_standard_mode"
+  // deploy this module only if we are in standard mode
+  count  = var.is_auto_dlp_mode? 0: length(local.data_projects)
+
+  target_project = local.data_projects[count.index]
+  sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
+  sa_dlp_email = local.dlp_service_account_email
+  sa_inspection_dispatcher_email = module.inspection-stack[0].sa_inspection_dispatcher_email
+  sa_inspector_email = module.inspection-stack[0].sa_inspector_email
+  sa_tagger_email = module.common-stack.sa_tagger_email
+  sa_tagging_dispatcher_email = module.common-stack.sa_tagging_dispatcher_email
+}
 
 
 

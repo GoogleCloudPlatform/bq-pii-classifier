@@ -43,7 +43,7 @@ resource "google_project_iam_member" "data_project_iam_remote_func_bq_metadata_v
 
 resource "google_project_iam_member" "data_project_iam_remote_func_datacatalog_viewer" {
   project = var.target_project
-  role = "roles/roles/datacatalog.viewer"
+  role = "roles/datacatalog.viewer"
   member = "serviceAccount:${var.sa_bq_remote_func_get_policy_tags_email}"
 }
 

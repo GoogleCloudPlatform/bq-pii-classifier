@@ -44,7 +44,7 @@ gsutil mb -p $PROJECT_ID -l $COMPUTE_REGION -b on $BUCKET
 Terraform needs to run with a service account to deploy DLP resources. User accounts are not enough.  
 
 ```
-./scripts/prepare_terraform_service_account.sh
+./scripts/prepare_terraform_service_account_on_host_project.sh
 ```
 
 ### Prepare a Docker Repo

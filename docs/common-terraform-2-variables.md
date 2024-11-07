@@ -37,9 +37,9 @@ Set the following variables to define the BigQuery scope used by the entry point
 
 At least one variable should be provided among the _INCLUDE configs.
 
-tables format: ["project.dataset.table1", "project.dataset.table2", etc]
-datasets format: ["project.dataset", "project.dataset", etc]
-projects format: ["project1", "project2", etc]
+tables format: `["project.dataset.table1", "project.dataset.table2", etc]  `  
+datasets format: `["project.dataset", "project.dataset", etc]  `  
+projects format: `["project1", "project2", etc]  `  
 
 ```
 projects_include_list = []
@@ -47,6 +47,21 @@ datasets_include_list = []
 datasets_exclude_list = []
 tables_exclude_list = []
 ```
+
+#### Prepare Terraform service account for data projects
+
+If you're deploying the solution in `standard-mode` you will need to grant a number of roles to the service accounts
+used by the solution on the data projects (e.g. read BigQuery data). To do so, the Terraform service account must have enough permissions to set IAM policies on these projects.  
+If you're deploying in `standard-mode` run the following script:
+
+```commandline
+./scipts/prepare_terraform_service_account_on_data_projects.sh "data-project-1" "data-project-2" "etc"
+```
+Where the data projects are the distinct list of all projects you set in the `projects_include_list` and/or `datasets_include_list`.  
+
+If granting this role to the Terraform service account is not possible then you can do the following:
+1. Remove the `data_projects_permissions_in_standard_mode` module in [terraform/main.tf](../terraform/main.tf) to avoid errors
+2. In a later step, after deploying the solution, you will run a script to grant the newly created service accounts access to the data projects
 
 ### Configure Custom Info Types
 

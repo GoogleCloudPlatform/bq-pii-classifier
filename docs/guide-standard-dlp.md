@@ -194,7 +194,10 @@ PS: update the SA emails if the default names have been changed in Terraform
 
 The application is deployed under a host project as set in the `PROJECT_ID` variable.
 To enable the application to tag columns in other projects (i.e. data projects) one must grant a number of
-permissions on each data project. To do, run the following script:
+permissions on each data project. 
+
+If you haven't configured Terraform to do that for you via the `data_projects_permissions_in_standard_mode` module in [terraform/main.tf](../terraform/main.tf)
+, you can grant these permissions manually with the following script:
 
 From root folder:
 ```
