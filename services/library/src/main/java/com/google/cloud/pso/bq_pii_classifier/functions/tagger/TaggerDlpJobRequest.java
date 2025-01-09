@@ -17,7 +17,7 @@ public class TaggerDlpJobRequest extends Operation {
 
     @Override
     public String toString() {
-        return "TaggerDispatcherRequest{" +
+        return "TaggerDlpJobRequest{" +
                 "dlpJobName='" + dlpJobName + '\'' +
                 "} " + super.toString();
     }

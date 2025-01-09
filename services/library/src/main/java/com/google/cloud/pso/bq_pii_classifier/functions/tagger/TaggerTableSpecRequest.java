@@ -20,7 +20,7 @@ public class TaggerTableSpecRequest extends Operation {
     @Override
     public String toString() {
         return "TaggerTableSpecRequest{" +
-                "targetTable=" + targetTable +
+                "targetTable=" + targetTable.toSqlString() +
                 "} " + super.toString();
     }
 }
