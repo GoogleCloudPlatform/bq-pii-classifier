@@ -55,7 +55,7 @@ used by the solution on the data projects (e.g. read BigQuery data). To do so, t
 If you're deploying in `standard-mode` run the following script:
 
 ```commandline
-./scipts/prepare_terraform_service_account_on_data_projects.sh "data-project-1" "data-project-2" "etc"
+./scripts/prepare_terraform_service_account_on_data_projects.sh "data-project-1" "data-project-2" "etc"
 ```
 Where the data projects are the distinct list of all projects you set in the `projects_include_list` and/or `datasets_include_list`.  
 
@@ -162,19 +162,12 @@ Classifications: are parent nodes in the taxonomy to group children nodes.
 `classifications`: are parent nodes in the taxonomy to group children nodes.  
 `info_type_category`: is either "standard" or "custom".  
 `labels`: [Optional] list of resource labels to be applied to tables where a certain PII is detected
+`inspection_template_number`: [Optional] explained in the next section  
+`taxonomy_number`: [Optional] explained in the next section  
 
 This will enable the solution to:
  * Build hierarchical policy tag taxonomies
  * To identify which policy tag to apply to a column based on the PII/InfoType discovered
-
-
-#### Dealing with Mixed PII:  
-
-DLP might find that one field contains multiple InfoTypes (e.g. free text fields). Since
-we can only assign one policy tag to a column we need to have a special placeholder for such fields.  
-This placeholder is yet another entry in the classification taxonomy with info_type = "MIXED". 
-Users can configure the policy tag name and classification level associated to it, but the info_type can't be changed.
-This "MIXED" InfoType is a special flag used by the solution and not a standard or custom DLP InfoType.
 
 #### Dealing with InfoType Count Limitation
 There are two GCP limits that one could hit in defining taxonomies:
@@ -183,12 +176,20 @@ There are two GCP limits that one could hit in defining taxonomies:
 
 in order to get around those, the solution might need to deploy more than 1 taxonomy and/or more than 1 DLP inspection
 template. For that, the optional `inspection_template_number` and `taxonomy_number` fields are used:
-* `inspection_template_number` is a value starting from `1`. It means that this particular InfoType will be created in the Nth inspection template.
+* `inspection_template_number` default value is `1`. It means that this particular InfoType will be created in the Nth inspection template.
    This is needed if more than 30 custom InfoTypes are required, otherwise use `1`. Please note that if more than one inspection template 
    is required, each table will be scanned N times, one per each inspection template.
-* `taxonomy_number` is a value starting from `1`. It means that this particular Policy Tag will be created in the Nth Cloud Data Catalog Taxonomy.
+* `taxonomy_number` default value is `1`. It means that this particular Policy Tag will be created in the Nth Cloud Data Catalog Taxonomy.
    This is needed of more than 100 nodes are to be created, otherwise use `1`. For a better visibility, try to locate all nodes
    under one parent (i.e. classification) in the same taxonomy.
+
+#### Dealing with Mixed PII:
+
+DLP might find that one field contains multiple InfoTypes (e.g. free text fields). Since
+we can only assign one policy tag to a column we need to have a special placeholder for such fields.  
+This placeholder is yet another entry in the classification taxonomy with info_type = "MIXED".
+Users can configure the policy tag name and classification level associated to it, but the info_type can't be changed.
+This "MIXED" InfoType is a special flag used by the solution and not a standard or custom DLP InfoType.
 
 
 ### Configure Domain Mapping
