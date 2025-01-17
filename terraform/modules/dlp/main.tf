@@ -41,13 +41,14 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
         info_type {
           name = custom_info_types.value["info_type"]
         }
-        likelihood =
-          # search in the list for the object with name = xyz and then get the desired property from that object
-          var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  custom_info_types.value["info_type"])]["likelihood"]
+
+        # search in the list for the object with name = xyz and then get the desired property from that object
+        likelihood = var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  custom_info_types.value["info_type"])]["likelihood"]
+
+
         dictionary {
           word_list {
-            words =
-              var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  custom_info_types.value["info_type"])]["dictionary"]
+            words = var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  custom_info_types.value["info_type"])]["dictionary"]
           }
         }
       }
@@ -61,12 +62,12 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
         info_type {
           name = custom_info_types.value["info_type"]
         }
-        likelihood =
-          # search in the list for the object with name = xyz and then get the desired property from that object
-          var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  custom_info_types.value["info_type"])]["likelihood"]
+
+        # search in the list for the object with name = xyz and then get the desired property from that object
+        likelihood = var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  custom_info_types.value["info_type"])]["likelihood"]
+
         regex {
-          pattern =
-            var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  custom_info_types.value["info_type"])]["regex"]
+          pattern = var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  custom_info_types.value["info_type"])]["regex"]
         }
       }
     }
