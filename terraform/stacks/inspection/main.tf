@@ -12,12 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
-locals {
-  dlp_region = var.data_region == "eu" ? "europe" : var.data_region
-}
-
-
 module "inspection_cloud_scheduler" {
   source = "../../modules/cloud-scheduler"
   project = var.project

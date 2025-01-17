@@ -43,13 +43,13 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
         }
         likelihood = lookup(
           # search in the list for the object with name = xyz and then get the desired property from that object
-          var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries.*.name,  lookup(custom_info_types.value, "info_type"))],
+          var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  lookup(custom_info_types.value, "info_type"))],
           "likelihood"
         )
         dictionary {
           word_list {
             words = lookup(
-              var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries.*.name,  lookup(custom_info_types.value, "info_type"))],
+              var.custom_info_types_dictionaries[index(var.custom_info_types_dictionaries[*].name,  lookup(custom_info_types.value, "info_type"))],
               "dictionary"
             )
           }
@@ -67,12 +67,12 @@ resource "google_data_loss_prevention_inspect_template" "inspection_template" {
         }
         likelihood = lookup(
           # search in the list for the object with name = xyz and then get the desired property from that object
-          var.custom_info_types_regex[index(var.custom_info_types_regex.*.name,  lookup(custom_info_types.value, "info_type"))],
+          var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  lookup(custom_info_types.value, "info_type"))],
           "likelihood"
         )
         regex {
           pattern = lookup(
-            var.custom_info_types_regex[index(var.custom_info_types_regex.*.name,  lookup(custom_info_types.value, "info_type"))],
+            var.custom_info_types_regex[index(var.custom_info_types_regex[*].name,  lookup(custom_info_types.value, "info_type"))],
             "regex"
           )
         }

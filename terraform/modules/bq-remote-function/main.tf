@@ -120,7 +120,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   service_config {
-    max_instance_count               = var.cf_max_instance_request_concurrency
+    max_instance_count               = var.cf_max_instance_count
     min_instance_count               = var.cf_min_instance_count
     available_memory                 = var.cf_available_memory
     timeout_seconds                  = var.cf_timeout_seconds

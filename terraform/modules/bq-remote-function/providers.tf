@@ -5,5 +5,9 @@ terraform {
     google = "= 5.20.0"
     google-beta = "= 5.20.0"
     random = "3.6.2"
+    archive = {
+      source = "hashicorp/archive"
+      version = "2.7.0"
+    }
   }
 }
