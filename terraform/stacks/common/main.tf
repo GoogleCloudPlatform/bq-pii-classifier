@@ -50,35 +50,35 @@ locals {
 
   project_and_domains = distinct([
   for entry in var.domain_mapping : {
-    project = lookup(entry, "project"),
-    domain  = lookup(entry, "domain")
+    project = entry["project"],
+    domain  = entry["domain"]
   }
   ])
 
   # Only projects with configured domains
-  project_and_domains_filtered = [for entry in local.project_and_domains : entry if lookup(entry, "domain") != ""]
+  project_and_domains_filtered = [for entry in local.project_and_domains : entry if entry["domain"] != ""]
 
   datasets_and_domains = distinct(flatten([
   for entry in var.domain_mapping : [
   for dataset in lookup(entry, "datasets", []) : {
-    project = lookup(entry, "project"),
-    dataset = lookup(dataset, "name"),
-    domain  = lookup(dataset, "domain")
+    project = entry["project"],
+    dataset = dataset["name"],
+    domain  = dataset["domain"]
   }
   ]
   ]))
 
   # Only datasets with configured domains
-  datasets_and_domains_filtered = [for entry in local.datasets_and_domains : entry if lookup(entry, "domain") != ""]
+  datasets_and_domains_filtered = [for entry in local.datasets_and_domains : entry if entry["domain"] != ""]
 
   # Get distinct domains set on project entries
   project_domains = distinct([
-  for entry in local.project_and_domains_filtered : lookup(entry, "domain")
+  for entry in local.project_and_domains_filtered : entry["domain"]
   ])
 
   # Get distinct domains set on dataset level
   dataset_domains = distinct([
-  for entry in local.datasets_and_domains_filtered : lookup(entry, "domain")
+  for entry in local.datasets_and_domains_filtered : entry["domain"]
   ])
 
   // Concat project and dataset domains and filter out empty strings
@@ -95,17 +95,17 @@ locals {
 
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 
-  taxonomy_numbers = distinct([for x in var.classification_taxonomy: lookup(x,"taxonomy_number")])
+  taxonomy_numbers = distinct([for x in var.classification_taxonomy: x["taxonomy_number"]])
 
   // this return a list of lists like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
   taxonomies_to_be_created = setproduct(tolist(var.source_data_regions), local.domains, local.taxonomy_numbers)
 
-  inspection_templates_count = max([for x in var.classification_taxonomy: lookup(x,"inspection_template_number")]...)
+  inspection_templates_count = max([for x in var.classification_taxonomy: x["inspection_template_number"]]...)
 
   info_types_map = {
-  for item in var.classification_taxonomy : lookup(item, "info_type") => {
-    classification = lookup(item, "classification"),
-    labels         = lookup(item, "labels")
+  for item in var.classification_taxonomy : item["info_type"] => {
+    classification = item["classification"],
+    labels         = item["labels"]
   }
   }
 
@@ -122,7 +122,7 @@ module "data-catalog" {
   taxonomy_number = local.taxonomies_to_be_created[count.index][2]
 
   // only use the nodes that are marked for taxonomy number x
-  classification_taxonomy = [for x in var.classification_taxonomy: x if lookup(x,"taxonomy_number") == local.taxonomies_to_be_created[count.index][2]]
+  classification_taxonomy = [for x in var.classification_taxonomy: x if x["taxonomy_number"] == local.taxonomies_to_be_created[count.index][2]]
 
   data_catalog_taxonomy_activated_policy_types = var.data_catalog_taxonomy_activated_policy_types
   taxonomy_name_suffix = var.taxonomy_name_suffix

@@ -270,15 +270,15 @@ resource "google_bigquery_table" "view_tracking_id_map" {
 
 locals {
   infotypes_policytags_map_select_statements = [for entry in var.created_policy_tags:
-  "SELECT '${lookup(entry,"region")}' AS region, '${lookup(entry,"domain")}' AS domain, '${lookup(entry,"classification")}' AS classification, '${lookup(entry,"info_type")}' AS info_type, '${lookup(entry,"policy_tag_id")}' AS policy_tag"
+  "SELECT '${entry["region"]}' AS region, '${entry["domain"]}' AS domain, '${entry["classification"]}' AS classification, '${entry["info_type"]}' AS info_type, '${entry["policy_tag_id"]}' AS policy_tag"
   ]
 
   project_domain_map_select_statements = [for entry in var.projects_domains_mapping:
-  "SELECT '${lookup(entry,"project")}' AS project, '${lookup(entry,"domain")}' AS domain"
+  "SELECT '${entry["project"]}' AS project, '${entry["domain"]}' AS domain"
   ]
 
   dataset_domain_map_select_statements = length(var.dataset_domains_mapping) == 0 ? ["SELECT '' AS project, '' AS dataset, '' AS domain"] :[for entry in var.dataset_domains_mapping:
-  "SELECT '${lookup(entry,"project")}' AS project, '${lookup(entry,"dataset")}' AS dataset, '${lookup(entry,"domain")}' AS domain"
+  "SELECT '${entry["project"]}' AS project, '${entry["dataset"]}' AS dataset, '${entry["domain"]}' AS domain"
   ]
 }
 

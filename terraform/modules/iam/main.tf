@@ -129,7 +129,7 @@ locals {
   # For each parent tag: omit the tag_id and lookup the list of IAM members to grant access to
   parent_tags_with_members_list = [for parent_tag in var.taxonomy_parent_tags:
     {
-      policy_tag_name = lookup(parent_tag, "id")
+      policy_tag_name = parent_tag["id"]
       # lookup the iam_mapping variable with the key <domain>_<classification>
       # parent_tag.display_name is the classification
 
@@ -154,9 +154,9 @@ locals {
 resource "google_data_catalog_policy_tag_iam_member" "policy_tag_reader" {
   provider = google-beta
   count = length(local.iam_members_list)
-  policy_tag = lookup(local.iam_members_list[count.index], "policy_tag_name")
+  policy_tag = local.iam_members_list[count.index]["policy_tag_name"]
   role = "roles/datacatalog.categoryFineGrainedReader"
-  member = lookup(local.iam_members_list[count.index], "iam_member")
+  member = local.iam_members_list[count.index]["iam_member"]
 }
 
 
