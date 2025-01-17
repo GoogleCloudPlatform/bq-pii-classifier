@@ -41,3 +41,4 @@ jobs:
           VALIDATE_TERRAFORM_TFLINT: true
           VALIDATE_TERRAFORM_TERRASCAN: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORMAT: checkstyle

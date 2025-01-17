@@ -134,7 +134,7 @@ locals {
       # parent_tag.display_name is the classification
 
       iam_members = lookup(
-      lookup(var.iam_mapping, lookup(parent_tag, "domain", "NA")),
+      var.iam_mapping[lookup(parent_tag, "domain", "NA")],
       lookup(parent_tag, "display_name", "NA"),
       ["IAM_MEMBERS_LOOKUP_FAILED"]
       )
