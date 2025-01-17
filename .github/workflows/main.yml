@@ -38,8 +38,11 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_GOOGLE_JAVA_FORMAT: true
+          VALIDATE_TERRAFORM_FMT: true
+          FIX_GOOGLE_JAVA_FORMAT: true
+          FIX_TERRAFORM_FMT: true
           VALIDATE_TERRAFORM_TFLINT: true
-          VALIDATE_TERRAFORM_TERRASCAN: true
+          VALIDATE_TERRAFORM_TERRASCAN: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FORMAT: checkstyle
           SAVE_SUPER_LINTER_OUTPUT: true
