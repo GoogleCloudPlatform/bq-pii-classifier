@@ -24,6 +24,11 @@ variable "data_region" {
   type = string
 }
 
+variable "source_data_regions" {
+  description = "Supported GCP regions for DLP inspection and tagging. These are the regions to run DLP jobs in and deploy policy tags taxonomies."
+  type = set(string)
+}
+
 variable "bigquery_dataset_name" {
   type = string
 }
@@ -100,9 +105,6 @@ variable "tagger_service_image" {
 # DLP scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
 # format: project.dataset.table1, project.dataset.table2, etc
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "datasets_include_list" {
   type = list(string)
 }
@@ -119,9 +121,13 @@ variable "tables_exclude_list" {
 variable "classification_taxonomy" {
   type = list(object({
     info_type = string
-    info_type_category = string # (standard | custom)
+    info_type_category = string
+    # (standard | custom)
     policy_tag = string
     classification = string
+    labels = list(object({key = string, value = string}))
+    inspection_template_number = number
+    taxonomy_number = number
   }))
 }
 
@@ -156,9 +162,12 @@ variable "cloud_scheduler_account" {
   description = "Service agent account for Cloud Scheduler. Format service-<project number>@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 }
 
-variable "is_dry_run" {
+variable "is_dry_run_tags" {
   type = string
+}
 
+variable "is_dry_run_labels" {
+  type = string
 }
 
 variable "cron_expression" {
@@ -207,3 +216,28 @@ variable "promote_mixed_info_types" {
   type = bool
 }
 
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name = string
+    likelihood = string
+    dictionary =list(string)
+  }))
+}
+
+variable "custom_info_types_regex" {
+  type = list(object({
+    name = string
+    likelihood = string
+    regex = string
+  }))
+}
+
+variable "taxonomy_name_suffix" {
+  type = string
+  default = ""
+  description = "Suffix added to taxonomy display name to make it unique within an org"
+}
+
+variable "terraform_data_deletion_protection" {
+  type = bool
+}

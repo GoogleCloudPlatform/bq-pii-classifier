@@ -8,9 +8,9 @@ export PROJECT_NUMBER=< get from GCP project home page>
 export TF_SA=bq-pii-classifier-terraform
 export COMPUTE_REGION=< region to deploy infra resources >
 export DATA_REGION=< region where the target data resides >
-export BUCKET_NAME=${PROJECT_ID}-bq-security-classifier
+export BUCKET_NAME=${PROJECT_ID}-bq-pii-classifier
 export BUCKET=gs://${BUCKET_NAME}
-export DOCKER_REPO_NAME=docker-repo
+export DOCKER_REPO_NAME=bq-pii-classifier
 
 export CONFIG=<gcloud & terraform config name> 
 export ACCOUNT=< personal account email >  
@@ -44,7 +44,7 @@ gsutil mb -p $PROJECT_ID -l $COMPUTE_REGION -b on $BUCKET
 Terraform needs to run with a service account to deploy DLP resources. User accounts are not enough.  
 
 ```
-./scripts/prepare_terraform_service_account.sh
+./scripts/prepare_terraform_service_account_on_host_project.sh
 ```
 
 ### Prepare a Docker Repo

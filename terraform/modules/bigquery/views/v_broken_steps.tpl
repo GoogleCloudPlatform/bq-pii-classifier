@@ -51,7 +51,7 @@ t.tagger_ends,
 FROM
 dispacthed_requests d
 LEFT JOIN tagger_calls t ON d.dispatched_tracking_id = t.tracker
-WHERE t.tracker IS NULL OR t.tagger_ends = 0
+WHERE t.tracker IS NULL
 
 UNION ALL
 

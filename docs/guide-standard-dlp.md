@@ -96,10 +96,10 @@ PS: Terraform will just "link" a Cloud Run to an existing image. It will not bui
 is already done in a previous step)
 
 ```
-tagging_dispatcher_service_image = "< value of env variable TAGGING_DISPATCHER_IMAGE >"
-inspection_dispatcher_service_image = "< value of  env variable INSPECTOR_IMAGE >"
-inspector_service_image = "< value of env variable INSPECTOR_IMAGE >"
-tagger_service_image = "< value of env variable TAGGER_IMAGE >"
+tagging_dispatcher_service_image = "< image name and tag from env variable TAGGING_DISPATCHER_IMAGE. e.g. bqsc-tagging-dispatcher-service:latest >"
+inspection_dispatcher_service_image = "< image name and tag from env variable INSPECTOR_IMAGE. e.g. bqsc-inspection-dispatcher-service:latest >"
+inspector_service_image = "< image name and tag from env variable INSPECTOR_IMAGE. e.g. bqsc-inspector-service:latest >"
+tagger_service_image = "< image name and tag from env variable TAGGER_IMAGE. e.g. bqsc-tagger-service:latest >"
 ``` 
 
 #### Configure Cloud Scheduler CRON
@@ -194,7 +194,10 @@ PS: update the SA emails if the default names have been changed in Terraform
 
 The application is deployed under a host project as set in the `PROJECT_ID` variable.
 To enable the application to tag columns in other projects (i.e. data projects) one must grant a number of
-permissions on each data project. To do, run the following script:
+permissions on each data project. 
+
+If you haven't configured Terraform to do that for you via the `data_projects_permissions_in_standard_mode` module in [terraform/main.tf](../terraform/main.tf)
+, you can grant these permissions manually with the following script:
 
 From root folder:
 ```
@@ -255,8 +258,3 @@ After deploying the solution, one can call it in different ways:
 ![alt text](../diagrams/standard%20mode-usage-event%20based%20scan.jpg)
    
 One could listen to certain log-events on GCP via log sinks (e.g. BigQuery table load, Dataflow job completion) and trigger the Inspection Dispatcher service to inspect and tag the concerned table/tables.
-
-## Updating DLP Info Types
-
-Check out this [document](common-managing-dlp-types.md) for 
-steps on how to add/remove Info Types in the classification taxonomy.

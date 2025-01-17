@@ -10,19 +10,6 @@ variable "domain" {
   description = "the domain name for the taxonomy"
 }
 
-#  example:
-//[
-//{
-//policy_tag = "email",
-//info_type = "EMAIL_ADDRESS"
-//parent = "P2"
-//},
-//{
-//policy_tag = "address",
-//info_type = "STREET_ADDRESS"
-//parent = "P1"
-//}
-//]
 variable "classification_taxonomy" {
   type = list(object({
     info_type = string
@@ -30,6 +17,8 @@ variable "classification_taxonomy" {
     # (standard | custom)
     policy_tag = string
     classification = string
+    inspection_template_number = number
+    taxonomy_number = number
   }))
   description = "A lis of Maps defining children nodes"
 }
@@ -39,4 +28,12 @@ variable "classification_taxonomy" {
 variable "data_catalog_taxonomy_activated_policy_types" {
   type = list(string)
   description = "A lis of policy types for the created taxonomy(s)"
+}
+
+variable "taxonomy_number" {type = number}
+
+variable "taxonomy_name_suffix" {
+  type = string
+  default = ""
+  description = "Suffix added to taxonomy display name to make it unique within an org"
 }

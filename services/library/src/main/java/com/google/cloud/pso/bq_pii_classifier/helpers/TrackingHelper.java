@@ -54,12 +54,12 @@ public class TrackingHelper {
         // using UUIDs only resulted in unexpected collisions in some runs.
         // adding table name hash for extra "randomness"
 
-        return String.format("%s-%s-%s", runId, UUID.randomUUID().toString(), table.hashCode());
+        return String.format("%s-%s", runId, UUID.randomUUID());
     }
 
     /**
      *
-     * @param jobName Dlp Job name in format projects/locations/dlpJobs/i-<tracking-number>
+     * @param jobName Dlp Job name in format projects/locations/dlpJobs/i-<tracking-number>_templateNumber
      * @return tracking-number part
      */
     public static String extractTrackingIdFromJobName(String jobName){

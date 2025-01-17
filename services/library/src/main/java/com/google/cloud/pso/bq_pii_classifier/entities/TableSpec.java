@@ -86,4 +86,13 @@ public class TableSpec {
     public int hashCode() {
         return Objects.hash(project, dataset, table);
     }
+
+    @Override
+    public String toString() {
+        return "TableSpec{" +
+                "project='" + project + '\'' +
+                ", dataset='" + dataset + '\'' +
+                ", table='" + table + '\'' +
+                '}';
+    }
 }

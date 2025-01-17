@@ -24,6 +24,10 @@ variable "data_region" {
   type = string
 }
 
+variable "source_data_regions" {
+  type = list(string)
+}
+
 variable "sa_inspection_dispatcher" {
   type = string
 }
@@ -78,9 +82,6 @@ variable "inspector_service_image" {
 # BQ scanning scope
 # Optional fields. At least one should be provided among the _INCLUDE configs
 # format: project.dataset.table1, project.dataset.table2, etc
-variable "tables_include_list" {
-  type = list(string)
-}
 variable "datasets_include_list" {
   type = list(string)
 }
@@ -107,9 +108,12 @@ variable "standard_dlp_results_table_name" {
   type = string
 }
 
-
-variable "dlp_inspection_template_id" {
-  type = string
+variable "dlp_inspection_templates_ids" {
+  description = "A list of objects, each representing a deployment of inspection templates per region"
+  type = list(object({
+    ids = list(string)
+    region = string
+  }))
 }
 
 variable "cron_expression" {

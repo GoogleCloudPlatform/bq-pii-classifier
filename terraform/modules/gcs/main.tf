@@ -5,7 +5,7 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
   # This bucket is used by the services so let's create in the same compute region
   location      = var.region
 
-  # force_destroy = true
+  force_destroy = !var.terraform_data_deletion_protection
 
   lifecycle_rule {
     condition {

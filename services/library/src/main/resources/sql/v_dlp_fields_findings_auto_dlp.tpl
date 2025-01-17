@@ -13,6 +13,7 @@
     , ranked_profiles AS (
 
         SELECT
+        CASE WHEN SPLIT(column_profile.name, "/")[OFFSET(3)] = "europe" THEN "eu" ELSE SPLIT(column_profile.name, "/")[OFFSET(3)] END AS table_region,
         column_profile.dataset_project_id,
         column_profile.dataset_id,
         column_profile.table_id,
@@ -27,6 +28,7 @@
    ), latest_profiles AS (
 
         SELECT
+        table_region,
         dataset_project_id,
         dataset_id,
         table_id,
@@ -47,13 +49,14 @@
         -- DLP reports column names for nested repeated records with the array index of the finding.
         -- normalize the column names for nested repeated records by removing the '[index]' part and selecting distinct
         -- e.g. hits[0].referer, hits[1].referer, etc becomes hits.referer
-        REGEXP_REPLACE(o.column_name, r"(\[\d+\]\.)", '.') AS field_name,
-        o.final_info_type AS info_type,
-        c.policy_tag
-        FROM latest_profiles o
-        LEFT JOIN datasets_domains dd ON dd.project = o.dataset_project_id AND dd.dataset = o.dataset_id
-        LEFT JOIN projects_domains pd ON pd.project = o.dataset_project_id
+        REGEXP_REPLACE(l.column_name, r"(\[\d+\]\.)", '.') AS field_name,
+        l.final_info_type AS info_type,
+        c.policy_tag,
+        c.classification
+        FROM latest_profiles l
+        LEFT JOIN datasets_domains dd ON dd.project = l.dataset_project_id AND dd.dataset = l.dataset_id
+        LEFT JOIN projects_domains pd ON pd.project = l.dataset_project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = o.final_info_type
-        WHERE o.final_info_type IS NOT NULL
+        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = l.final_info_type AND c.region = l.table_region
+        WHERE l.final_info_type IS NOT NULL
         ORDER BY 1,2

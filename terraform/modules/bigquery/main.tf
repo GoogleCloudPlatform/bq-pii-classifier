@@ -8,7 +8,9 @@ resource "google_bigquery_dataset" "results_dataset" {
   project = var.project
   location = var.region
   dataset_id = var.dataset
-  description = "To store DLP results from BQ Security Classifier app"
+  description = "To store DLP results from BQ PII Classifier solution"
+  # contents have deletion_protection set according to user configuration
+  delete_contents_on_destroy = true
 }
 
 # Logging BQ sink must be able to write data to logging table in the dataset
@@ -38,7 +40,7 @@ resource "google_bigquery_table" "standard_dlp_results_table" {
 
   schema = file("modules/bigquery/schema/standard_dlp_results.json")
 
-  deletion_protection = true
+  deletion_protection = var.terraform_data_deletion_protection
 }
 
 resource "google_bigquery_table" "logging_table" {
@@ -54,7 +56,7 @@ resource "google_bigquery_table" "logging_table" {
 
   schema = file("modules/bigquery/schema/run_googleapis_com_stdout.json")
 
-  deletion_protection = true
+  deletion_protection = var.terraform_data_deletion_protection
 }
 
 
@@ -64,7 +66,7 @@ resource "google_bigquery_table" "logging_view_tag_history" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_log_tag_history"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -78,12 +80,29 @@ resource "google_bigquery_table" "logging_view_tag_history" {
   }
 }
 
+resource "google_bigquery_table" "logging_view_label_history" {
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "v_log_label_history"
+
+  deletion_protection = var.terraform_data_deletion_protection
+
+  view {
+    use_legacy_sql = false
+    query = templatefile("modules/bigquery/views/v_log_label_history.tpl",
+      {
+        project = var.project
+        dataset = var.dataset
+        logging_table = google_bigquery_table.logging_table.table_id
+      }
+    )
+  }
+}
 
 resource "google_bigquery_table" "logging_view_steps" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_steps"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -101,7 +120,7 @@ resource "google_bigquery_table" "view_service_calls" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_service_calls"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -119,7 +138,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_broken_steps"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -129,6 +148,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
       dataset = var.dataset
       v_service_calls = google_bigquery_table.view_service_calls.table_id
       logging_table = google_bigquery_table.logging_table.table_id
+      inspection_templates_count = var.inspection_templates_count
     }
     )
   }
@@ -138,7 +158,7 @@ resource "google_bigquery_table" "view_tagging_actions" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_tagging_actions"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -157,7 +177,7 @@ resource "google_bigquery_table" "view_run_summary" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_run_summary"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -166,7 +186,8 @@ resource "google_bigquery_table" "view_run_summary" {
       project = var.project
       dataset = var.dataset
       v_service_calls = google_bigquery_table.view_service_calls.table_id
-      v_broken_steps = google_bigquery_table.logging_view_broken_steps.table_id
+      v_errors_non_retryable = google_bigquery_table.view_errors_non_retryable.table_id
+      inspection_templates_count = var.inspection_templates_count
     }
     )
   }
@@ -176,7 +197,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_run_summary_counts"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -185,6 +206,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
       project = var.project
       dataset = var.dataset
       v_run_summary = google_bigquery_table.view_run_summary.table_id
+      logging_table = google_bigquery_table.logging_table.table_id
     }
     )
   }
@@ -194,7 +216,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_errors_non_retryable"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -212,7 +234,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_errors_retryable"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -230,7 +252,7 @@ resource "google_bigquery_table" "view_tracking_id_map" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_tracking_id_to_table_map"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -248,15 +270,15 @@ resource "google_bigquery_table" "view_tracking_id_map" {
 
 locals {
   infotypes_policytags_map_select_statements = [for entry in var.created_policy_tags:
-  "SELECT '${lookup(entry,"domain","NA")}' AS domain, '${lookup(entry,"info_type","NA")}' AS info_type, '${lookup(entry,"policy_tag_id","NA")}' AS policy_tag"
+  "SELECT '${entry["region"]}' AS region, '${entry["domain"]}' AS domain, '${entry["classification"]}' AS classification, '${entry["info_type"]}' AS info_type, '${entry["policy_tag_id"]}' AS policy_tag"
   ]
 
   project_domain_map_select_statements = [for entry in var.projects_domains_mapping:
-  "SELECT '${lookup(entry,"project")}' AS project, '${lookup(entry,"domain")}' AS domain"
+  "SELECT '${entry["project"]}' AS project, '${entry["domain"]}' AS domain"
   ]
 
   dataset_domain_map_select_statements = length(var.dataset_domains_mapping) == 0 ? ["SELECT '' AS project, '' AS dataset, '' AS domain"] :[for entry in var.dataset_domains_mapping:
-  "SELECT '${lookup(entry,"project")}' AS project, '${lookup(entry,"dataset")}' AS dataset, '${lookup(entry,"domain")}' AS domain"
+  "SELECT '${entry["project"]}' AS project, '${entry["dataset"]}' AS dataset, '${entry["domain"]}' AS domain"
   ]
 }
 
@@ -264,8 +286,7 @@ resource "google_bigquery_table" "config_view_infotypes_policytags_map" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_config_infotypes_policytags_map"
 
-  #TODO:  Allow destroying the table. Set to true for production use
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -277,7 +298,7 @@ resource "google_bigquery_table" "config_view_project_domain_map" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_config_projects_domains_map"
 
-  deletion_protection = false
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
@@ -289,7 +310,7 @@ resource "google_bigquery_table" "config_view_dataset_domain_map" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_config_datasets_domains_map"
 
-  deletion_protection = false
+deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false

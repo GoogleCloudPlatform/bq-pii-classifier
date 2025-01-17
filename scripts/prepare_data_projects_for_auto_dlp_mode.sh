@@ -21,14 +21,24 @@ do
 
   echo "Preparing data project ${project} .."
 
-    # Tagging Dispatcher needs to know the location of datasets
+  # Tagging Dispatcher needs to know the location of datasets
   gcloud projects add-iam-policy-binding "${project}" \
-      --member="serviceAccount:${SA_TAGGING_DISPATCHER_EMAIL}" \
+     --member="serviceAccount:${SA_TAGGING_DISPATCHER_EMAIL}" \
      --role="roles/bigquery.metadataViewer"
 
   # Tagger needs to read table schema and update tables policy tags
   gcloud projects add-iam-policy-binding "${project}" \
-      --member="serviceAccount:${SA_TAGGER_EMAIL}" \
+     --member="serviceAccount:${SA_TAGGER_EMAIL}" \
      --role="roles/bigquery.dataOwner"
+
+  # Cloud Function remote_get_table_policy_tags needs to read tables policy tags (metadata)
+  gcloud projects add-iam-policy-binding "${project}" \
+      --member="serviceAccount:${SA_BQ_REMOTE_FUNC_GET_POLICY_TAGS}" \
+      --role="roles/bigquery.metadataViewer"
+
+  # Cloud Function remote_get_table_policy_tags needs to read taxonomy data (metadata)
+  gcloud projects add-iam-policy-binding "${project}" \
+      --member="serviceAccount:${SA_BQ_REMOTE_FUNC_GET_POLICY_TAGS}" \
+      --role="roles/datacatalog.viewer"
 
 done

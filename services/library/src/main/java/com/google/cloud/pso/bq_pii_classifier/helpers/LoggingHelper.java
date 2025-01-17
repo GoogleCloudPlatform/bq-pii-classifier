@@ -90,6 +90,35 @@ public class LoggingHelper {
 
     }
 
+    public void logLabelsHistory(TableSpec tableSpec,
+                                 String labelKey,
+                                 String labelValue,
+                                 Boolean isDryRun,
+                                 String tracker){
+
+        Object [] attributes = new Object[]{
+                kv("labels_history_log_project_id", tableSpec.getProject()),
+                kv("labels_history_log_dataset_id", tableSpec.getDataset()),
+                kv("labels_history_log_table_id", tableSpec.getTable()),
+                kv("labels_history_log_label_key", labelKey),
+                kv("labels_history_log_label_value", labelValue),
+                kv("labels_history_log_is_dry_run", isDryRun),
+        };
+
+        logWithTracker(
+                ApplicationLog.LABEL_HISTORY_LOG,
+                tracker,
+                String.format("Labels: table %s, isDryRunLabels = %s, KV (%s, %s)",
+                        tableSpec.toSqlString(),
+                        isDryRun,
+                        labelKey,
+                        labelValue),
+                Level.INFO,
+                attributes
+        );
+
+    }
+
     // used by Tagging Dispatcher
     public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId) {
         logSuccessDispatcherTrackingId(trackingId,
@@ -111,7 +140,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.DISPATCHED_REQUESTS_LOG,
                 trackingId,
-                String.format("Dispatched tagging request with trackindId `%s`", dispatchedTrackingId),
+                String.format("Dispatched request with trackindId `%s`", dispatchedTrackingId),
                 Level.INFO,
                 attributes
         );

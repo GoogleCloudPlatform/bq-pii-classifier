@@ -25,15 +25,24 @@ jobs:
       ##########################
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
 
       ################################
       # Run Linter against code base #
       ################################
       - name: Super Lint Code Base
-        uses: github/super-linter@v4
+        uses: super-linter/super-linter@v7.2.1
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_GOOGLE_JAVA_FORMAT: true
+          VALIDATE_TERRAFORM_FMT: true
+          FIX_GOOGLE_JAVA_FORMAT: true
+          FIX_TERRAFORM_FMT: true
           VALIDATE_TERRAFORM_TFLINT: true
-          VALIDATE_TERRAFORM_TERRASCAN: true
+          #VALIDATE_TERRAFORM_TERRASCAN: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORMAT: checkstyle
+          SAVE_SUPER_LINTER_OUTPUT: true

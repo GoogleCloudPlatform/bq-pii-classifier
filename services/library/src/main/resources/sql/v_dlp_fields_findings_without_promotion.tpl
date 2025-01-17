@@ -109,14 +109,15 @@
         o.field_name,
         o.info_type,
         c.policy_tag,
+        c.classification,
         o.max_likelihood
       FROM
         `one_info_type_per_field` o
       LEFT JOIN datasets_domains dd ON dd.project = o.project_id AND dd.dataset = o.dataset_id
       LEFT JOIN projects_domains pd ON pd.project = o.project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-      LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type
-      GROUP BY 1, 2,3,4,5,6,7,8
+      LEFT JOIN config c ON c.domain = COALESCE(dd.domain, pd.domain ) AND c.info_type = o.info_type AND c.region = '${param_region}'
+      GROUP BY 1, 2,3,4,5,6,7,8,9
       )
 
-      SELECT table_spec, field_name, info_type, policy_tag FROM info_type_with_policy_tags WHERE info_type IS NOT NULL
+      SELECT table_spec, field_name, info_type, policy_tag, classification FROM info_type_with_policy_tags WHERE info_type IS NOT NULL

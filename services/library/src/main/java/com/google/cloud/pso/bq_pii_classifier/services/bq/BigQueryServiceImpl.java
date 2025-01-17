@@ -25,10 +25,12 @@ import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.*;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
+import com.google.api.services.bigquery.model.Table;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class BigQueryServiceImpl implements BigQueryService {
@@ -62,7 +64,7 @@ public class BigQueryServiceImpl implements BigQueryService {
     }
 
     @Override
-    public Job submitJob(String query){
+    public Job submitJob(String query) {
 
         QueryJobConfiguration queryConfig =
                 QueryJobConfiguration.newBuilder(query)
@@ -107,12 +109,37 @@ public class BigQueryServiceImpl implements BigQueryService {
     }
 
     @Override
-    public void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException {
+    public void patchTable(TableSpec tableSpec,
+                           List<TableFieldSchema> updatedFields,
+                           Map<String, String> tableLabels) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setSchema(new TableSchema().setFields(updatedFields))
+                        .setLabels(tableLabels));
+    }
+
+    @Override
+    public void patchTableSchema(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setSchema(new TableSchema().setFields(updatedFields)));
+    }
+
+
+    @Override
+    public void patchTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) throws IOException {
+        patchTable(tableSpec,
+                new Table()
+                        .setLabels(tableLabels));
+    }
+
+    private void patchTable(TableSpec tableSpec, Table newTableModel) throws IOException {
+
         bqAPI.tables()
                 .patch(tableSpec.getProject(),
                         tableSpec.getDataset(),
                         tableSpec.getTable(),
-                        new com.google.api.services.bigquery.model.Table().setSchema(new TableSchema().setFields(updatedFields)))
+                        newTableModel)
                 .execute();
     }
 

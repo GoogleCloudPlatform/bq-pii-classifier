@@ -19,26 +19,16 @@ package com.google.cloud.pso.bq_pii_classifier.entities;
 import com.google.gson.Gson;
 
 public class Operation implements JsonMessage {
-    
 
-    // entity key is table spec in case of Dispatcher to Inspector route
-    // entity key is dlpJob name in case of Dispatcher to Tagger route
-    private String entityKey;
     private String runId;
     private String trackingId;
 
     public Operation() {
     }
 
-    public Operation(String entityKey, String runId, String trackingId) {
-        this.entityKey = entityKey;
+    public Operation(String runId, String trackingId) {
         this.runId = runId;
         this.trackingId = trackingId;
-    }
-
-
-    public String getEntityKey() {
-        return entityKey;
     }
 
     public String getRunId() {
@@ -52,8 +42,7 @@ public class Operation implements JsonMessage {
     @Override
     public String toString() {
         return "Operation{" +
-                "entityKey='" + entityKey + '\'' +
-                ", runId='" + runId + '\'' +
+                " runId='" + runId + '\'' +
                 ", trackingId='" + trackingId + '\'' +
                 '}';
     }

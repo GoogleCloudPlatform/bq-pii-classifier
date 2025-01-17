@@ -27,7 +27,7 @@ Main Steps:
     
 <i>If you find this solution helpful please show us your support by <b>starring or forking</b> the repo and 
 report issues using the Github tracker.  
-If you're a Googler kindly fill in this short [survery](https://docs.google.com/forms/d/19D-3pocKKdDjFuaEoo_XBGoaRVGdbs_DAe35jbKcyyI/viewform)
+If you're a Googler kindly fill in this short [survey](https://docs.google.com/forms/d/19D-3pocKKdDjFuaEoo_XBGoaRVGdbs_DAe35jbKcyyI/viewform)
 for tracking and reach out to <b>bq-pii-classifier@</b> for support.</i> 
 
 ## Solution Modes
