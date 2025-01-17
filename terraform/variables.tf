@@ -228,9 +228,6 @@ variable "tables_exclude_list" {
 # info_type_category: "standard" or "custom". Standard types will be added to the DLP inspection template automatically.
 # Custom types must be defined manually in th dlp inspection template
 # INFO_TYPEs configured in the DLP inspection job MUST be mapped here. Otherwise, mapping to policy tag ids will fail
-
-// disable inspection for TFIncorrectVariableType to use optional() for labels,inspection_template_number, taxonomy_number
-//noinspection TFIncorrectVariableType
 variable "classification_taxonomy" {
   type = list(object({
     info_type = string
