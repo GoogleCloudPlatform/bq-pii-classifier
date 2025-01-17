@@ -42,7 +42,7 @@ jobs:
           FIX_GOOGLE_JAVA_FORMAT: true
           FIX_TERRAFORM_FMT: true
           VALIDATE_TERRAFORM_TFLINT: true
-          VALIDATE_TERRAFORM_TERRASCAN: false
+          #VALIDATE_TERRAFORM_TERRASCAN: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FORMAT: checkstyle
           SAVE_SUPER_LINTER_OUTPUT: true
