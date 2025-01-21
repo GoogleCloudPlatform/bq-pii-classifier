@@ -152,7 +152,7 @@ locals {
 
 # Grant permissions for every member in the iam_members_list
 resource "google_data_catalog_policy_tag_iam_member" "policy_tag_reader" {
-  provider = google-beta
+  provider = google
   count = length(local.iam_members_list)
   policy_tag = local.iam_members_list[count.index]["policy_tag_name"]
   role = "roles/datacatalog.categoryFineGrainedReader"

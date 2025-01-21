@@ -18,12 +18,6 @@ provider "google" {
   impersonate_service_account = local.terraform_service_account_email
 }
 
-provider "google-beta" {
-  project                     = var.project
-  region                      = var.compute_region
-  impersonate_service_account = local.terraform_service_account_email
-}
-
 data google_project "gcp_project" {
   project_id = var.project
 }
@@ -49,7 +43,7 @@ locals {
 
   tagger_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_service_image}"
 
-  dlp_service_account_email =  "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
+  dlp_service_account_email = "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
 
   cloud_scheduler_account_email = "service-${data.google_project.gcp_project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 
@@ -60,16 +54,18 @@ locals {
     flatten([for dataset in var.datasets_include_list : split(".", dataset)[0]]), // parse project_name from "project_name.dataset_name"
     var.projects_include_list // concat to the list of projects
   ))
+
+  dlp_inspection_templates_ids_list = flatten([for obj in module.common-stack.dlp_inspection_templates_ids : obj["ids"]])
 }
 
 
 module "gcs" {
-  source                  = "./modules/gcs"
-  gcs_flags_bucket_name   = "${var.project}-${var.gcs_flags_bucket_name}"
-  project                 = var.project
-  region                  = var.compute_region # because it's used by the cloud run services
+  source                             = "./modules/gcs"
+  gcs_flags_bucket_name              = "${var.project}-${var.gcs_flags_bucket_name}"
+  project                            = var.project
+  region                             = var.compute_region # because it's used by the cloud run services
   # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
-  gcs_flags_bucket_admins = var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
+  gcs_flags_bucket_admins            = var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
@@ -120,10 +116,10 @@ module "common-stack" {
   tagger_subscription_message_retention_duration     = var.tagger_subscription_message_retention_duration
   promote_mixed_info_types                           = var.promote_mixed_info_types
 
-  custom_info_types_dictionaries = var.custom_info_types_dictionaries
-  custom_info_types_regex        = var.custom_info_types_regex
-  source_data_regions            = var.source_data_regions
-  taxonomy_name_suffix           = var.taxonomy_name_suffix
+  custom_info_types_dictionaries     = var.custom_info_types_dictionaries
+  custom_info_types_regex            = var.custom_info_types_regex
+  source_data_regions                = var.source_data_regions
+  taxonomy_name_suffix               = var.taxonomy_name_suffix
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
@@ -175,21 +171,21 @@ module "inspection-stack" {
 
 # Helper functions for data analysis
 module "bq-remote-func-get-table-policy-tags" {
-  source = "./modules/bq-remote-function"
-  function_name = var.bq_remote_func_get_policy_tags_name
-  cloud_function_src_dir  = "../helpers/bq-remote-functions/get-policy-tags"
-  cloud_function_temp_dir = "/tmp/get-policy-tags.zip"
-  service_account_name = var.sa_bq_remote_func_get_policy_tags
-  function_entry_point = "process_request"
-  env_variables = {}
-  project = var.project
-  compute_region = var.compute_region
-  data_region = var.data_region
-  bigquery_dataset_name = module.common-stack.bq_results_dataset
-  deployment_procedure_path = "modules/bq-remote-function/procedures/deploy_get_policy_tags_remote_func.tpl"
+  source                         = "./modules/bq-remote-function"
+  function_name                  = var.bq_remote_func_get_policy_tags_name
+  cloud_function_src_dir         = "../helpers/bq-remote-functions/get-policy-tags"
+  cloud_function_temp_dir        = "/tmp/get-policy-tags.zip"
+  service_account_name           = var.sa_bq_remote_func_get_policy_tags
+  function_entry_point           = "process_request"
+  env_variables                  = {}
+  project                        = var.project
+  compute_region                 = var.compute_region
+  data_region                    = var.data_region
+  bigquery_dataset_name          = module.common-stack.bq_results_dataset
+  deployment_procedure_path      = "modules/bq-remote-function/procedures/deploy_get_policy_tags_remote_func.tpl"
   cloud_functions_sa_extra_roles = []
 
-  depends_on             = [module.common-stack]
+  depends_on = [module.common-stack]
 }
 
 # Assign permissions for the service accounts used in this solution on the data projects when using standard mode.
@@ -198,17 +194,16 @@ module "bq-remote-func-get-table-policy-tags" {
 module "data_projects_permissions_in_standard_mode" {
   source = "./modules/data_project_permissions_in_standard_mode"
   // deploy this module only if we are in standard mode
-  count  = var.is_auto_dlp_mode? 0: length(local.data_projects)
+  count  = var.is_auto_dlp_mode? 0 : length(local.data_projects)
 
-  target_project = local.data_projects[count.index]
+  target_project                          = local.data_projects[count.index]
   sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
-  sa_dlp_email = local.dlp_service_account_email
-  sa_inspection_dispatcher_email = module.inspection-stack[0].sa_inspection_dispatcher_email
-  sa_inspector_email = module.inspection-stack[0].sa_inspector_email
-  sa_tagger_email = module.common-stack.sa_tagger_email
-  sa_tagging_dispatcher_email = module.common-stack.sa_tagging_dispatcher_email
+  sa_dlp_email                            = local.dlp_service_account_email
+  sa_inspection_dispatcher_email          = module.inspection-stack[0].sa_inspection_dispatcher_email
+  sa_inspector_email                      = module.inspection-stack[0].sa_inspector_email
+  sa_tagger_email                         = module.common-stack.sa_tagger_email
+  sa_tagging_dispatcher_email             = module.common-stack.sa_tagging_dispatcher_email
 }
-
 
 
 

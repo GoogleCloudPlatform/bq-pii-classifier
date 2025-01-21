@@ -4,7 +4,7 @@
 ### Create One  taxonomy and it's hierarchy
 
 resource "google_data_catalog_taxonomy" "domain_taxonomy" {
-  provider = google-beta
+  provider = google
   project = var.project
   region = var.region
   display_name = title("${var.domain} Taxonomy ${var.taxonomy_number}${var.taxonomy_name_suffix}")
@@ -22,7 +22,7 @@ locals {
 
 resource "google_data_catalog_policy_tag" "parent_tags" {
   count = length(local.parent_nodes)
-  provider = google-beta
+  provider = google
   taxonomy = google_data_catalog_taxonomy.domain_taxonomy.id
   display_name = local.parent_nodes[count.index]
   # FIXME: this is a hack to propagate the domain the output variable "created_parent_tags". Find an alternative
@@ -31,7 +31,7 @@ resource "google_data_catalog_policy_tag" "parent_tags" {
 
 resource "google_data_catalog_policy_tag" "children_tags" {
   count = length(var.classification_taxonomy)
-  provider = google-beta
+  provider = google
   taxonomy = google_data_catalog_taxonomy.domain_taxonomy.id
 
   # How to decide the parent policy tag resource:
