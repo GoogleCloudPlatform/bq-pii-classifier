@@ -62,6 +62,16 @@ message TableDataProfile {
   string full_resource = 3;
 }
 
+// The profile for a scanned FileStore.
+message FileStoreDataProfile {
+
+  // The name of the profile.
+  string name = 1;
+
+  // The path of the file store.
+  string file_store_path = 6;
+}
+
 // The message that will be published to a Pub/Sub topic.
 // To receive a message of protocol buffer schema type, convert the message data
 // to an object of this proto class.
@@ -74,4 +84,9 @@ message DataProfilePubSubMessage {
 
   // The event that caused the Pub/Sub message to be sent.
   DataProfileAction.EventType event = 2;
+
+  // If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
+  // Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
+  // `file_store_path` will be populated.
+  FileStoreDataProfile file_store_profile = 3;
 }

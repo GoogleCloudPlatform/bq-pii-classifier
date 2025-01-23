@@ -75,6 +75,20 @@ private static final long serialVersionUID = 0L;
             event_ = rawValue;
             break;
           }
+          case 26: {
+            com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder subBuilder = null;
+            if (fileStoreProfile_ != null) {
+              subBuilder = fileStoreProfile_.toBuilder();
+            }
+            fileStoreProfile_ = input.readMessage(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(fileStoreProfile_);
+              fileStoreProfile_ = subBuilder.buildPartial();
+            }
+
+            break;
+
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -178,6 +192,27 @@ private static final long serialVersionUID = 0L;
     return result == null ? com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType.UNRECOGNIZED : result;
   }
 
+
+  //// START NEW CODE /////
+  public static final int FILE_STORE_PROFILE_FIELD_NUMBER = 3;
+  private com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile fileStoreProfile_;
+  @Override
+  public boolean hasFileStoreProfile() {
+    return fileStoreProfile_ != null;
+  }
+
+  @Override
+  public FileStoreDataProfile getFileStoreProfile() {
+    return fileStoreProfile_ == null ? com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+  }
+
+  @Override
+  public FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder() {
+    return getFileStoreProfile();
+  }
+
+  /// END NEW CODE ////
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -198,6 +233,9 @@ private static final long serialVersionUID = 0L;
     if (event_ != com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType.EVENT_TYPE_UNSPECIFIED.getNumber()) {
       output.writeEnum(2, event_);
     }
+    if (fileStoreProfile_ != null) {
+      output.writeMessage(3, getFileStoreProfile());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -214,6 +252,10 @@ private static final long serialVersionUID = 0L;
     if (event_ != com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType.EVENT_TYPE_UNSPECIFIED.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(2, event_);
+    }
+    if (fileStoreProfile_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+              .computeMessageSize(3, getFileStoreProfile());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -236,6 +278,11 @@ private static final long serialVersionUID = 0L;
           .equals(other.getProfile())) return false;
     }
     if (event_ != other.event_) return false;
+    if (hasFileStoreProfile() != other.hasFileStoreProfile()) return false;
+    if (hasFileStoreProfile()) {
+      if (!getFileStoreProfile()
+              .equals(other.getFileStoreProfile())) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -253,6 +300,10 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + EVENT_FIELD_NUMBER;
     hash = (53 * hash) + event_;
+    if (hasFileStoreProfile()) {
+      hash = (37 * hash) + FILE_STORE_PROFILE_FIELD_NUMBER;
+      hash = (53 * hash) + getFileStoreProfile().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -395,6 +446,12 @@ private static final long serialVersionUID = 0L;
         profile_ = null;
         profileBuilder_ = null;
       }
+      if (fileStoreProfileBuilder_ == null) {
+        fileStoreProfile_ = null;
+      } else {
+        fileStoreProfile_ = null;
+        fileStoreProfileBuilder_ = null;
+      }
       event_ = 0;
 
       return this;
@@ -427,6 +484,12 @@ private static final long serialVersionUID = 0L;
         result.profile_ = profile_;
       } else {
         result.profile_ = profileBuilder_.build();
+      }
+
+      if (fileStoreProfileBuilder_ == null) {
+        result.fileStoreProfile_ = fileStoreProfile_;
+      } else {
+        result.fileStoreProfile_ = fileStoreProfileBuilder_.build();
       }
       result.event_ = event_;
       onBuilt();
@@ -479,6 +542,9 @@ private static final long serialVersionUID = 0L;
       if (other == com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage.getDefaultInstance()) return this;
       if (other.hasProfile()) {
         mergeProfile(other.getProfile());
+      }
+      if (other.hasFileStoreProfile()) {
+        mergeFileStoreProfile(other.getFileStoreProfile());
       }
       if (other.event_ != 0) {
         setEventValue(other.getEventValue());
@@ -726,6 +792,110 @@ private static final long serialVersionUID = 0L;
       com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType result = com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType.valueOf(event_);
       return result == null ? com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType.UNRECOGNIZED : result;
     }
+
+    /// START OF NEW CODE 2 //
+    private com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile fileStoreProfile_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+            com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder> fileStoreProfileBuilder_;
+    @Override
+    public boolean hasFileStoreProfile() {
+      return fileStoreProfileBuilder_ != null || profile_ != null;
+    }
+
+    @Override
+    public FileStoreDataProfile getFileStoreProfile() {
+      if (fileStoreProfile_ == null) {
+        return fileStoreProfile_ == null ? com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+      } else {
+        return fileStoreProfileBuilder_.getMessage();
+      }
+    }
+
+    public Builder setFileStoreProfile(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile value) {
+      if (fileStoreProfileBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        fileStoreProfile_ = value;
+        onChanged();
+      } else {
+        fileStoreProfileBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+
+    public Builder setFileStoreProfile(
+            com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder builderForValue) {
+      if (fileStoreProfileBuilder_ == null) {
+        fileStoreProfile_ = builderForValue.build();
+        onChanged();
+      } else {
+        fileStoreProfileBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+
+    public Builder clearFileStoreProfile() {
+      if (fileStoreProfileBuilder_ == null) {
+        fileStoreProfile_ = null;
+        onChanged();
+      } else {
+        fileStoreProfile_ = null;
+        fileStoreProfileBuilder_ = null;
+      }
+
+      return this;
+    }
+
+    public Builder mergeFileStoreProfile(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile value) {
+      if (fileStoreProfileBuilder_ == null) {
+        if (fileStoreProfile_ != null) {
+          fileStoreProfile_ =
+                  com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.newBuilder(fileStoreProfile_).mergeFrom(value).buildPartial();
+        } else {
+          fileStoreProfile_ = value;
+        }
+        onChanged();
+      } else {
+        fileStoreProfileBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+
+    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder getFileStoreProfileBuilder() {
+
+      onChanged();
+      return getFileStoreProfileFieldBuilder().getBuilder();
+    }
+
+    private com.google.protobuf.SingleFieldBuilderV3<
+            com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder>
+    getFileStoreProfileFieldBuilder() {
+      if (fileStoreProfileBuilder_ == null) {
+        fileStoreProfileBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder>(
+                getFileStoreProfile(),
+                getParentForChildren(),
+                isClean());
+        fileStoreProfile_ = null;
+      }
+      return fileStoreProfileBuilder_;
+    }
+
+    @Override
+    public FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder() {
+      if (fileStoreProfileBuilder_ != null) {
+        return fileStoreProfileBuilder_.getMessageOrBuilder();
+      } else {
+        return fileStoreProfile_ == null ?
+                com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+      }
+    }
+    /// END OF NEW CODE 2 //
+
     /**
      * <pre>
      * The event that caused the Pub/Sub message to be sent.

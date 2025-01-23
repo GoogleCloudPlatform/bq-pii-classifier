@@ -28,6 +28,7 @@ cd ../services
 
 # make sure that the project is valid before submitting a build job
 mvn install
+mvn test
 
 gcloud builds submit \
 --project $PROJECT_ID \

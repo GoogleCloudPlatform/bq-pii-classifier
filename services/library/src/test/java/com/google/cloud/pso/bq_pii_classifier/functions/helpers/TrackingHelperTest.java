@@ -7,6 +7,9 @@ import static org.junit.Assert.assertEquals;
 
 public class TrackingHelperTest {
 
+    public TrackingHelperTest() {
+    }
+
     @Test
     public void  extractTrackingIdFromJobName(){
         assertEquals("9-9-9-9",

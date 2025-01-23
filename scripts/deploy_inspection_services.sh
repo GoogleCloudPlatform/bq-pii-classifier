@@ -26,6 +26,7 @@ gcloud auth configure-docker "${COMPUTE_REGION}-docker.pkg.dev"
 
 cd ../services
 mvn install
+mvn test
 
 cd dispatcher-inspection-app
 mvn compile jib:build -Dimage="${INSPECTION_DISPATCHER_IMAGE}"

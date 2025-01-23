@@ -58,4 +58,37 @@ public interface DataProfilePubSubMessageOrBuilder extends
    * @return The event.
    */
   com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType getEvent();
+
+  /**
+   * <pre>
+   * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
+   * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
+   * `file_store_path` will be populated.
+   * </pre>
+   *
+   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   * @return Whether the fileStoreProfile field is set.
+   */
+  boolean hasFileStoreProfile();
+  /**
+   * <pre>
+   * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
+   * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
+   * `file_store_path` will be populated.
+   * </pre>
+   *
+   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   * @return The fileStoreProfile.
+   */
+  com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile getFileStoreProfile();
+  /**
+   * <pre>
+   * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
+   * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
+   * `file_store_path` will be populated.
+   * </pre>
+   *
+   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   */
+  com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder();
 }

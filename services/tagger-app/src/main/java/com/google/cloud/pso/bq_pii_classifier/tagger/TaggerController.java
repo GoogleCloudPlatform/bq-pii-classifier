@@ -205,26 +205,41 @@ public class TaggerController {
                 DataProfilePubSubMessage dataProfilePubSubMessage = DataProfilePubSubMessage.parseFrom(data);
 
                 logger.logInfoWithTracker(defaultTrackingId, String.format(
-                        "Parsed DataProfilePubSubMessage= '%s'",
-                        dataProfilePubSubMessage
+                        "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
+                        dataProfilePubSubMessage.toString()
                 ));
 
-                TableSpec targetTable = TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
-                String runId = TrackingHelper.generateOneTimeTaggingSuffix();
-                String trackingId = TrackingHelper.generateTrackingId(runId, targetTable.toSqlString());
+                // check if it's coming from a BQ scan config or GCS scan config
+                if (dataProfilePubSubMessage.hasProfile()){
 
-                TaggerTableSpecRequest taggerTableSpecRequestFromAutoDlp = new TaggerTableSpecRequest(
-                        runId,
-                        trackingId,
-                        targetTable
-                );
+                    TableSpec targetTable = TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
+                    String runId = TrackingHelper.generateOneTimeTaggingSuffix();
+                    String trackingId = TrackingHelper.generateTrackingId(runId, targetTable.toSqlString());
 
-                logger.logInfoWithTracker(taggerTableSpecRequestFromAutoDlp.getTrackingId(),
-                        String.format("Parsed Request from Auto DLP notifications : %s", taggerTableSpecRequestFromAutoDlp.toString()));
+                    TaggerTableSpecRequest taggerTableSpecRequestFromAutoDlp = new TaggerTableSpecRequest(
+                            runId,
+                            trackingId,
+                            targetTable
+                    );
 
-                // CASE 4: TaggerTableSpecRequest from Auto DLP Notification
-                return taggerTableSpecRequestFromAutoDlp;
+                    // CASE 4: TaggerTableSpecRequest from Auto DLP Notification
+                    return taggerTableSpecRequestFromAutoDlp;
+                }else{
 
+                    if (dataProfilePubSubMessage.hasFileStoreProfile()){
+
+                        String fileStoreProfileName = dataProfilePubSubMessage.getFileStoreProfile().getName();
+                        String fileStorePath = dataProfilePubSubMessage.getFileStoreProfile().getFileStorePath();
+                        String runId = TrackingHelper.generateOneTimeTaggingSuffix();
+                        String trackingId = TrackingHelper.generateTrackingId(runId, fileStorePath);
+
+                        // TODO: add return statement with Tagger Request
+                        throw new NonRetryableApplicationException("Auto DLP for GCS tagging not implemented yet");
+                    }else{
+                        throw new NonRetryableApplicationException("Auto DLP message doesn't contain a table profile or a file store profile");
+                    }
+
+                }
             } catch (Exception ex2) {
 
                 throw new NonRetryableApplicationException(

@@ -53,5 +53,5 @@ We need a Docker Repository to publish images that are used by this solution
 
 ```
 gcloud artifacts repositories create $DOCKER_REPO_NAME --repository-format=docker \
---project=PROJECT_ID --location=$COMPUTE_REGION --description="Docker repository"
+--project=$PROJECT_ID --location=$COMPUTE_REGION --description="Docker repository"
 ```

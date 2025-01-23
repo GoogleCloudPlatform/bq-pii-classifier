@@ -33,6 +33,9 @@ import static org.junit.Assert.assertEquals;
 
 public class ControllerExceptionHelperTest {
 
+    public ControllerExceptionHelperTest() {
+    }
+
     @Test
     public void testRetryableApiException() {
         LoggingHelper logger = new LoggingHelper(ControllerExceptionHelperTest.class.getSimpleName(), 0, "test");

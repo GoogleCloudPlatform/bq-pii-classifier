@@ -1,4 +1,4 @@
-package com.google.cloud.pso.bq_pii_classifier.functions.entities;
+package com.google.cloud.pso.bq_pii_classifier.entities;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
@@ -9,6 +9,9 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class InfoTypeInfoTest {
+
+    public InfoTypeInfoTest() {
+    }
 
     @Test
     public void fromFullResource() {

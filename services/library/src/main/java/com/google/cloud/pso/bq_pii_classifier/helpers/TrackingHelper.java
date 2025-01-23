@@ -64,7 +64,7 @@ public class TrackingHelper {
      */
     public static String extractTrackingIdFromJobName(String jobName){
         String [] splits = jobName.split("/");
-        return  splits[splits.length-1].substring(2);
+        return  splits[splits.length-1].split("_")[0].substring(2);
     }
 
 }

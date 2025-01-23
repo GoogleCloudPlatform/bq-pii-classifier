@@ -6,75 +6,90 @@ package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
 public final class Dlp {
   private Dlp() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistryLite registry) {
+          com.google.protobuf.ExtensionRegistryLite registry) {
   }
 
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+          com.google.protobuf.ExtensionRegistry registry) {
     registerAllExtensions(
-        (com.google.protobuf.ExtensionRegistryLite) registry);
+            (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable;
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
+  static final
+  com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_fieldAccessorTable;
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_descriptor;
+  static final
+  com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
-  static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable;
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
+  static final
+  com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
+  static final
+  com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
-      getDescriptor() {
+  getDescriptor() {
     return descriptor;
   }
   private static  com.google.protobuf.Descriptors.FileDescriptor
-      descriptor;
+          descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\tdlp.proto\0223com.google.cloud.pso.bq_pii" +
-      "_classifier.entities.dlp\"\212\001\n\021DataProfile" +
-      "Action\"u\n\tEventType\022\032\n\026EVENT_TYPE_UNSPEC" +
-      "IFIED\020\000\022\017\n\013NEW_PROFILE\020\001\022\023\n\017CHANGED_PROF" +
-      "ILE\020\002\022\023\n\017SCORE_INCREASED\020\003\022\021\n\rERROR_CHAN" +
-      "GED\020\004\"7\n\020TableDataProfile\022\014\n\004name\030\001 \001(\t\022" +
-      "\025\n\rfull_resource\030\003 \001(\t\"\323\001\n\030DataProfilePu" +
-      "bSubMessage\022V\n\007profile\030\001 \001(\0132E.com.googl" +
-      "e.cloud.pso.bq_pii_classifier.entities.d" +
-      "lp.TableDataProfile\022_\n\005event\030\002 \001(\0162P.com" +
-      ".google.cloud.pso.bq_pii_classifier.enti" +
-      "ties.dlp.DataProfileAction.EventTypeB7\n3" +
-      "com.google.cloud.pso.bq_pii_classifier.e" +
-      "ntities.dlpP\001b\006proto3"
+            "\n\010my.proto\0223com.google.cloud.pso.bq_pii_" +
+                    "classifier.entities.dlp\"\212\001\n\021DataProfileA" +
+                    "ction\"u\n\tEventType\022\032\n\026EVENT_TYPE_UNSPECI" +
+                    "FIED\020\000\022\017\n\013NEW_PROFILE\020\001\022\023\n\017CHANGED_PROFI" +
+                    "LE\020\002\022\023\n\017SCORE_INCREASED\020\003\022\021\n\rERROR_CHANG" +
+                    "ED\020\004\"7\n\020TableDataProfile\022\014\n\004name\030\001 \001(\t\022\025" +
+                    "\n\rfull_resource\030\003 \001(\t\"=\n\024FileStoreDataPr" +
+                    "ofile\022\014\n\004name\030\001 \001(\t\022\027\n\017file_store_path\030\006" +
+                    " \001(\t\"\272\002\n\030DataProfilePubSubMessage\022V\n\007pro" +
+                    "file\030\001 \001(\0132E.com.google.cloud.pso.bq_pii" +
+                    "_classifier.entities.dlp.TableDataProfil" +
+                    "e\022_\n\005event\030\002 \001(\0162P.com.google.cloud.pso." +
+                    "bq_pii_classifier.entities.dlp.DataProfi" +
+                    "leAction.EventType\022e\n\022file_store_profile" +
+                    "\030\003 \001(\0132I.com.google.cloud.pso.bq_pii_cla" +
+                    "ssifier.entities.dlp.FileStoreDataProfil" +
+                    "eB7\n3com.google.cloud.pso.bq_pii_classif" +
+                    "ier.entities.dlpP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
-      .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
-        });
+            .internalBuildGeneratedFileFrom(descriptorData,
+                    new com.google.protobuf.Descriptors.FileDescriptor[] {
+                    });
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor =
-      getDescriptor().getMessageTypes().get(0);
+            getDescriptor().getMessageTypes().get(0);
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor,
-        new java.lang.String[] { });
+            com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+            internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor,
+            new java.lang.String[] { });
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+            getDescriptor().getMessageTypes().get(1);
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_descriptor,
-        new java.lang.String[] { "Name", "FullResource", });
+            com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+            internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_TableDataProfile_descriptor,
+            new java.lang.String[] { "Name", "FullResource", });
+    internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor =
+            getDescriptor().getMessageTypes().get(2);
+    internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+            internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor,
+            new java.lang.String[] { "Name", "FileStorePath", });
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+            getDescriptor().getMessageTypes().get(3);
     internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor,
-        new java.lang.String[] { "Profile", "Event", });
+            com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+            internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor,
+            new java.lang.String[] { "Profile", "Event", "FileStoreProfile", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
