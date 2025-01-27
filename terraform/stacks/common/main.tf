@@ -373,6 +373,7 @@ module "pubsub-tagger" {
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  retain_acked_messages = var.retain_tagger_pubsub_messages
 }
 
 

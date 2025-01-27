@@ -241,3 +241,8 @@ variable "taxonomy_name_suffix" {
 variable "terraform_data_deletion_protection" {
   type = bool
 }
+
+variable "retain_tagger_pubsub_messages" {
+  type = bool
+  description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
+}

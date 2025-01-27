@@ -23,3 +23,7 @@ variable "subscription_message_retention_duration" {
 variable "subscription_ack_deadline_seconds" {
   type = number
 }
+variable "retain_acked_messages" {
+  type = bool
+  default = false
+}

@@ -159,6 +159,7 @@ module "pubsub-inspector" {
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   # However, retrying the inspector function with the same msg will lead to a non-retryable error due to dlp job name collision
   subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
+  retain_acked_messages = var.retain_inspector_pubsub_messages
 
 }
 

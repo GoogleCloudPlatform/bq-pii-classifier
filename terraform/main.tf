@@ -121,6 +121,7 @@ module "common-stack" {
   source_data_regions                = var.source_data_regions
   taxonomy_name_suffix               = var.taxonomy_name_suffix
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
+  retain_tagger_pubsub_messages      = var.retain_tagger_pubsub_messages
 }
 
 module "inspection-stack" {
@@ -167,6 +168,7 @@ module "inspection-stack" {
   inspector_service_timeout_seconds                  = var.inspector_service_timeout_seconds
   inspector_subscription_ack_deadline_seconds        = var.inspector_subscription_ack_deadline_seconds
   inspector_subscription_message_retention_duration  = var.inspector_subscription_message_retention_duration
+  retain_inspector_pubsub_messages      = var.retain_inspector_pubsub_messages
 }
 
 # Helper functions for data analysis

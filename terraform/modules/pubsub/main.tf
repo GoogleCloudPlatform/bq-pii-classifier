@@ -21,6 +21,9 @@ resource "google_pubsub_subscription" "subscription" {
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
   # It also sets how long should we keep trying to process one run
   message_retention_duration = var.subscription_message_retention_duration
+
+  # If retain_acked_messages is true, then message_retention_duration also configures the retention of acknowledged messages, and thus configures how far back in time a subscriptions.seek can be done.
+  # Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window
   retain_acked_messages = false
 
   enable_message_ordering  = false
