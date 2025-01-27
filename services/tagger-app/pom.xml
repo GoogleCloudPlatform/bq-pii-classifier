@@ -53,6 +53,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- include the same protobuf version as in library and protoc for proper proto parsing in the app container image -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -119,6 +119,33 @@ public class LoggingHelper {
 
     }
 
+    public void logBucketLabelsHistory(String bucketName,
+                                 String labelKey,
+                                 String labelValue,
+                                 Boolean isDryRun,
+                                 String tracker){
+
+        Object [] attributes = new Object[]{
+                kv("labels_history_log_bucket_name", bucketName),
+                kv("labels_history_log_label_key", labelKey),
+                kv("labels_history_log_label_value", labelValue),
+                kv("labels_history_log_is_dry_run", isDryRun),
+        };
+
+        logWithTracker(
+                ApplicationLog.GCS_LABEL_HISTORY_LOG,
+                tracker,
+                String.format("Labels: bucket  %s, isDryRunLabels = %s, KV (%s, %s)",
+                        bucketName,
+                        isDryRun,
+                        labelKey,
+                        labelValue),
+                Level.INFO,
+                attributes
+        );
+
+    }
+
     // used by Tagging Dispatcher
     public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId) {
         logSuccessDispatcherTrackingId(trackingId,

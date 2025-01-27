@@ -244,6 +244,11 @@
         "mode": "NULLABLE",
         "name": "labels_history_log_is_dry_run",
         "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_bucket_name",
+        "type": "BOOLEAN"
       }
     ],
     "mode": "NULLABLE",

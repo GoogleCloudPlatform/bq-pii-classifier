@@ -22,6 +22,8 @@ import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMess
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.Tagger;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerDlpJobRequest;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerTableSpecRequest;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTagger;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
@@ -30,6 +32,8 @@ import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.FindingsReader;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.FindingsReaderFactory;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.GcsFindingsReaderApiImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.gson.Gson;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -102,17 +106,33 @@ public class TaggerController {
                     bigQueryService,
                     findingsReader,
                     new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                    "tagger-flags"
+                    "bq-tagger-flags"
             );
 
-
             if (taggerRequest instanceof TaggerTableSpecRequest) {
+
                 TaggerTableSpecRequest taggerTableSpecRequest = (TaggerTableSpecRequest) taggerRequest;
                 tagger.execute(taggerTableSpecRequest, requestBody.getMessage().getMessageId());
             } else {
+
                 if (taggerRequest instanceof TaggerDlpJobRequest) {
+
                     TaggerDlpJobRequest taggerDlpJobRequest = (TaggerDlpJobRequest) taggerRequest;
                     tagger.execute(taggerDlpJobRequest, requestBody.getMessage().getMessageId());
+                }else{
+
+                    if(taggerRequest instanceof GcsTaggerRequest){
+
+                        GcsTaggerRequest gcsTaggerRequest = (GcsTaggerRequest) taggerRequest;
+                        GcsTagger gcsTagger = new GcsTagger(
+                                environment.toConfig(),
+                                new GcsFindingsReaderApiImpl(),
+                                new GcsServiceImpl(),
+                                new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+                                "gcs-tagger-flags"
+                        );
+                        gcsTagger.execute(gcsTaggerRequest, requestBody.getMessage().getMessageId());
+                    }
                 }
             }
 
@@ -125,10 +145,11 @@ public class TaggerController {
     }
 
     // The pubsub message could come from different sources with different formats
-    // 1. From DLP job notification in Standard Mode as a JSON message with the DLPJobName --> should be parsed as TaggerDlpJobRequest
-    // 2. From Tagging Dispatcher Service in Standard Mode as TaggerDlpJobRequest
-    // 3. From Tagging Dispatcher Service in AutoDlp Mode as TaggerTableSpecRequest
-    // 4. From Auto DLP job notification in AutoDlp Mode as "DataProfilePubSubMessage" proto --> should be parsed as TaggerTableSpecRequest
+    // 1. From DLP job notification in Standard Mode as a JSON message with the DLPJobName --> return TaggerDlpJobRequest
+    // 2. From Tagging Dispatcher Service in Standard Mode -->  return TaggerDlpJobRequest
+    // 3. From Tagging Dispatcher Service in AutoDlp Mode --> return TaggerTableSpecRequest
+    // 4. From BQ Auto DLP notification in AutoDlp Mode as "DataProfilePubSubMessage" proto with 'profile' field --> return TaggerTableSpecRequest
+    // 5. From GCS Auto DLP notification in Standard and AutoDlp Mode as "DataProfilePubSubMessage" proto with 'fileStoreProfile' field --> return GcsTaggerRequest
 
 
     private Operation parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
@@ -233,8 +254,8 @@ public class TaggerController {
                         String runId = TrackingHelper.generateOneTimeTaggingSuffix();
                         String trackingId = TrackingHelper.generateTrackingId(runId, fileStorePath);
 
-                        // TODO: add return statement with Tagger Request
-                        throw new NonRetryableApplicationException("Auto DLP for GCS tagging not implemented yet");
+                        // CASE 5: GcsTaggerRequest parsed from GCS Auto DLP PubSub message
+                        return new GcsTaggerRequest(runId, trackingId, fileStoreProfileName, fileStorePath);
                     }else{
                         throw new NonRetryableApplicationException("Auto DLP message doesn't contain a table profile or a file store profile");
                     }
