@@ -74,9 +74,11 @@
     <modules>
         <module>library</module>
         <module>dispatcher-tagging-app</module>
+        <module>dispatcher-tagging-gcs-app</module>
         <module>dispatcher-inspection-app</module>
         <module>inspector-app</module>
         <module>tagger-app</module>
+        <module>tagger-gcs-app</module>
     </modules>
 
 </project>

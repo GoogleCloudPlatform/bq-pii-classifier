@@ -20,8 +20,9 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
   uniform_bucket_level_access = true
 }
 
-resource "google_storage_bucket_iam_binding" "gcs_flags_bucket_iam_bindings" {
+resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member" {
+  count = length(var.gcs_flags_bucket_admins)
   bucket = google_storage_bucket.gcs_flags_bucket.name
   role = "roles/storage.objectAdmin"
-  members = var.gcs_flags_bucket_admins
+  member = var.gcs_flags_bucket_admins[count.index]
 }

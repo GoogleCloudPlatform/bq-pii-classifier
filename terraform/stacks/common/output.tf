@@ -26,3 +26,7 @@ output "info_type_map" {
   value = local.info_types_map
 }
 
+output "logging_table_id" {
+  value = module.bigquery.logging_table
+}
+

@@ -16,17 +16,12 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
-import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.api.services.bigquery.model.TableFieldSchema.PolicyTags;
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.ColumnTaggingAction;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.GcsFindingsReader;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.gcs.GcsFindingsReader;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
-import org.slf4j.event.Level;
 
 import java.io.IOException;
 import java.util.*;
@@ -37,7 +32,7 @@ public class GcsTagger {
     private final LoggingHelper logger;
 
     private static final Integer functionNumber = 3;
-    private TaggerConfig config;
+    private GcsTaggerConfig config;
 
     private GcsFindingsReader findingsReader;
 
@@ -45,7 +40,7 @@ public class GcsTagger {
     private PersistentSet persistentSet;
     private String persistentSetObjectPrefix;
 
-    public GcsTagger(TaggerConfig config,
+    public GcsTagger(GcsTaggerConfig config,
                      GcsFindingsReader findingsReader,
                      GcsService gcsService,
                      PersistentSet persistentSet,
@@ -92,7 +87,14 @@ public class GcsTagger {
             throw new NonRetryableApplicationException(msg);
         }
 
-        Set<String> detectedInfoTypes = findingsReader.getFileStoreDataProfileDetectedInfoTypes(request.getFileStoreProfileName());
+
+        // get the info types found in that profile, either already supplied by the dispatcher or from DLP Api in case of the event-driven path
+        Set<String> detectedInfoTypes;
+        if (request.getGcsDlpProfileSummary().hasInfoTypes()){
+            detectedInfoTypes = request.getGcsDlpProfileSummary().getInfoTypes();
+        }else{
+            detectedInfoTypes = findingsReader.getFileStoreDataProfileDetectedInfoTypes(request.getGcsDlpProfileSummary().getFileStoreProfileName());
+        }
 
         Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata = filterInfoTypesMetadataMap(detectedInfoTypes,
                 config.getInfoTypeMap());
@@ -103,7 +105,7 @@ public class GcsTagger {
 
         //log found labels for this bucket
         for (Map.Entry<String, String> labelEntry : bucketLabels.entrySet()) {
-            logger.logBucketLabelsHistory(request.getBucketName(),
+            logger.logBucketLabelsHistory(request.getGcsDlpProfileSummary().getBucketName(),
                     labelEntry.getKey(),
                     labelEntry.getValue(),
                     config.isDryRunLabels(),
@@ -112,10 +114,10 @@ public class GcsTagger {
 
         // attach labels to GCS bucket based on the isDryRunLabels()
         if(!config.isDryRunLabels() && bucketLabels.size() > 0){
-            gcsService.addLabelsToBucket(request.getBucketName(), bucketLabels);
+            gcsService.addLabelsToBucket(request.getGcsDlpProfileSummary().getBucketName(), bucketLabels);
 
             logger.logInfoWithTracker(request.getTrackingId(),
-                    String.format("Added %s labels to bucket %s .", bucketLabels.size(), request.getBucketPath())
+                    String.format("Added %s labels to bucket %s .", bucketLabels.size(), request.getGcsDlpProfileSummary().getBucketPath())
             );
         }
 

@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 public class UtilsTest {
     public UtilsTest() {
@@ -66,5 +67,33 @@ public class UtilsTest {
 
         assertEquals("eu", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe/dlpJobs/job"));
         assertEquals("europe-west3", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe-west3/dlpJobs/job"));
+    }
+
+    @Test
+    public void testStripLeadingAndTrailingSlashes(){
+
+        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource"));
+        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource/"));
+        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource"));
+        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource/"));
+        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("//path/to/resource//"));
+
+        assertEquals("resource", Utils.stripLeadingAndTrailingSlashes("resource"));
+
+       assertThrows(IllegalArgumentException.class, () -> {
+            Utils.stripLeadingAndTrailingSlashes(null);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            Utils.stripLeadingAndTrailingSlashes("");
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            Utils.stripLeadingAndTrailingSlashes(" ");
+        });
+
+        assertEquals("", Utils.stripLeadingAndTrailingSlashes("/"));
+        assertEquals("", Utils.stripLeadingAndTrailingSlashes("//"));
+
     }
 }

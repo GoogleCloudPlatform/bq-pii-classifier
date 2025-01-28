@@ -66,12 +66,29 @@ variable "dlp_gcs_create_configuration_in_paused_state" {
   default = true
 }
 
+variable "gcs_tagging_scheduler_name" {
+  type = string
+  default = "gcs-tagging-scheduler"
+}
+variable "gcs_tagging_scheduler_description" {
+  type = string
+  default = "CRON job to trigger re-tagging of GCS buckets"
+}
+
+variable "gcs_tagging_scheduler_cron" {
+  type = string
+}
+
 ########################################################################################################################
 #                                             DATA & LOCALS
 ########################################################################################################################
 
 locals {
   dlp_region = var.data_region == "eu" ? "europe" : var.data_region
+
+  tagging_dispatcher_gcs_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_gcs_service_image}"
+
+  tagger_gcs_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_gcs_service_image}"
 }
 
 ########################################################################################################################
@@ -210,4 +227,254 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   // PAUSED | RUNNING
   status = var.dlp_gcs_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
+}
+
+
+##### Tagging Dispatcher Service ######
+
+variable "sa_tagging_dispatcher_gcs" {
+  type = string
+  default = "tag-dispatcher-gcs"
+}
+
+variable "sa_tagging_dispatcher_gcs_tasks" {
+  type = string
+  default = "tag-dispatcher-gcs-tasks"
+}
+
+variable "tagging_dispatcher_gcs_service_name" {
+  type = string
+  default = "s1a-tagging-dispatcher-gcs"
+}
+
+variable "tagging_dispatcher_gcs_pubsub_topic" {
+  type = string
+  default = "tagging_dispatcher_gcs_topic"
+}
+
+variable "tagging_dispatcher_gcs_pubsub_sub" {
+  type = string
+  default = "tagging_dispatcher_gcs_push_sub"
+}
+
+variable "tagging_dispatcher_gcs_service_image" {
+  type = string
+}
+
+resource "google_service_account" "sa_tagging_dispatcher_gcs" {
+  project = var.project
+  account_id = var.sa_tagging_dispatcher_gcs
+  display_name = "Runtime SA for Tagging Dispatcher GCS service"
+}
+
+resource "google_service_account" "sa_tagging_dispatcher_gcs_tasks" {
+  project = var.project
+  account_id = var.sa_tagging_dispatcher_gcs_tasks
+  display_name = "To authorize PubSub Push requests to Tagging Dispatcher GCS Service"
+}
+
+resource "google_service_account_iam_member" "sa_tagging_dispatcher_gcs_account_user_sa_dispatcher_gcs_tasks" {
+  service_account_id = google_service_account.sa_tagging_dispatcher_gcs.name
+  role = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs_tasks.email}"
+}
+
+module "cloud-run-tagging-dispatcher-gcs" {
+  source                        = "./modules/cloud-run"
+  project                       = var.project
+  region                        = var.compute_region
+  service_image                 = local.tagging_dispatcher_gcs_service_image_uri
+  service_name                  = var.tagging_dispatcher_gcs_service_name
+  service_account_email         = google_service_account.sa_tagging_dispatcher_gcs.email
+  invoker_service_account_email = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
+  # Dispatcher could take time to list large number of tables
+  timeout_seconds               = var.dispatcher_service_timeout_seconds
+  max_containers                = 1
+  max_cpu                       = 2
+  environment_variables         = [
+    {
+      name  = "PROJECT_ID",
+      value = var.project
+    },
+    {
+      name  = "COMPUTE_REGION_ID",
+      value = var.compute_region
+    },
+    {
+      name  = "DATA_REGION_ID",
+      value = var.data_region
+    },
+    {
+      name  = "TAGGER_TOPIC",
+      value = module.pubsub-tagger-gcs.topic-name
+    },
+    {
+      name  = "IS_AUTO_DLP_MODE",
+      value = var.is_auto_dlp_mode,
+    },
+    {
+      name  = "GCS_FLAGS_BUCKET",
+      value = module.gcs.create_gcs_flags_bucket_name,
+    },
+    # TODO: make this more dynamic by letting the user decide on a project or org level and reflect it in the config module
+    {
+      name  = "DLP_CONFIG_PARENT",
+      value = "organizations/${var.dlp_gcs_scan_org_id}"
+    }
+  ]
+}
+
+module "pubsub-tagging-dispatcher-gcs" {
+  source                                  = "./modules/pubsub"
+  project                                 = var.project
+  subscription_endpoint                   = module.cloud-run-tagging-dispatcher-gcs.service_endpoint
+  subscription_name                       = var.tagging_dispatcher_gcs_pubsub_sub
+  subscription_service_account            = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
+  topic                                   = var.tagging_dispatcher_gcs_pubsub_topic
+  topic_publishers_sa_emails              = [local.cloud_scheduler_account_email]
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+
+}
+
+##### GCS Tagger Service ######
+
+variable "sa_tagger_gcs" {
+  type = string
+  default = "tagger-gcs"
+}
+
+variable "sa_tagger_gcs_tasks" {
+  type = string
+  default = "tagger-gcs-tasks"
+}
+
+variable "tagger_gcs_service_name" {
+  type = string
+  default = "s3-tagger-gcs"
+}
+
+variable "tagger_gcs_pubsub_topic" {
+  type = string
+  default = "tagger_gcs_topic"
+}
+
+variable "tagger_gcs_pubsub_sub" {
+  type = string
+  default = "tagger_gcs_push_sub"
+}
+
+variable "tagger_gcs_service_image" {
+  type = string
+}
+
+resource "google_service_account" "sa_tagger_gcs" {
+  project = var.project
+  account_id = var.sa_tagger_gcs
+  display_name = "Runtime SA for the Tagger GCS Service"
+}
+
+resource "google_service_account" "sa_tagger_gcs_tasks" {
+  project = var.project
+  account_id = var.sa_tagger_gcs_tasks
+  display_name = "To authorize PubSub Push requests to Tagger GCS Service"
+}
+
+resource "google_service_account_iam_member" "sa_tagger_gcs_account_user_sa_tagger_gcs_tasks" {
+  service_account_id = google_service_account.sa_tagger_gcs.name
+  role = "roles/iam.serviceAccountUser"
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs_tasks.email}"
+}
+
+module "cloud-run-tagger-gcs" {
+  source                        = "./modules/cloud-run"
+  project                       = var.project
+  region                        = var.compute_region
+  service_image                 = local.tagger_gcs_service_image_uri
+  service_name                  = var.tagger_gcs_service_name
+  service_account_email         = google_service_account.sa_tagger_gcs.email
+  invoker_service_account_email = google_service_account.sa_tagger_gcs_tasks.email
+  # Dispatcher could take time to list large number of tables
+  timeout_seconds               = var.tagger_service_timeout_seconds
+  # GCS Tagger hits the DLP API (get file store profile) and Cloud Storage API (update bucket)
+  # DLP API: 600 requests per minute
+  # Storage API: NA
+  max_containers                = 1
+  max_requests_per_container    = 80
+  environment_variables         = [
+    {
+      name  = "IS_DRY_RUN_LABELS",
+      value = var.is_dry_run_labels,
+    },
+    {
+      name  = "COMPUTE_REGION_ID",
+      value = var.compute_region,
+    },
+    {
+      name  = "PROJECT_ID",
+      value = var.project,
+    },
+    {
+      name  = "GCS_FLAGS_BUCKET",
+      value = module.gcs.create_gcs_flags_bucket_name,
+    },
+    {
+      name  = "INFO_TYPE_MAP",
+      value = jsonencode(module.common-stack.info_type_map),
+    }
+  ]
+}
+
+module "pubsub-tagger-gcs" {
+  source                                  = "./modules/pubsub"
+  project                                 = var.project
+  subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
+  subscription_name                       = var.tagger_gcs_pubsub_sub
+  subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
+  topic                                   = var.tagger_gcs_pubsub_topic
+  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email, local.dlp_service_account_email]
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+
+}
+
+resource "google_cloud_scheduler_job" "gcs_tagging_scheduler" {
+  project = var.project
+  region = var.compute_region
+  name             = var.gcs_tagging_scheduler_name
+  description      = var.gcs_tagging_scheduler_description
+  schedule         = var.gcs_tagging_scheduler_cron
+
+  retry_config {
+    retry_count = 0
+  }
+
+  pubsub_target {
+    topic_name = module.pubsub-tagging-dispatcher-gcs.topic-id
+    data       = base64encode(jsonencode({
+      projectsRegex = var.dlp_gcs_project_id_regex
+      bucketsRegex = var.dlp_gcs_bucket_name_regex
+      sourceDataRegions = var.source_data_regions
+    }))
+  }
+}
+
+### Permissions on flags bucket
+
+resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_bucket_admin" {
+  bucket = module.gcs.create_gcs_flags_bucket_name
+  role = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
+
+resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
+  bucket = module.gcs.create_gcs_flags_bucket_name
+  role = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
 }

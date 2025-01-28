@@ -16,45 +16,24 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
 import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.common.base.Objects;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GcsTaggerRequest extends Operation {
-    
-    private final String fileStoreProfileName;
-    private final String bucketPath;
-    private final String bucketName;
 
-    public GcsTaggerRequest(String runId, String trackingId, String fileStoreProfileName, String bucketPath) {
+    private GcsDlpProfileSummary gcsDlpProfileSummary;
+
+    public GcsTaggerRequest(String runId, String trackingId, GcsDlpProfileSummary gcsDlpProfileSummary) {
         super(runId, trackingId);
-        this.fileStoreProfileName = fileStoreProfileName;
-
-        if(!bucketPath.startsWith("gs://")){
-            throw new IllegalArgumentException(String.format(
-                    "bucketPath must start with gs://. Provided bucketPath is '%s'",
-                    bucketPath)
-
-            );
-        }
-        this.bucketPath = bucketPath;
-        this.bucketName = bucketPath.substring(5);
+        this.gcsDlpProfileSummary = gcsDlpProfileSummary;
     }
 
-    public String getFileStoreProfileName() {
-        return fileStoreProfileName;
-    }
-
-    public String getBucketPath(){return bucketPath;}
-
-    public String getBucketName(){return bucketName;}
-
-    @Override
-    public String toString() {
-        return "GcsTaggerRequest{" +
-                "fileStoreProfileName='" + fileStoreProfileName + '\'' +
-                "bucketPath='" + bucketPath + '\'' +
-                "bucketName='" + bucketName + '\'' +
-                "} " + super.toString();
+    public GcsDlpProfileSummary getGcsDlpProfileSummary() {
+        return gcsDlpProfileSummary;
     }
 
     @Override
@@ -62,11 +41,18 @@ public class GcsTaggerRequest extends Operation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GcsTaggerRequest that = (GcsTaggerRequest) o;
-        return Objects.equal(fileStoreProfileName, that.fileStoreProfileName) && Objects.equal(bucketPath, that.bucketPath);
+        return Objects.equal(gcsDlpProfileSummary, that.gcsDlpProfileSummary);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(fileStoreProfileName, bucketPath);
+        return Objects.hashCode(gcsDlpProfileSummary);
+    }
+
+    @Override
+    public String toString() {
+        return "GcsTaggerRequest{" +
+                "gcsDlpProfileSummary=" + gcsDlpProfileSummary +
+                "} " + super.toString();
     }
 }

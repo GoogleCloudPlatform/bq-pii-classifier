@@ -1,4 +1,4 @@
-package com.google.cloud.pso.bq_pii_classifier.services.findings;
+package com.google.cloud.pso.bq_pii_classifier.services.findings.gcs;
 
 import com.google.cloud.dlp.v2.DlpServiceClient;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GcsFindingsReaderApiImpl implements GcsFindingsReader{
+public class DlpApiGcsFindingsReader implements GcsFindingsReader {
 
   @Override
   public Set<String> getFileStoreDataProfileDetectedInfoTypes(String fileStoreDataProfileName)

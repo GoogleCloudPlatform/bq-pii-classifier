@@ -31,116 +31,135 @@ import java.util.StringTokenizer;
 
 public class Utils {
 
-    public static List<String> tokenize(String input, String delimiter, boolean required) {
-        List<String> output = new ArrayList<>();
+  public static List<String> tokenize(String input, String delimiter, boolean required) {
+    List<String> output = new ArrayList<>();
 
-        if(input.isBlank() && required){
-            throw new IllegalArgumentException(String.format(
-                    "Input string '%s' is blank.",
-                    input
-            ));
-        }
-
-        if(input.isBlank() && !required){
-            return output;
-        }
-
-        StringTokenizer tokens = new StringTokenizer(input, delimiter);
-        while (tokens.hasMoreTokens()) {
-            output.add(tokens.nextToken().trim());
-        }
-        if (required && output.size() == 0) {
-            throw new IllegalArgumentException(String.format(
-                    "No tokens found in string: '%s' using delimiter '%s'",
-                    input,
-                    delimiter
-            ));
-        }
-        return output;
+    if (input.isBlank() && required) {
+      throw new IllegalArgumentException(String.format("Input string '%s' is blank.", input));
     }
 
-    public static String getConfigFromEnv(String config, boolean required){
-        String value = System.getenv().getOrDefault(config, "");
-
-        if(required && value.isBlank()){
-            throw new IllegalArgumentException(String.format("Missing environment variable '%s'",config));
-        }
-
-        return value;
+    if (input.isBlank() && !required) {
+      return output;
     }
 
-    /**
-     *
-     * @param policyTagId e.g. projects/<project>/locations/<location>/taxonomies/<taxonomyID>/policyTags/<policyTagID
-     * @return e.g. projects/<project>/locations/<location>/taxonomies/<taxonomyID>
-     */
-    public static String extractTaxonomyIdFromPolicyTagId(String policyTagId){
+    StringTokenizer tokens = new StringTokenizer(input, delimiter);
+    while (tokens.hasMoreTokens()) {
+      output.add(tokens.nextToken().trim());
+    }
+    if (required && output.size() == 0) {
+      throw new IllegalArgumentException(
+          String.format("No tokens found in string: '%s' using delimiter '%s'", input, delimiter));
+    }
+    return output;
+  }
 
-        List<String> tokens = tokenize(policyTagId, "/", true);
-        int taxonomiesIndex = tokens.indexOf("taxonomies");
-        return String.join("/", tokens.subList(0,taxonomiesIndex+2));
+  public static String getConfigFromEnv(String config, boolean required) {
+    String value = System.getenv().getOrDefault(config, "");
+
+    if (required && value.isBlank()) {
+      throw new IllegalArgumentException(
+          String.format("Missing environment variable '%s'", config));
     }
 
-    public static String getArgFromJsonParams(JsonObject requestJson, String argName, boolean required) {
+    return value;
+  }
 
-        String arg = "";
+  /**
+   * @param policyTagId e.g.
+   *     projects/<project>/locations/<location>/taxonomies/<taxonomyID>/policyTags/<policyTagID
+   * @return e.g. projects/<project>/locations/<location>/taxonomies/<taxonomyID>
+   */
+  public static String extractTaxonomyIdFromPolicyTagId(String policyTagId) {
 
-        // check in Json
-        if (requestJson != null && requestJson.has(argName)) {
-            arg = requestJson.get(argName).getAsString();
-        }
+    List<String> tokens = tokenize(policyTagId, "/", true);
+    int taxonomiesIndex = tokens.indexOf("taxonomies");
+    return String.join("/", tokens.subList(0, taxonomiesIndex + 2));
+  }
 
-        // validate it exists
-        if(required) {
-            if (arg.isBlank())
-                throw new IllegalArgumentException(String.format("%s is required", argName));
-        }
+  public static String getArgFromJsonParams(
+      JsonObject requestJson, String argName, boolean required) {
 
-        return arg;
+    String arg = "";
+
+    // check in Json
+    if (requestJson != null && requestJson.has(argName)) {
+      arg = requestJson.get(argName).getAsString();
     }
 
-    public static List<String> getArgFromJsonParamsAsList(JsonObject requestJson, String argName, boolean required) {
-
-        JsonArray  jsonArray = new JsonArray();
-
-        // check in Json
-        if (requestJson != null && requestJson.has(argName)) {
-            jsonArray = requestJson.get(argName).getAsJsonArray();
-        }
-
-        // validate it exists
-        if(required) {
-            if (jsonArray.size() == 0)
-                throw new IllegalArgumentException(String.format("%s is required", argName));
-        }
-
-        Type listType = new TypeToken<List<String>>() {}.getType();
-
-        return new Gson().fromJson(jsonArray, listType);
+    // validate it exists
+    if (required) {
+      if (arg.isBlank())
+        throw new IllegalArgumentException(String.format("%s is required", argName));
     }
 
-    public static HashMap<String, List<String>> parseJsonToMap(String jsonString,
-                                                               String keyAttribute,
-                                                               String valuesAttribute){
-        Gson gson = new Gson();
-        JsonArray jsonArray = gson.fromJson(jsonString, JsonArray.class);
-        HashMap<String, List<String>> map = new HashMap<>();
+    return arg;
+  }
 
-        for (JsonElement jsonElement : jsonArray) {
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            String region = jsonObject.get(keyAttribute).getAsString();
-            List<String> templateIds = gson.fromJson(jsonObject.get(valuesAttribute), List.class);
-            map.put(region, templateIds);
-        }
+  public static List<String> getArgFromJsonParamsAsList(
+      JsonObject requestJson, String argName, boolean required) {
 
-        return map;
+    JsonArray jsonArray = new JsonArray();
+
+    // check in Json
+    if (requestJson != null && requestJson.has(argName)) {
+      jsonArray = requestJson.get(argName).getAsJsonArray();
     }
 
-    public static String extractDLPRegionFromJobNameToBQRegion(String dlpJobName){
-        // e.g. dlp job name structure projects/<project>/locations/<location>/dlpJobs/<job-id>
-        // dlp region "europe" maps to bq region "eu"
-        String dlpRegion = dlpJobName.split("/")[3];
-        return dlpRegion.equals("europe")? "eu": dlpRegion;
+    // validate it exists
+    if (required) {
+      if (jsonArray.size() == 0)
+        throw new IllegalArgumentException(String.format("%s is required", argName));
     }
 
+    Type listType = new TypeToken<List<String>>() {}.getType();
+
+    return new Gson().fromJson(jsonArray, listType);
+  }
+
+  public static HashMap<String, List<String>> parseJsonToMap(
+      String jsonString, String keyAttribute, String valuesAttribute) {
+    Gson gson = new Gson();
+    JsonArray jsonArray = gson.fromJson(jsonString, JsonArray.class);
+    HashMap<String, List<String>> map = new HashMap<>();
+
+    for (JsonElement jsonElement : jsonArray) {
+      JsonObject jsonObject = jsonElement.getAsJsonObject();
+      String region = jsonObject.get(keyAttribute).getAsString();
+      List<String> templateIds = gson.fromJson(jsonObject.get(valuesAttribute), List.class);
+      map.put(region, templateIds);
+    }
+
+    return map;
+  }
+
+  public static String extractDLPRegionFromJobNameToBQRegion(String dlpJobName) {
+    // e.g. dlp job name structure projects/<project>/locations/<location>/dlpJobs/<job-id>
+    // dlp region "europe" maps to bq region "eu"
+    String dlpRegion = dlpJobName.split("/")[3];
+    return dlpRegion.equals("europe") ? "eu" : dlpRegion;
+  }
+
+  public static String stripLeadingAndTrailingSlashes(String resourceName) {
+    if (resourceName == null) {
+      throw new IllegalArgumentException("ResourceName is null");
+    }
+
+    if (resourceName.isEmpty() || resourceName.isBlank()) {
+      throw new IllegalArgumentException("ResourceName is empty or blank");
+    }
+
+    String stripped = resourceName;
+
+    // Remove leading slashes
+    while (stripped.startsWith("/")) {
+      stripped = stripped.substring(1);
+    }
+
+    // Remove trailing slashes
+    while (stripped.endsWith("/")) {
+      stripped = stripped.substring(0, stripped.length() - 1);
+    }
+
+    return stripped;
+  }
 }

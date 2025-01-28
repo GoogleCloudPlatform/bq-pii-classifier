@@ -1,4 +1,4 @@
-package com.google.cloud.pso.bq_pii_classifier.services.findings;
+package com.google.cloud.pso.bq_pii_classifier.services.findings.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 
