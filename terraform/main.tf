@@ -207,5 +207,55 @@ module "data_projects_permissions_in_standard_mode" {
   sa_tagging_dispatcher_email             = module.common-stack.sa_tagging_dispatcher_email
 }
 
+module "gcs-auto-dlp-stack" {
+  source = "./stacks/gcs-auto-dlp"
+
+  # stack-specific parameters
+  dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
+  dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
+  tagging_dispatcher_gcs_service_image = var.tagging_dispatcher_gcs_service_image
+  tagger_gcs_service_image = var.tagger_gcs_service_image
+  gcs_tagging_scheduler_cron = var.gcs_tagging_scheduler_cron
+
+  # common parameters
+  bq_results_dataset = module.common-stack.bq_results_dataset
+  cloud_scheduler_account_email = local.cloud_scheduler_account_email
+  compute_region = var.compute_region
+  data_region = var.data_region
+  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
+  dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
+  gar_docker_repo_name = var.gar_docker_repo_name
+  gcs_flags_bucket_name = module.gcs.create_gcs_flags_bucket_name
+  project = var.project
+  tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
+  dispatcher_subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
+  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  info_type_map                                      = module.common-stack.info_type_map
+  is_dry_run_labels                                  = var.is_dry_run_labels
+  tagger_subscription_ack_deadline_seconds           = var.tagger_subscription_ack_deadline_seconds
+  tagger_subscription_message_retention_duration     = var.tagger_subscription_message_retention_duration
+  dlp_service_account_email                          = local.dlp_service_account_email
+  source_data_regions                                = var.source_data_regions
+  dlp_gcs_bq_results_table_name = var.dlp_gcs_bq_results_table_name
+  dlp_gcs_bucket_name_regex = var.dlp_gcs_bucket_name_regex
+  dlp_gcs_create_configuration_in_paused_state = var.dlp_gcs_create_configuration_in_paused_state
+  dlp_gcs_included_bucket_attributes = var.dlp_gcs_included_bucket_attributes
+  dlp_gcs_included_object_attributes = var.dlp_gcs_included_object_attributes
+  dlp_gcs_project_id_regex = var.dlp_gcs_project_id_regex
+  dlp_gcs_reprofile_on_data_change = var.dlp_gcs_reprofile_on_data_change
+  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_reprofile_on_inspection_template_update
+  gcs_tagging_scheduler_description = var.gcs_tagging_scheduler_description
+  gcs_tagging_scheduler_name = var.gcs_tagging_scheduler_name
+  sa_tagger_gcs = var.sa_tagger_gcs
+  sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
+  sa_tagging_dispatcher_gcs = var.sa_tagging_dispatcher_gcs
+  sa_tagging_dispatcher_gcs_tasks = var.sa_tagging_dispatcher_gcs_tasks
+  tagger_gcs_pubsub_sub = var.tagger_gcs_pubsub_sub
+  tagger_gcs_pubsub_topic = var.tagger_gcs_pubsub_topic
+  tagger_gcs_service_name = var.tagger_gcs_service_name
+  tagging_dispatcher_gcs_pubsub_sub = var.tagging_dispatcher_gcs_pubsub_sub
+  tagging_dispatcher_gcs_pubsub_topic = var.tagging_dispatcher_gcs_pubsub_topic
+  tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
+}
 
 

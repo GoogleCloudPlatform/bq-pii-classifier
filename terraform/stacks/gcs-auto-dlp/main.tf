@@ -1,84 +1,3 @@
-### GCS Inspection via DLP Discovery Services
-
-########################################################################################################################
-#                                             VARIABLES
-########################################################################################################################
-
-## REQUIRED VARIABLES
-
-variable "dlp_gcs_scan_org_id" {
-  type        = number
-  description = "GCP organization ID that will host the DLP discovery service configuration"
-}
-
-variable "dlp_gcs_scan_folder_id" {
-  type        = number
-  description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
-}
-
-## Default value variables
-
-variable "dlp_gcs_project_id_regex" {
-  type        = string
-  description = "Regex for project ids to be covered by the DLP scan of GCS buckets. For organization-level configuration, if unset, will match all projects"
-  default     = ".*"
-}
-
-variable "dlp_gcs_bucket_name_regex" {
-  type        = string
-  description = "Regex to test the bucket name against during the DLP scan. If empty, all buckets match"
-  default     = ".*"
-}
-
-variable "dlp_gcs_bq_results_table_name" {
-  type        = string
-  description = "Name of the table that DLP will create to save the findings. This will be created in the solution dataset"
-  default     = "dlp_discovery_services_gcs_results"
-}
-
-variable "dlp_gcs_included_object_attributes" {
-  type = list(string)
-  description = "Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to [ALL_SUPPORTED_OBJECTS]. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: ALL_SUPPORTED_OBJECTS, STANDARD, NEARLINE, COLDLINE, ARCHIVE, REGIONAL, MULTI_REGIONAL, DURABLE_REDUCED_AVAILABILITY."
-  default = ["ALL_SUPPORTED_OBJECTS"]
-}
-
-variable "dlp_gcs_included_bucket_attributes" {
-  type = list(string)
-  description = "Only objects with the specified attributes will be scanned. Defaults to [ALL_SUPPORTED_BUCKETS] if unset. Each value may be one of: ALL_SUPPORTED_BUCKETS, AUTOCLASS_DISABLED, AUTOCLASS_ENABLED."
-  default = ["ALL_SUPPORTED_BUCKETS"]
-}
-
-variable "dlp_gcs_reprofile_on_inspection_template_update" {
-  type = string
-  description = "How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
-  default = "UPDATE_FREQUENCY_NEVER"
-}
-
-variable "dlp_gcs_reprofile_on_data_change" {
-  type = string
-  description = "If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY"
-  default = "UPDATE_FREQUENCY_NEVER"
-}
-
-variable "dlp_gcs_create_configuration_in_paused_state" {
-  type = bool
-  description = "When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation"
-  default = true
-}
-
-variable "gcs_tagging_scheduler_name" {
-  type = string
-  default = "gcs-tagging-scheduler"
-}
-variable "gcs_tagging_scheduler_description" {
-  type = string
-  default = "CRON job to trigger re-tagging of GCS buckets"
-}
-
-variable "gcs_tagging_scheduler_cron" {
-  type = string
-}
-
 ########################################################################################################################
 #                                             DATA & LOCALS
 ########################################################################################################################
@@ -91,14 +10,10 @@ locals {
   tagger_gcs_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_gcs_service_image}"
 }
 
-########################################################################################################################
-#                                             RESOURCES
-########################################################################################################################
-
 resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   // Project-level config. Only data in that project could be scanned
-#    parent = "projects/bqsc-marketing-v1/locations/${local.dlp_region}"
+  #    parent = "projects/bqsc-marketing-v1/locations/${local.dlp_region}"
 
   parent = "organizations/${var.dlp_gcs_scan_org_id}/locations/${local.dlp_region}"
   org_config {
@@ -114,7 +29,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
   location = local.dlp_region
 
   // inspection template(s) that will be used to inspect GCS buckets
-  inspect_templates = local.dlp_inspection_templates_ids_list
+  inspect_templates = var.dlp_inspection_templates_ids_list
 
   // Enabled target with filter on specific projects/buckets
   targets {
@@ -123,36 +38,36 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
       filter {
 
         // (Optional) A specific set of buckets for this filter to apply to.
-                collection {
-                  include_regexes {
-                    patterns {
-                      cloud_storage_regex {
-                        // For organizations, if unset, will match all projects.
-                        project_id_regex  = var.dlp_gcs_project_id_regex
-                        // Regex to test the bucket name against. If empty, all buckets match. Example: "marketing2021" or "(marketing)\d{4}" will both match the bucket gs://marketing2021
-                        bucket_name_regex = var.dlp_gcs_bucket_name_regex
-                      }
-                    }
+        collection {
+          include_regexes {
+            patterns {
+              cloud_storage_regex {
+                // For organizations, if unset, will match all projects.
+                project_id_regex  = var.dlp_gcs_project_id_regex
+                // Regex to test the bucket name against. If empty, all buckets match. Example: "marketing2021" or "(marketing)\d{4}" will both match the bucket gs://marketing2021
+                bucket_name_regex = var.dlp_gcs_bucket_name_regex
+              }
+            }
 
-                  }
-                }
+          }
+        }
 
         // (Optional) The bucket to scan.
-#        cloud_storage_resource_reference {
-#          // (Optional) The bucket to scan.
-#          bucket_name = ""
-#          //(Optional) If within a project-level config, then this must match the config's project id.
-#          project_id  = ""
-#        }
+        #        cloud_storage_resource_reference {
+        #          // (Optional) The bucket to scan.
+        #          bucket_name = ""
+        #          //(Optional) If within a project-level config, then this must match the config's project id.
+        #          project_id  = ""
+        #        }
       }
 
       //  (Optional) In addition to matching the filter, these conditions must be true before a profile is generated for a bucket
       conditions {
         // (Optional) File store must have been created after this date. Used to avoid backfilling. A timestamp in RFC3339 UTC "Zulu" format with nanosecond resolution and upto nine fractional digits.
-#        created_after = "2023-10-02T15:01:23Z"
+        #        created_after = "2023-10-02T15:01:23Z"
 
         // (Optional) Duration format. Minimum age a file store must have. If set, the value must be 1 hour or greater.
-#        min_age = "10800s"
+        #        min_age = "10800s"
 
         cloud_storage_conditions {
 
@@ -199,7 +114,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
     export_data {
       profile_table {
         project_id = var.project
-        dataset_id = module.common-stack.bq_results_dataset
+        dataset_id = var.bq_results_dataset
         table_id   = var.dlp_gcs_bq_results_table_name
       }
     }
@@ -229,38 +144,6 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
   status = var.dlp_gcs_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
 }
 
-
-##### Tagging Dispatcher Service ######
-
-variable "sa_tagging_dispatcher_gcs" {
-  type = string
-  default = "tag-dispatcher-gcs"
-}
-
-variable "sa_tagging_dispatcher_gcs_tasks" {
-  type = string
-  default = "tag-dispatcher-gcs-tasks"
-}
-
-variable "tagging_dispatcher_gcs_service_name" {
-  type = string
-  default = "s1a-tagging-dispatcher-gcs"
-}
-
-variable "tagging_dispatcher_gcs_pubsub_topic" {
-  type = string
-  default = "tagging_dispatcher_gcs_topic"
-}
-
-variable "tagging_dispatcher_gcs_pubsub_sub" {
-  type = string
-  default = "tagging_dispatcher_gcs_push_sub"
-}
-
-variable "tagging_dispatcher_gcs_service_image" {
-  type = string
-}
-
 resource "google_service_account" "sa_tagging_dispatcher_gcs" {
   project = var.project
   account_id = var.sa_tagging_dispatcher_gcs
@@ -280,7 +163,7 @@ resource "google_service_account_iam_member" "sa_tagging_dispatcher_gcs_account_
 }
 
 module "cloud-run-tagging-dispatcher-gcs" {
-  source                        = "./modules/cloud-run"
+  source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
   service_image                 = local.tagging_dispatcher_gcs_service_image_uri
@@ -309,12 +192,8 @@ module "cloud-run-tagging-dispatcher-gcs" {
       value = module.pubsub-tagger-gcs.topic-name
     },
     {
-      name  = "IS_AUTO_DLP_MODE",
-      value = var.is_auto_dlp_mode,
-    },
-    {
       name  = "GCS_FLAGS_BUCKET",
-      value = module.gcs.create_gcs_flags_bucket_name,
+      value = var.gcs_flags_bucket_name,
     },
     # TODO: make this more dynamic by letting the user decide on a project or org level and reflect it in the config module
     {
@@ -325,50 +204,18 @@ module "cloud-run-tagging-dispatcher-gcs" {
 }
 
 module "pubsub-tagging-dispatcher-gcs" {
-  source                                  = "./modules/pubsub"
+  source                                  = "../../modules/pubsub"
   project                                 = var.project
   subscription_endpoint                   = module.cloud-run-tagging-dispatcher-gcs.service_endpoint
   subscription_name                       = var.tagging_dispatcher_gcs_pubsub_sub
   subscription_service_account            = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
   topic                                   = var.tagging_dispatcher_gcs_pubsub_topic
-  topic_publishers_sa_emails              = [local.cloud_scheduler_account_email]
+  topic_publishers_sa_emails              = [var.cloud_scheduler_account_email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
-
-}
-
-##### GCS Tagger Service ######
-
-variable "sa_tagger_gcs" {
-  type = string
-  default = "tagger-gcs"
-}
-
-variable "sa_tagger_gcs_tasks" {
-  type = string
-  default = "tagger-gcs-tasks"
-}
-
-variable "tagger_gcs_service_name" {
-  type = string
-  default = "s3-tagger-gcs"
-}
-
-variable "tagger_gcs_pubsub_topic" {
-  type = string
-  default = "tagger_gcs_topic"
-}
-
-variable "tagger_gcs_pubsub_sub" {
-  type = string
-  default = "tagger_gcs_push_sub"
-}
-
-variable "tagger_gcs_service_image" {
-  type = string
 }
 
 resource "google_service_account" "sa_tagger_gcs" {
@@ -390,7 +237,7 @@ resource "google_service_account_iam_member" "sa_tagger_gcs_account_user_sa_tagg
 }
 
 module "cloud-run-tagger-gcs" {
-  source                        = "./modules/cloud-run"
+  source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
   service_image                 = local.tagger_gcs_service_image_uri
@@ -419,23 +266,23 @@ module "cloud-run-tagger-gcs" {
     },
     {
       name  = "GCS_FLAGS_BUCKET",
-      value = module.gcs.create_gcs_flags_bucket_name,
+      value = var.gcs_flags_bucket_name,
     },
     {
       name  = "INFO_TYPE_MAP",
-      value = jsonencode(module.common-stack.info_type_map),
+      value = jsonencode(var.info_type_map),
     }
   ]
 }
 
 module "pubsub-tagger-gcs" {
-  source                                  = "./modules/pubsub"
+  source                                  = "../../modules/pubsub"
   project                                 = var.project
   subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
   subscription_name                       = var.tagger_gcs_pubsub_sub
   subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
   topic                                   = var.tagger_gcs_pubsub_topic
-  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email, local.dlp_service_account_email]
+  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email, var.dlp_service_account_email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -468,13 +315,13 @@ resource "google_cloud_scheduler_job" "gcs_tagging_scheduler" {
 ### Permissions on flags bucket
 
 resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_bucket_admin" {
-  bucket = module.gcs.create_gcs_flags_bucket_name
+  bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
 }
 
 resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
-  bucket = module.gcs.create_gcs_flags_bucket_name
+  bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
 }

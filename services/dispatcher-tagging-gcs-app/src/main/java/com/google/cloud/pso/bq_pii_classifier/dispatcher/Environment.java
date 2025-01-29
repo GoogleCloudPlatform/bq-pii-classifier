@@ -33,8 +33,7 @@ public class Environment {
                 getComputeRegionId(),
                 getDataRegionId(),
                 getDlpConfigParent(),
-                getTaggerTopic(),
-                getIsAutoDlpMode() ? SolutionMode.AUTO_DLP : SolutionMode.STANDARD_DLP
+                getTaggerTopic()
         );
     }
 
@@ -54,10 +53,6 @@ public class Environment {
 
     public String getGcsFlagsBucket(){
         return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-    }
-
-    public Boolean getIsAutoDlpMode(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_AUTO_DLP_MODE", true));
     }
 
     public String getDlpConfigParent(){

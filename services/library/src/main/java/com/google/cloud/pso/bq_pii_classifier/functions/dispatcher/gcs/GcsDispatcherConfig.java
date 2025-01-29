@@ -26,20 +26,17 @@ public class GcsDispatcherConfig {
 
     private String dlpConfigParent;
     private String outputTopic;
-    private SolutionMode solutionMode;
 
     public GcsDispatcherConfig(String projectId,
                                String computeRegionId,
                                String dataRegionId,
                                String dlpConfigParent,
-                               String outputTopic,
-                               SolutionMode solutionMode
+                               String outputTopic
                             ) {
         this.projectId = projectId.toLowerCase();
         this.computeRegionId = computeRegionId.toLowerCase();
         this.dataRegionId = dataRegionId.toLowerCase();
         this.outputTopic = outputTopic.toLowerCase();
-        this.solutionMode = solutionMode;
         this.dlpConfigParent = dlpConfigParent;
     }
 
@@ -61,10 +58,6 @@ public class GcsDispatcherConfig {
         return outputTopic;
     }
 
-    public SolutionMode getSolutionMode() {
-        return solutionMode;
-    }
-
     public String getDlpConfigParent() {
         return dlpConfigParent;
     }
@@ -76,8 +69,7 @@ public class GcsDispatcherConfig {
                 ", computeRegionId='" + computeRegionId + '\'' +
                 ", dataRegionId='" + dataRegionId + '\'' +
                 ", dlpConfigParent='" + dlpConfigParent + '\'' +
-                ", outputTopic='" + outputTopic + '\'' +
-                ", solutionMode=" + solutionMode +
+                ", outputTopic='" + outputTopic +
                 '}';
     }
 }
