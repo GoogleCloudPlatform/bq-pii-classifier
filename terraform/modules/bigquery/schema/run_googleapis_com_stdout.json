@@ -167,7 +167,22 @@
       },
       {
         "mode": "NULLABLE",
+        "name": "dispatched_bucket_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_bucket_project",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
         "name": "failed_dispatcher_entity_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "failed_dispatcher_entity_project_id",
         "type": "STRING"
       },
       {
@@ -248,7 +263,7 @@
       {
         "mode": "NULLABLE",
         "name": "labels_history_log_bucket_name",
-        "type": "BOOLEAN"
+        "type": "STRING"
       }
     ],
     "mode": "NULLABLE",

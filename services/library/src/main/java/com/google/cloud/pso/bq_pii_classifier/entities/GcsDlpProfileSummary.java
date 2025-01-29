@@ -17,8 +17,11 @@
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
 import com.google.common.base.Objects;
+import com.google.privacy.dlp.v2.FileStoreDataProfile;
+
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GcsDlpProfileSummary{
 
@@ -93,5 +96,14 @@ public class GcsDlpProfileSummary{
     @Override
     public int hashCode() {
         return Objects.hashCode(fileStoreProfileName, bucketPath, infoTypes);
+    }
+
+    public static GcsDlpProfileSummary fromDlpFileStoreDataProfile(FileStoreDataProfile profile) {
+        return new GcsDlpProfileSummary(
+                profile.getName(),
+                profile.getFileStorePath(),
+                profile.getProjectId(),
+                profile.getFileStoreInfoTypeSummariesList().stream().map(x->x.getInfoType().getName()).collect(Collectors.toSet())
+        );
     }
 }

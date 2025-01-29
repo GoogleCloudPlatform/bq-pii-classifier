@@ -36,5 +36,10 @@ public enum ApplicationLog {
     // To capture trackers with retryable exceptions during processing
     RETRYABLE_EXCEPTIONS_LOG,
     // To capture table schema after applying policy tags
-    TABLE_SCHEMA_LOG
+    TABLE_SCHEMA_LOG,
+
+    // Used to log success dispatched requests per run for GCS data profiles
+    GCS_DISPATCHED_REQUESTS_LOG,
+    // Used to log failed dispatched requests per run for GCS data profiles
+    GCS_FAILED_DISPATCHED_REQUESTS_LOG,
 }

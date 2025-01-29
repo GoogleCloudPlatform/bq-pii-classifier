@@ -1,6 +1,7 @@
 package com.google.cloud.pso.bq_pii_classifier.services.findings.gcs;
 
 import com.google.cloud.dlp.v2.DlpServiceClient;
+import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.privacy.dlp.v2.FileStoreDataProfile;
 import com.google.privacy.dlp.v2.FileStoreInfoTypeSummary;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 public class DlpApiGcsFindingsReader implements GcsFindingsReader {
 
   @Override
-  public Set<String> getFileStoreDataProfileDetectedInfoTypes(String fileStoreDataProfileName)
+  public GcsDlpProfileSummary getGcsDlpProfileSummary(String fileStoreDataProfileName)
       throws IOException, NonRetryableApplicationException {
 
         try (DlpServiceClient dlpServiceClient = DlpServiceClient.create()) {
@@ -27,12 +28,7 @@ public class DlpApiGcsFindingsReader implements GcsFindingsReader {
                 );
             }
 
-            if(dataProfile.getFileStoreInfoTypeSummariesCount() == 0){
-                return new HashSet<>(0);
-            }
-
-            List<FileStoreInfoTypeSummary> infoTypeSummaryList = dataProfile.getFileStoreInfoTypeSummariesList();
-            return infoTypeSummaryList.stream().map(x->x.getInfoType().getName()).collect(Collectors.toSet());
+            return GcsDlpProfileSummary.fromDlpFileStoreDataProfile(dataProfile);
         }
     }
 }

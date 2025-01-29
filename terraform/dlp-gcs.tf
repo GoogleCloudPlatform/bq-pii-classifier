@@ -207,7 +207,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.common-stack.tagger_topic_id
+      topic             = module.pubsub-tagger-gcs.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "NEW_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
@@ -217,7 +217,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.common-stack.tagger_topic_id
+      topic             = module.pubsub-tagger-gcs.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "CHANGED_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed

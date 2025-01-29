@@ -120,6 +120,7 @@ public class LoggingHelper {
     }
 
     public void logBucketLabelsHistory(String bucketName,
+                                 String bucketProject,
                                  String labelKey,
                                  String labelValue,
                                  Boolean isDryRun,
@@ -127,6 +128,7 @@ public class LoggingHelper {
 
         Object [] attributes = new Object[]{
                 kv("labels_history_log_bucket_name", bucketName),
+                kv("labels_history_log_project_id", bucketProject),
                 kv("labels_history_log_label_key", labelKey),
                 kv("labels_history_log_label_value", labelValue),
                 kv("labels_history_log_is_dry_run", isDryRun),
@@ -190,6 +192,46 @@ public class LoggingHelper {
                         ex.getClass().getName(),
                         ex.getMessage()
                         ),
+                Level.ERROR,
+                attributes
+        );
+    }
+
+    public void logSuccessGcsDispatcherTrackingId(String runId, String dispatchedTrackingId, String bucketName, String bucketProject) {
+
+        Object [] attributes = new Object[]{
+                kv("dispatched_tracking_id", dispatchedTrackingId),
+                kv("dispatched_bucket_name", bucketName),
+                kv("dispatched_bucket_project", bucketProject),
+        };
+
+        logWithTracker(
+                ApplicationLog.GCS_DISPATCHED_REQUESTS_LOG,
+                runId,
+                String.format("Dispatched request for bucket '%s' with trackingId `%s`", bucketName, dispatchedTrackingId),
+                Level.INFO,
+                attributes
+        );
+    }
+
+    // To log failed processing of projects, datasets or tables
+    public void logFailedGcsDispatcherEntityId(String trackingId, String bucketName, String bucketProject, Exception ex) {
+
+        Object [] attributes = new Object[]{
+                kv("failed_dispatcher_entity_id", bucketName),
+                kv("failed_dispatcher_entity_project_id", bucketProject),
+                kv("failed_dispatcher_ex_name", ex.getClass().getName()),
+                kv("failed_dispatcher_ex_msg", ex.getMessage())
+        };
+
+        logWithTracker(
+                ApplicationLog.GCS_FAILED_DISPATCHED_REQUESTS_LOG,
+                trackingId,
+                String.format("Failed to process bucket `%s`.Exception: %s. Msg: %s",
+                        bucketName,
+                        ex.getClass().getName(),
+                        ex.getMessage()
+                ),
                 Level.ERROR,
                 attributes
         );

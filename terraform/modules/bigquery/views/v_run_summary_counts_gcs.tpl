@@ -3,7 +3,7 @@ WITH dispatched AS (
   jsonPayload.global_run_id AS run_id,
   COUNT(jsonPayload.dispatched_tracking_id) AS dispatched_tracking_id_count
   FROM `${project}.${dataset}.${logging_table}`
-  WHERE jsonPayload.global_app_log = 'DISPATCHED_REQUESTS_LOG'
+  WHERE jsonPayload.global_app_log = 'GCS_DISPATCHED_REQUESTS_LOG'
   GROUP BY 1
 )
 , failed_dispatched AS (
@@ -11,7 +11,7 @@ WITH dispatched AS (
   jsonPayload.global_run_id AS run_id,
   COUNT(jsonPayload.failed_dispatcher_entity_id) AS failed_dispatched_entity_count,
   FROM  `${project}.${dataset}.${logging_table}`
-  WHERE jsonPayload.global_app_log = 'FAILED_DISPATCHED_REQUESTS_LOG'
+  WHERE jsonPayload.global_app_log = 'GCS_FAILED_DISPATCHED_REQUESTS_LOG'
   GROUP BY 1
 )
 , final AS (

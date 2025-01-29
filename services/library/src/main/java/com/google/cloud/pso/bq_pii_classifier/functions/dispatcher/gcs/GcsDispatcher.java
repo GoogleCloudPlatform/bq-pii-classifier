@@ -152,16 +152,26 @@ public class GcsDispatcher {
             pubSubService.publishTableOperationRequests(
                     config.getProjectId(), config.getOutputTopic(), pubSubMessagesToPublish);
 
-    for (FailedPubSubMessage msg : publishResults.getFailedMessages()) {
-      String logMsg = String.format("Failed to publish these messages %s",
-              msg.toString());
-      logger.logWarnWithTracker(runId, logMsg);
-    }
-
     // this helps up in tracking and monitoring views to establish lineage across services/processing steps
     for (SuccessPubSubMessage msg : publishResults.getSuccessMessages()) {
       GcsTaggerRequest request = (GcsTaggerRequest) msg.getMsg();
-      logger.logSuccessDispatcherTrackingId(request.getRunId(), request.getTrackingId());
+      logger.logSuccessGcsDispatcherTrackingId(
+              request.getRunId(),
+              request.getTrackingId(),
+              request.getGcsDlpProfileSummary().getBucketName(),
+              request.getGcsDlpProfileSummary().getProjectId()
+      );
+    }
+
+    for (FailedPubSubMessage msg : publishResults.getFailedMessages()) {
+      GcsTaggerRequest request = (GcsTaggerRequest) msg.getMsg();
+      String logMsg = String.format("Failed to publish these messages %s",
+              msg.toString());
+      logger.logWarnWithTracker(runId, logMsg);
+      logger.logFailedGcsDispatcherEntityId(runId,
+              request.getGcsDlpProfileSummary().getBucketName(),
+              request.getGcsDlpProfileSummary().getProjectId(),
+              msg.getException());
     }
 
     logger.logFunctionEnd(runId);

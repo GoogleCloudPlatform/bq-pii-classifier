@@ -88,24 +88,25 @@ public class GcsTagger {
         }
 
 
-        // get the info types found in that profile, either already supplied by the dispatcher or from DLP Api in case of the event-driven path
-        Set<String> detectedInfoTypes;
+        // get the complete profile summary, either already supplied by the dispatcher or from DLP Api in case an incomplete profile is sent via the auto-dlp
+        GcsDlpProfileSummary profileSummary;
         if (request.getGcsDlpProfileSummary().hasInfoTypes()){
-            detectedInfoTypes = request.getGcsDlpProfileSummary().getInfoTypes();
+            profileSummary = request.getGcsDlpProfileSummary();
         }else{
-            detectedInfoTypes = findingsReader.getFileStoreDataProfileDetectedInfoTypes(request.getGcsDlpProfileSummary().getFileStoreProfileName());
+            profileSummary = findingsReader.getGcsDlpProfileSummary(request.getGcsDlpProfileSummary().getFileStoreProfileName());
         }
 
-        Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata = filterInfoTypesMetadataMap(detectedInfoTypes,
+        Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata = filterInfoTypesMetadataMap(profileSummary.getInfoTypes(),
                 config.getInfoTypeMap());
 
         // construct a map of label key, label value based on all labels configured for all detected info types
-        Map<String, String> bucketLabels = generateBucketLabelsFromDlpFindings(detectedInfoTypes,
+        Map<String, String> bucketLabels = generateBucketLabelsFromDlpFindings(profileSummary.getInfoTypes(),
                 detectedInfoTypesWithMetadata);
 
         //log found labels for this bucket
         for (Map.Entry<String, String> labelEntry : bucketLabels.entrySet()) {
-            logger.logBucketLabelsHistory(request.getGcsDlpProfileSummary().getBucketName(),
+            logger.logBucketLabelsHistory(profileSummary.getBucketName(),
+                    profileSummary.getProjectId(),
                     labelEntry.getKey(),
                     labelEntry.getValue(),
                     config.isDryRunLabels(),
@@ -114,10 +115,10 @@ public class GcsTagger {
 
         // attach labels to GCS bucket based on the isDryRunLabels()
         if(!config.isDryRunLabels() && bucketLabels.size() > 0){
-            gcsService.addLabelsToBucket(request.getGcsDlpProfileSummary().getBucketName(), bucketLabels);
+            gcsService.addLabelsToBucket(profileSummary.getBucketName(), bucketLabels);
 
             logger.logInfoWithTracker(request.getTrackingId(),
-                    String.format("Added %s labels to bucket %s .", bucketLabels.size(), request.getGcsDlpProfileSummary().getBucketPath())
+                    String.format("Added %s labels to bucket %s .", bucketLabels.size(), profileSummary.getBucketPath())
             );
         }
 

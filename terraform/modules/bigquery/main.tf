@@ -318,3 +318,39 @@ deletion_protection = var.terraform_data_deletion_protection
   }
 }
 
+resource "google_bigquery_table" "logging_view_label_history_gcs" {
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "v_log_label_history_gcs"
+
+  deletion_protection = var.terraform_data_deletion_protection
+
+  view {
+    use_legacy_sql = false
+    query = templatefile("modules/bigquery/views/v_log_label_history_gcs.tpl",
+      {
+        project = var.project
+        dataset = var.dataset
+        logging_table = google_bigquery_table.logging_table.table_id
+      }
+    )
+  }
+}
+
+resource "google_bigquery_table" "view_gcs_run_summary_counts_gcs" {
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "v_run_summary_counts_gcs"
+
+  deletion_protection = var.terraform_data_deletion_protection
+
+  view {
+    use_legacy_sql = false
+    query = templatefile("modules/bigquery/views/v_run_summary_counts_gcs.tpl",
+      {
+        project = var.project
+        dataset = var.dataset
+        v_run_summary = google_bigquery_table.view_run_summary.table_id
+        logging_table = google_bigquery_table.logging_table.table_id
+      }
+    )
+  }
+}
