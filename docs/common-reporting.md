@@ -219,3 +219,34 @@ LEFT JOIN bq_pii_classifier.v_tagging_actions t ON e.project_id = t.project_id A
 LEFT JOIN dlp_findings_counts d ON  e.project_id = d.project_id AND e.dataset_id = d.dataset_id AND e.table_id = d.table_id AND e.column_name = d.column_name AND e.run_id = d.run_id
 WHERE e.run_id = '<RUN-ID>'
 ```
+
+### GCS Buckets Metadata 
+To extract existing labels on GCS buckets along with size information, for DLP scan cost estimation, we need to use
+a remote function [remote_get_buckets_metadata](../helpers/bq-remote-functions/get-buckets-metadata).
+
+The function expects either a folder id or a project name and will lists the buckets metada under that folder or project
+
+The service account running the remote Cloud Function must have the following permissions:
+* `storage.buckets.list`, `storage.buckets.get` and `monitoring.timeSeries.list` on the data projects (could be inherited from folder or org as well)
+* `resourcemanager.projects.list` on the org or folder level (if using the function on a folder level)
+
+```roomsql
+WITH remote_data AS (
+   -- folder level
+   SELECT `bq_pii_classifier`.remote_get_buckets_metadata("folder", "<folder id/number>") AS json_value
+  -- or project level
+  -- SELECT `bq_pii_classifier`.remote_get_buckets_metadata("project", "<project name>>") AS json_value
+)
+
+SELECT
+JSON_VALUE(d.json_value.level) AS requested_level,
+JSON_VALUE(d.json_value.entity_id) AS requested_entity_id,
+JSON_EXTRACT_ARRAY(d.json_value.errors) AS errors_at_requested_entity,
+JSON_VALUE(b.bucket_name) AS bucket_name,
+JSON_VALUE(b.project_name) AS project_name, 
+JSON_VALUE(b.size_bytes) AS size_bytes,
+JSON_VALUE(b.storage_class) AS storage_class,
+ARRAY(SELECT AS STRUCT JSON_VALUE(json_element, '$.key') AS key, JSON_VALUE(json_element, '$.value') AS value FROM UNNEST(JSON_EXTRACT_ARRAY(b.labels)) AS json_element) AS array_of_structs
+FROM remote_data d
+LEFT JOIN UNNEST(JSON_EXTRACT_ARRAY(json_value.buckets_metadata)) b
+```

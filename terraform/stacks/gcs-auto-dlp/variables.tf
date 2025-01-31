@@ -194,3 +194,10 @@ variable "tagger_gcs_pubsub_sub" {
   type = string
 }
 
+variable "bq_remote_func_get_buckets_metadata" {
+  type = string
+}
+
+variable "sa_bq_remote_func_get_buckets_metadata" {
+  type = string
+}

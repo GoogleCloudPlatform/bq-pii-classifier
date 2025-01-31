@@ -6,7 +6,8 @@ terraform {
   required_providers {
     google = {
       source = "hashicorp/google"
-      version = "= 6.16.0"
+      // recent versions are required from the dlp discovery service modules
+      version = "= 6.18.1"
     }
   }
 }

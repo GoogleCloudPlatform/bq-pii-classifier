@@ -29,3 +29,7 @@ output "cloud_function_sa_email" {
 output "deploy_job_status" {
   value = google_bigquery_job.deploy_remote_functions_job.status
 }
+
+output "function_uri" {
+  value = google_cloudfunctions2_function.function.service_config[0].uri
+}

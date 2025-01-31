@@ -90,7 +90,3 @@ variable "cf_available_cpu" {
   default = "2"
 }
 
-variable "datastore_database_name" {
-  type    = string
-  default = "(default)"
-}

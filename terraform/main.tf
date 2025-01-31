@@ -172,6 +172,28 @@ module "inspection-stack" {
 }
 
 # Helper functions for data analysis
+
+##### Enable datastore API because the bq-remote-func-get-table-policy-tags function is using it as a cache layer
+
+resource "google_project_service" "datastore_api" {
+  service            = "datastore.googleapis.com"
+  disable_on_destroy = false                     # Prevent accidental disabling during Terraform destroy
+}
+
+resource "google_firestore_database" "datastore_mode_database" {
+  project                           = var.project
+  name                              = var.datastore_database_name
+  location_id                       = var.compute_region
+  type                              = "DATASTORE_MODE"
+  concurrency_mode                  = "OPTIMISTIC"
+  app_engine_integration_mode       = "DISABLED"
+  point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_DISABLED"
+  delete_protection_state           = "DELETE_PROTECTION_DISABLED"
+  deletion_policy                   = "DELETE"
+
+  depends_on = [google_project_service.datastore_api]
+}
+
 module "bq-remote-func-get-table-policy-tags" {
   source                         = "./modules/bq-remote-function"
   function_name                  = var.bq_remote_func_get_policy_tags_name
@@ -179,13 +201,14 @@ module "bq-remote-func-get-table-policy-tags" {
   cloud_function_temp_dir        = "/tmp/get-policy-tags.zip"
   service_account_name           = var.sa_bq_remote_func_get_policy_tags
   function_entry_point           = "process_request"
-  env_variables                  = {}
+  // add more env_variables using merge({key=value}, {key=value}, etc}
+  env_variables                  = {"DATASTORE_CACHE_DB_NAME" = var.datastore_database_name}
   project                        = var.project
   compute_region                 = var.compute_region
   data_region                    = var.data_region
   bigquery_dataset_name          = module.common-stack.bq_results_dataset
   deployment_procedure_path      = "modules/bq-remote-function/procedures/deploy_get_policy_tags_remote_func.tpl"
-  cloud_functions_sa_extra_roles = []
+  cloud_functions_sa_extra_roles = ["roles/datastore.user"]
 
   depends_on = [module.common-stack]
 }
@@ -256,6 +279,8 @@ module "gcs-auto-dlp-stack" {
   tagging_dispatcher_gcs_pubsub_sub = var.tagging_dispatcher_gcs_pubsub_sub
   tagging_dispatcher_gcs_pubsub_topic = var.tagging_dispatcher_gcs_pubsub_topic
   tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
+  bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
+  sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
 }
 
 

@@ -22,27 +22,6 @@ resource "random_id" "run_id" {
   }
 }
 
-##### Enable datastore API because the function is using it as a cache layer
-
-resource "google_project_service" "datastore_api" {
-  service            = "datastore.googleapis.com"
-  disable_on_destroy = false                     # Prevent accidental disabling during Terraform destroy
-}
-
-resource "google_firestore_database" "datastore_mode_database" {
-  project                           = var.project
-  name                              = var.datastore_database_name
-  location_id                       = var.compute_region
-  type                              = "DATASTORE_MODE"
-  concurrency_mode                  = "OPTIMISTIC"
-  app_engine_integration_mode       = "DISABLED"
-  point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_DISABLED"
-  delete_protection_state           = "DELETE_PROTECTION_DISABLED"
-  deletion_policy                   = "DELETE"
-
-  depends_on = [google_project_service.datastore_api]
-}
-
 ##### BigQuery Connection
 
 resource "google_bigquery_connection" "connection" {
@@ -67,8 +46,7 @@ resource "google_project_iam_member" "sa_function_roles" {
   project  = var.project
   for_each = toset(concat([
     "roles/logging.logWriter",
-    "roles/artifactregistry.reader",
-    "roles/datastore.user"
+    "roles/artifactregistry.reader"
   ],
     var.cloud_functions_sa_extra_roles
   ))
@@ -126,17 +104,12 @@ resource "google_cloudfunctions2_function" "function" {
     timeout_seconds                  = var.cf_timeout_seconds
     max_instance_request_concurrency = var.cf_max_instance_request_concurrency
     available_cpu                    = var.cf_available_cpu
-    environment_variables            = merge(var.env_variables,
-      {name = "TERRAFORM_RUN_ID", value = random_id.run_id.hex},
-      {name = "DATASTORE_CACHE_DB_NAME", value = google_firestore_database.datastore_mode_database.name}
-    ) # to force TF to deploy the function on each run
+    environment_variables            = var.env_variables
     ingress_settings                 = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision   = true
     service_account_email            = google_service_account.sa_function.email
   }
 }
-
-
 
 resource "google_cloud_run_service_iam_member" "sa_invoker" {
   project  = var.project
@@ -148,10 +121,8 @@ resource "google_cloud_run_service_iam_member" "sa_invoker" {
   depends_on = [google_bigquery_connection.connection, google_cloudfunctions2_function.function]
 }
 
-#########
 
 # create a stored procedure that deploys the function and call it from outside Terraform
-
 resource "google_bigquery_routine" "routine_deploy_functions" {
   dataset_id      = var.bigquery_dataset_name
   routine_id      = "deploy_${var.function_name}"
@@ -167,6 +138,7 @@ resource "google_bigquery_routine" "routine_deploy_functions" {
       cloud_function_url = google_cloudfunctions2_function.function.service_config[0].uri
     }
   )
+  depends_on = [google_cloudfunctions2_function.function]
 }
 
 

@@ -138,3 +138,13 @@ variable "tagger_gcs_pubsub_sub" {
   default = "tagger_gcs_push_sub"
 }
 
+variable "bq_remote_func_get_buckets_metadata" {
+  type = string
+  default = "get_buckets_metadata"
+}
+
+variable "sa_bq_remote_func_get_buckets_metadata" {
+  type = string
+  default = "sa-func-get-buckets-metadata"
+}
+
