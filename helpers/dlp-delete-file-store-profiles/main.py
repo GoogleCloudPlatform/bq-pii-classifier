@@ -1,5 +1,7 @@
 from google.cloud import dlp_v2
 import argparse
+import time
+
 
 def delete_all_data_profiles(parent, *regions):
 
@@ -17,6 +19,8 @@ def delete_all_data_profiles(parent, *regions):
 
             for profile in profiles:
                 print(f"Deleting profile {profile.name} ..")
+                # for rate limiting
+                time.sleep(1)
                 client.delete_file_store_data_profile(request=dlp_v2.DeleteFileStoreDataProfileRequest(
                     name=profile.name,
                 ))

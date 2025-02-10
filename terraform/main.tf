@@ -230,6 +230,8 @@ module "data_projects_permissions_in_standard_mode" {
   sa_tagging_dispatcher_email             = module.common-stack.sa_tagging_dispatcher_email
 }
 
+### DLP for GCS modules
+
 module "gcs-auto-dlp-stack" {
   source = "./stacks/gcs-auto-dlp"
 
@@ -281,6 +283,25 @@ module "gcs-auto-dlp-stack" {
   tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
   bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
   sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
+}
+
+// This module assigns roles and permissions to service accounts used in the thi solution on FOLDER AND ORG levels (and not the host project)
+// The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
+module "data-folder-permissions-for-gcs-stack" {
+  source = "./modules/data-folder-permissions-for-gcs-stack"
+
+  dlp_config_org_id = var.dlp_gcs_scan_org_id
+  dlp_config_folder_id = var.dlp_gcs_scan_folder_id
+
+  # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
+  dlp_service_sa_email = local.dlp_service_account_email
+  # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: tag-dispatcher-gcs@<host project name>.iam.gserviceaccount.com
+  dispatcher_sa_email = module.gcs-auto-dlp-stack.dispatcher_sa_email
+  # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
+  tagger_sa_email = module.gcs-auto-dlp-stack.tagger_sa_email
+  # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
+  func_get_buckets_metadata_sa_email = module.gcs-auto-dlp-stack.func_get_buckets_metadata_sa_email
 }
 
 
