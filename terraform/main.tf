@@ -217,7 +217,7 @@ module "bq-remote-func-get-table-policy-tags" {
 # For this to run, the terraform service account must have permissions to set IAM policies on each data project. You can achieve this by running scripts/prepare_terraform_service_account_on_data_projects.sh "data-project-1" "data-project-2".
 # If you can't grant the terraform account such access, this step can also be done via scripts/prepare_data_projects_for_standard_mode.sh by an authorized user
 module "data_projects_permissions_in_standard_mode" {
-  source = "./modules/data_project_permissions_in_standard_mode"
+  source = "./modules/data-project-permissions-in-standard-mode"
   // deploy this module only if we are in standard mode
   count  = var.is_auto_dlp_mode? 0 : length(local.data_projects)
 
