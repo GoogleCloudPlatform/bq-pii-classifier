@@ -285,7 +285,7 @@ module "gcs-auto-dlp-stack" {
   sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
 }
 
-// This module assigns roles and permissions to service accounts used in the thi solution on FOLDER AND ORG levels (and not the host project)
+// This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
 // The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
 module "data-folder-permissions-for-gcs-stack" {
@@ -300,8 +300,210 @@ module "data-folder-permissions-for-gcs-stack" {
   dispatcher_sa_email = module.gcs-auto-dlp-stack.dispatcher_sa_email
   # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
   tagger_sa_email = module.gcs-auto-dlp-stack.tagger_sa_email
-  # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
+  # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
   func_get_buckets_metadata_sa_email = module.gcs-auto-dlp-stack.func_get_buckets_metadata_sa_email
 }
 
+locals {
+  dlp_region = var.data_region == "eu" ? "europe" : var.data_region
+}
 
+variable "dlp_bq_scan_org_id" {
+  type = string
+}
+
+variable "dlp_bq_scan_folder_id" {
+  type = string
+}
+
+variable "dlp_bq_create_configuration_in_paused_state" {
+  type = bool
+  description = "When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation"
+  default = true
+}
+
+variable "dlp_bq_project_id_regex" {
+  type        = string
+  description = "Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects"
+  default     = ".*"
+}
+
+variable "dlp_bq_dataset_regex" {
+  type        = string
+  description = "Regex to test the dataset name against during the DLP scan for BigQuery. if unset, this property matches all datasets"
+  default     = ".*"
+}
+
+variable "dlp_bq_table_regex" {
+  type        = string
+  description = "Regex to test the table name against during the DLP scan for BigQuery.  if unset, this property matches all tables"
+  default     = ".*"
+}
+
+variable "dlp_bq_table_types" {
+  type = list(string)
+  description = "Restrict dlp discovery service for BigQuery to specific table types"
+  default = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
+}
+
+variable "dlp_bq_reprofile_on_table_schema_update_frequency" {
+  type = string
+  description = "How frequently data profiles can be updated when a table schema is modified (i.e. columns). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
+  default = "UPDATE_FREQUENCY_NEVER"
+}
+
+variable "dlp_bq_reprofile_on_table_data_update_frequency" {
+  type = string
+  description = "How frequently data profiles can be updated when a table data is modified (i.e. rows). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
+  default = "UPDATE_FREQUENCY_NEVER"
+}
+
+variable "dlp_bq_reprofile_on_inspection_template_update_frequency" {
+  type = string
+  description = "How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
+  default = "UPDATE_FREQUENCY_NEVER"
+}
+
+variable "dlp_bq_reprofile_on_schema_update_types" {
+  type = list(string)
+  description = "The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS"
+  default = ["SCHEMA_NEW_COLUMNS"]
+}
+
+variable "dlp_bq_reprofile_on_table_data_update_types" {
+  type = list(string)
+  description = "The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP"
+  default = ["TABLE_MODIFIED_TIMESTAMP"]
+}
+
+resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
+
+  // Project-level config. Only data in that project could be scanned
+  #    parent = "projects/<project id>/locations/${local.dlp_region}"
+
+  parent = "organizations/${var.dlp_bq_scan_org_id}/locations/${local.dlp_region}"
+
+  org_config {
+    // The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the cloud DLP API must be enabled
+    project_id = var.project
+
+    // The data to scan folder or project
+    location {
+      folder_id = var.dlp_bq_scan_folder_id
+    }
+  }
+
+  location = local.dlp_region
+
+  // inspection template(s) that will be used to inspect BQ tables
+  inspect_templates = local.dlp_inspection_templates_ids_list
+
+  // Enabled target with filter on specific projects/datasets/tables
+  targets {
+    big_query_target {
+
+      filter {
+        tables {
+          include_regexes {
+            patterns {
+              project_id_regex = var.dlp_bq_project_id_regex
+              dataset_id_regex = var.dlp_bq_dataset_regex
+              table_id_regex = var.dlp_bq_table_regex
+            }
+          }
+        }
+      }
+
+      conditions {
+        // Restrict discovery to specific table type Structure
+        types {
+          types = var.dlp_bq_table_types
+        }
+      }
+
+      // How often and when to update profiles. New tables that match both the fiter and conditions are scanned as quickly as possible depending on system capacity (i.e. columns are added/updated/deleted)
+      cadence {
+        // Governs when to update data profiles when a schema is modified
+        schema_modified_cadence {
+          // The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
+          types = var.dlp_bq_reprofile_on_schema_update_types
+          // How frequently profiles may be updated when schemas are modified. Default to monthly Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
+          frequency = var.dlp_bq_reprofile_on_table_schema_update_frequency
+        }
+        // Governs when to update profile when a table is modified (i.e. rows are added/updated/deleted)
+        table_modified_cadence {
+          // The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP.
+          types = var.dlp_bq_reprofile_on_table_data_update_types
+          // How frequently data profiles can be updated when tables are modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
+          frequency = var.dlp_bq_reprofile_on_table_data_update_frequency
+        }
+        // Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update
+        inspect_template_modified_cadence {
+          // How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
+          frequency = var.dlp_bq_reprofile_on_inspection_template_update_frequency
+        }
+      }
+    }
+  }
+
+  // Target to cover all "other" unmatched resources. Target is disabled, meaning, for all other matches than specified, do not profile.
+  targets {
+    big_query_target {
+      filter {
+        other_tables {}
+      }
+    }
+  }
+
+  actions {
+    export_data {
+      profile_table {
+        project_id = var.project
+        dataset_id = module.common-stack.bq_results_dataset
+        table_id   = var.auto_dlp_results_table_name
+      }
+    }
+  }
+
+  actions {
+    pub_sub_notification {
+      topic             = module.common-stack.tagger_topic_id
+      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
+      event             = "NEW_PROFILE"
+      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
+      detail_of_message = "RESOURCE_NAME"
+    }
+  }
+
+  actions {
+    pub_sub_notification {
+      topic             = module.common-stack.tagger_topic_id
+      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
+      event             = "CHANGED_PROFILE"
+      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
+      detail_of_message = "RESOURCE_NAME"
+    }
+  }
+
+  // PAUSED | RUNNING
+  status = var.dlp_bq_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
+}
+
+// This module assigns roles and permissions to service accounts used in this solution on FOLDER level (and not the host project)
+// The Terraform service account needs certain folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles folder level
+module "data-folder-permissions-for-bq-auto-dlp-stack" {
+  source = "./modules/data-folder-permissions-for-bq-auto-dlp-stack"
+
+  dlp_config_folder_id                    = var.dlp_bq_scan_folder_id
+
+  # default: tagger@<host project id>.iam.gserviceaccount.com
+  sa_tagger_email                         = module.common-stack.sa_tagger_email
+  # default: tag-dispatcher@<host project id>.iam.gserviceaccount.com
+  sa_tagging_dispatcher_email             = module.common-stack.sa_tagging_dispatcher_email
+  # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
+  dlp_service_sa_email                    = local.dlp_service_account_email
+  # default: sa-func-get-policy-tags@<host project id>.iam.gserviceaccount.com
+  sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
+
+}

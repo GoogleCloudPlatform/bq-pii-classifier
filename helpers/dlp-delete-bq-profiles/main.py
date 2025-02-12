@@ -12,26 +12,26 @@ def delete_all_data_profiles(parent, *regions):
 
         try:
             # List data profiles in the region
-            request = dlp_v2.ListFileStoreDataProfilesRequest(
+            request = dlp_v2.ListTableDataProfilesRequest(
                 parent=regional_parent,
             )
-            profiles = client.list_file_store_data_profiles(request=request)
+            profiles = client.list_table_data_profiles(request=request)
 
             for profile in profiles:
-                print(f"Deleting profile {profile.name} ..")
+                print(f"Deleting table profile {profile.name} ..")
                 # for rate limiting
                 time.sleep(0.5)
-                client.delete_file_store_data_profile(request=dlp_v2.DeleteFileStoreDataProfileRequest(
+                client.delete_table_data_profile(request=dlp_v2.DeleteTableDataProfileRequest(
                     name=profile.name,
                 ))
 
         except Exception as e:
-            print(f"Error listing file store data profiles in {region}: {e}")
+            print(f"Error listing table profiles in {region}: {e}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Delete file store data profiles from DLP by region.")
+    parser = argparse.ArgumentParser(description="Delete BigQuery table profiles from DLP by region.")
     parser.add_argument("dlp_parent", help="organizations/<number> or projects/<project id>")
-    parser.add_argument("regions", nargs="+", help="The DLP regions where file store profiles are to be deleted")
+    parser.add_argument("regions", nargs="+", help="The DLP regions where table profiles are to be deleted")
     args = parser.parse_args()
     delete_all_data_profiles(args.dlp_parent, *args.regions)

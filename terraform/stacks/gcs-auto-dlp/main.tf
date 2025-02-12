@@ -13,7 +13,7 @@ locals {
 resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   // Project-level config. Only data in that project could be scanned
-  #    parent = "projects/bqsc-marketing-v1/locations/${local.dlp_region}"
+  #    parent = "projects/<project id>/locations/${local.dlp_region}"
 
   parent = "organizations/${var.dlp_gcs_scan_org_id}/locations/${local.dlp_region}"
   org_config {
