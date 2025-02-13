@@ -1,6 +1,10 @@
 ### DLP for GCS modules
 
 module "gcs-discovery-stack" {
+
+  // deploy it only if the GCS_DISCOVERY is selected
+  count = contains(var.supported_stacks, "GCS_DISCOVERY")? 1: 0
+
   source = "./stacks/gcs-discovery-stack"
 
   # stack-specific parameters
@@ -57,6 +61,10 @@ module "gcs-discovery-stack" {
 // The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
 module "data-folder-permissions-for-gcs-discovery-stack" {
+
+  // deploy it only if the GCS_DISCOVERY is selected
+  count = contains(var.supported_stacks, "GCS_DISCOVERY")? 1: 0
+
   source = "./modules/data-folder-permissions-for-gcs-discovery-stack"
 
   dlp_config_org_id = var.dlp_gcs_scan_org_id
@@ -65,9 +73,9 @@ module "data-folder-permissions-for-gcs-discovery-stack" {
   # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
   dlp_service_sa_email = local.dlp_service_account_email
   # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: tag-dispatcher-gcs@<host project name>.iam.gserviceaccount.com
-  dispatcher_sa_email = module.gcs-discovery-stack.dispatcher_sa_email
+  dispatcher_sa_email = module.gcs-discovery-stack[0].dispatcher_sa_email
   # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
-  tagger_sa_email = module.gcs-discovery-stack.tagger_sa_email
+  tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
   # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
-  func_get_buckets_metadata_sa_email = module.gcs-discovery-stack.func_get_buckets_metadata_sa_email
+  func_get_buckets_metadata_sa_email = module.gcs-discovery-stack[0].func_get_buckets_metadata_sa_email
 }

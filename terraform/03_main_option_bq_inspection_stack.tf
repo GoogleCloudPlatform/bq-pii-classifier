@@ -2,7 +2,7 @@
 module "bq-inspection-stack" {
   source = "./stacks/bq-inspection-stack"
   // deploy the inspection stack only if we are not in bq auto_dlp_mode (i.e. bq inspection stack)
-  count  = var.is_auto_dlp_mode ? 0 : 1
+  count  = local.is_auto_dlp_mode ? 0 : 1
 
   bigquery_dataset_name           = google_bigquery_dataset.results_dataset.dataset_id
   cloud_scheduler_account         = local.cloud_scheduler_account_email
@@ -53,7 +53,7 @@ module "data_projects_permissions_for_bq_inspection_stack" {
   source = "./modules/data-project-permissions-for-bq-inspection-stack"
 
   // deploy the inspection stack only if we are not in bq auto_dlp_mode (i.e. bq inspection stack)
-  count  = var.is_auto_dlp_mode? 0 : length(local.data_projects)
+  count  = local.is_auto_dlp_mode? 0 : length(local.data_projects)
 
   target_project                          = local.data_projects[count.index]
   sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
@@ -66,7 +66,7 @@ module "data_projects_permissions_for_bq_inspection_stack" {
 
 resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_inspector_email" {
   // deploy the inspection stack only if we are not in bq auto_dlp_mode (i.e. bq inspection stack)
-  count  = var.is_auto_dlp_mode ? 0 : 1
+  count  = local.is_auto_dlp_mode ? 0 : 1
 
   bucket = google_storage_bucket.gcs_flags_bucket.name
   role = "roles/storage.objectAdmin"
@@ -75,7 +75,7 @@ resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_insp
 
 resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_inspection_dispatcher_email" {
   // deploy the inspection stack only if we are not in bq auto_dlp_mode (i.e. bq inspection stack)
-  count  = var.is_auto_dlp_mode ? 0 : 1
+  count  = local.is_auto_dlp_mode ? 0 : 1
 
   bucket = google_storage_bucket.gcs_flags_bucket.name
   role = "roles/storage.objectAdmin"

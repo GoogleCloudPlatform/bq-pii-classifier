@@ -391,11 +391,6 @@ variable "table_scan_limits_json_config" {
   }
 }
 
-variable "is_auto_dlp_mode" {
-  type = bool
-  default = false
-}
-
 // In case of False:
 //  The solution will report the infotype of a field as "MIXED" if DLP finds more than one InfoType for that field (regardless of likelyhood and number of findings)
 // In case of True:
@@ -565,4 +560,12 @@ variable "datastore_database_name" {
   default = "(default)"
 }
 
-
+variable "supported_stacks" {
+  type = set(string)
+  default = ["BIGQUERY_INSPECTION"]
+  description = "Define which source systems would be scanned by Cloud DLP, using which methods (inspection vs discovery). Values are BIGQUERY_INSPECTION, BIGQUERY_DISCOVERY, GCS_DISCOVERY. Only one stack is allowed per source system."
+  validation {
+    condition     = length(setintersection(var.supported_stacks, ["BIGQUERY_INSPECTION", "BIGQUERY_DISCOVERY"])) == 1 && length(setsubtract(var.supported_stacks, ["BIGQUERY_INSPECTION", "BIGQUERY_DISCOVERY", "GCS_DISCOVERY"])) == 0
+    error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_INSPECTION' or 'BIGQUERY_DISCOVERY' but not both, and optionally 'GCS_DISCOVERY'."
+  }
+}

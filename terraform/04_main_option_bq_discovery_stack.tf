@@ -6,7 +6,7 @@ locals {
 resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 
   # deploy only if auto dlp mode is selected
-  count  = var.is_auto_dlp_mode? 1 : 0
+  count  = local.is_auto_dlp_mode? 1 : 0
 
   // Project-level config. Only data in that project could be scanned
   #    parent = "projects/<project id>/locations/${local.dlp_region}"
@@ -125,7 +125,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 module "data-folder-permissions-for-bq-discovery-stack" {
 
   # deploy only if auto dlp mode is selected
-  count  = var.is_auto_dlp_mode? 1 : 0
+  count  = local.is_auto_dlp_mode? 1 : 0
 
   source = "./modules/data-folder-permissions-for-bq-discovery-stack"
 

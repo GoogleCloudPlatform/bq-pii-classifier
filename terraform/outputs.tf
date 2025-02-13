@@ -3,5 +3,5 @@ output "bq_get_policy_tags_remote_function_deployment_status" {
 }
 
 output "bq_get_buckets_metadata_remote_function_deployment_status" {
-  value = module.gcs-discovery-stack.bq_get_buckets_metadata_remote_function_deployment_status
+  value = module.gcs-discovery-stack[0].bq_get_buckets_metadata_remote_function_deployment_status
 }

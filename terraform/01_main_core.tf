@@ -26,6 +26,9 @@ data google_project "gcp_project" {
 
 locals {
 
+  # is_auto_dlp_mode is a legacy variable that is removed as a variable but still being used as a config in other modules
+  is_auto_dlp_mode = contains(var.supported_stacks, "BIGQUERY_DISCOVERY")
+
   tagging_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_service_image}"
 
   inspection_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.inspection_dispatcher_service_image}"
@@ -134,24 +137,6 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
 
   uniform_bucket_level_access = true
 }
-
-#FIXME: assign IAM permissions to the flags bucket in each stack accordingly
-#common_gcs_admins = [
-#  "serviceAccount:${module.common-stack.sa_tagging_dispatcher_email}",
-#  "serviceAccount:${module.common-stack.sa_tagger_email}"
-#]
-#// In Inspection Mode deployment (is_auto_dlp = false) use these:
-#inspection_gcs_admins = var.is_auto_dlp_mode ? [] : [
-#  "serviceAccount:${module.inspection-stack[0].sa_inspection_dispatcher_email}",
-#  "serviceAccount:${module.inspection-stack[0].sa_inspector_email}"
-#]
-# var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
-#resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member" {
-#  count = length(var.gcs_flags_bucket_admins)
-#  bucket = google_storage_bucket.gcs_flags_bucket.name
-#  role = "roles/storage.objectAdmin"
-#  member = var.gcs_flags_bucket_admins[count.index]
-#}
 
 ### LOGGING ####
 

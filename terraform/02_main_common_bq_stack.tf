@@ -69,7 +69,7 @@ module "cloud-run-tagger" {
     },
     {
       name  = "IS_AUTO_DLP_MODE",
-      value = tostring(var.is_auto_dlp_mode),
+      value = tostring(local.is_auto_dlp_mode),
     },
     {
       name  = "INFO_TYPE_MAP",
@@ -130,7 +130,7 @@ module "cloud-run-tagging-dispatcher" {
     },
     {
       name  = "IS_AUTO_DLP_MODE",
-      value = tostring(var.is_auto_dlp_mode),
+      value = tostring(local.is_auto_dlp_mode),
     },
     {
       name  = "LOGGING_TABLE",
