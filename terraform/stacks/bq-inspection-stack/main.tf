@@ -12,20 +12,27 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-module "inspection_cloud_scheduler" {
-  source = "../../modules/cloud-scheduler"
+resource "google_cloud_scheduler_job" "scheduler_job" {
   project = var.project
   region = var.compute_region
-  scheduler_name = var.scheduler_name
+  name             = var.scheduler_name
+  description      = "CRON job to trigger BQ PII Classifier inspection"
+  schedule         = var.cron_expression
 
+  retry_config {
+    retry_count = 0
+  }
 
-  target_uri = module.pubsub-inspection-dispatcher.topic-id
-
-  datasets_include_list = var.datasets_include_list
-  projects_include_list = var.projects_include_list
-  datasets_exclude_list = var.datasets_exclude_list
-  tables_exclude_list = var.tables_exclude_list
-  cron_expression = var.cron_expression
+  pubsub_target {
+    # topic.id is the topic's full resource name.
+    topic_name = module.pubsub-inspection-dispatcher.topic-id
+    data       = base64encode(jsonencode({
+      datasetIncludeList = var.datasets_include_list
+      projectIncludeList = var.projects_include_list
+      datasetExcludeList = var.datasets_exclude_list
+      tableExcludeList = var.tables_exclude_list
+    }))
+  }
 }
 
 module "cloud-run-inspection-dispatcher" {

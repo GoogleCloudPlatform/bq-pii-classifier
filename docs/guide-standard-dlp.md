@@ -196,7 +196,7 @@ The application is deployed under a host project as set in the `PROJECT_ID` vari
 To enable the application to tag columns in other projects (i.e. data projects) one must grant a number of
 permissions on each data project. 
 
-If you haven't configured Terraform to do that for you via the `data_projects_permissions_in_standard_mode` module in [terraform/main.tf](../terraform/main.tf)
+If you haven't configured Terraform to do that for you via the `data_projects_permissions_in_standard_mode` module in [Terraform](../terraform/03_main_option_bq_inspection_stack)
 , you can grant these permissions manually with the following script:
 
 From root folder:

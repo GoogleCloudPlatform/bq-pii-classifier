@@ -60,7 +60,7 @@ If you're deploying in `standard-mode` run the following script:
 Where the data projects are the distinct list of all projects you set in the `projects_include_list` and/or `datasets_include_list`.  
 
 If granting this role to the Terraform service account is not possible then you can do the following:
-1. Remove the `data_projects_permissions_in_standard_mode` module in [terraform/main.tf](../terraform/main.tf) to avoid errors
+1. Remove the `data_projects_permissions_in_standard_mode` module in [Terraform](../terraform/03_main_option_bq_inspection_stack.tf) to avoid errors
 2. In a later step, after deploying the solution, you will run a script to grant the newly created service accounts access to the data projects
 
 ### Configure Custom Info Types

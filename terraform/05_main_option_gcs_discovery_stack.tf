@@ -1,0 +1,73 @@
+### DLP for GCS modules
+
+module "gcs-discovery-stack" {
+  source = "./stacks/gcs-discovery-stack"
+
+  # stack-specific parameters
+  dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
+  dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
+  tagging_dispatcher_gcs_service_image = var.tagging_dispatcher_gcs_service_image
+  tagger_gcs_service_image = var.tagger_gcs_service_image
+  gcs_tagging_scheduler_cron = var.gcs_tagging_scheduler_cron
+
+  # common parameters
+  bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
+  cloud_scheduler_account_email = local.cloud_scheduler_account_email
+  compute_region = var.compute_region
+  data_region = var.data_region
+  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
+  dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
+  gar_docker_repo_name = var.gar_docker_repo_name
+  gcs_flags_bucket_name = google_storage_bucket.gcs_flags_bucket.name
+  project = var.project
+  tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
+  dispatcher_subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
+  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  info_type_map                                      = local.info_types_map
+  is_dry_run_labels                                  = var.is_dry_run_labels
+  tagger_subscription_ack_deadline_seconds           = var.tagger_subscription_ack_deadline_seconds
+  tagger_subscription_message_retention_duration     = var.tagger_subscription_message_retention_duration
+  dlp_service_account_email                          = local.dlp_service_account_email
+  source_data_regions                                = var.source_data_regions
+  dlp_gcs_bq_results_table_name = var.dlp_gcs_bq_results_table_name
+  dlp_gcs_bucket_name_regex = var.dlp_gcs_bucket_name_regex
+  dlp_gcs_create_configuration_in_paused_state = var.dlp_gcs_create_configuration_in_paused_state
+  dlp_gcs_included_bucket_attributes = var.dlp_gcs_included_bucket_attributes
+  dlp_gcs_included_object_attributes = var.dlp_gcs_included_object_attributes
+  dlp_gcs_project_id_regex = var.dlp_gcs_project_id_regex
+  dlp_gcs_reprofile_on_data_change = var.dlp_gcs_reprofile_on_data_change
+  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_reprofile_on_inspection_template_update
+  gcs_tagging_scheduler_description = var.gcs_tagging_scheduler_description
+  gcs_tagging_scheduler_name = var.gcs_tagging_scheduler_name
+  sa_tagger_gcs = var.sa_tagger_gcs
+  sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
+  sa_tagging_dispatcher_gcs = var.sa_tagging_dispatcher_gcs
+  sa_tagging_dispatcher_gcs_tasks = var.sa_tagging_dispatcher_gcs_tasks
+  tagger_gcs_pubsub_sub = var.tagger_gcs_pubsub_sub
+  tagger_gcs_pubsub_topic = var.tagger_gcs_pubsub_topic
+  tagger_gcs_service_name = var.tagger_gcs_service_name
+  tagging_dispatcher_gcs_pubsub_sub = var.tagging_dispatcher_gcs_pubsub_sub
+  tagging_dispatcher_gcs_pubsub_topic = var.tagging_dispatcher_gcs_pubsub_topic
+  tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
+  bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
+  sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
+}
+
+// This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
+// The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
+module "data-folder-permissions-for-gcs-discovery-stack" {
+  source = "./modules/data-folder-permissions-for-gcs-discovery-stack"
+
+  dlp_config_org_id = var.dlp_gcs_scan_org_id
+  dlp_config_folder_id = var.dlp_gcs_scan_folder_id
+
+  # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
+  dlp_service_sa_email = local.dlp_service_account_email
+  # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: tag-dispatcher-gcs@<host project name>.iam.gserviceaccount.com
+  dispatcher_sa_email = module.gcs-discovery-stack.dispatcher_sa_email
+  # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
+  tagger_sa_email = module.gcs-discovery-stack.tagger_sa_email
+  # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
+  func_get_buckets_metadata_sa_email = module.gcs-discovery-stack.func_get_buckets_metadata_sa_email
+}
