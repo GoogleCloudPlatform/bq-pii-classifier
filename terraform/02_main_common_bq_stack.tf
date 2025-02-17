@@ -351,14 +351,20 @@ locals {
   parent_tags_with_members_list = [for parent_tag in local.created_parent_tags:
   {
     policy_tag_name = parent_tag["id"]
-    # lookup the iam_mapping variable with the key <domain>_<classification>
+    # lookup the iam_mapping variable with the key <domain> and then sub-key <classification>
     # parent_tag.display_name is the classification
 
-    iam_members = lookup(
-      var.iam_mapping[lookup(parent_tag, "domain", "NA")],
-      lookup(parent_tag, "display_name", "NA"),
-      ["IAM_MEMBERS_LOOKUP_FAILED"]
+    # if no iam_mapping is provided, then assign an empty list of IAM members for that tag,
+    # if not, get the configured IAM members for the classification level of that tag
+    iam_members = length(var.iam_mapping) == 0? [] : lookup(
+      // the domain-specific IAM mapping entry
+      var.iam_mapping[parent_tag["domain"]],
+      // The parent tag classification used as the display name
+      parent_tag["display_name"],
+      // if no IAM list is found for that domain-classification, use an empty list for iam members
+      []
     )
+
   }]
 
   // flatten the iam_members list inside of parent_tags_with_members_list
