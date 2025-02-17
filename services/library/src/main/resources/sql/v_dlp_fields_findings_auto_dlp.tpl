@@ -57,6 +57,6 @@
         LEFT JOIN datasets_domains dd ON dd.project = l.dataset_project_id AND dd.dataset = l.dataset_id
         LEFT JOIN projects_domains pd ON pd.project = l.dataset_project_id
         -- get tag ids that belong to certain domain. Use dataset-level domain if found, else project-level domain
-        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain ) AND c.info_type = l.final_info_type AND c.region = l.table_region
+        LEFT JOIN config c ON c.domain = COALESCE(dd.domain , pd.domain, '${default_domain_name}') AND c.info_type = l.final_info_type AND c.region = l.table_region
         WHERE l.final_info_type IS NOT NULL
         ORDER BY 1,2

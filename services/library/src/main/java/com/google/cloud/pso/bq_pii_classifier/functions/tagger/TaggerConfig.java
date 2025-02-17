@@ -38,6 +38,8 @@ public class TaggerConfig {
 
     private Map<String, InfoTypeInfo> infoTypeMap;
 
+    private String defaultDomainName;
+
     public TaggerConfig(String projectId,
                         Set<String> appOwnedTaxonomies,
                         String dlpDataset,

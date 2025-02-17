@@ -569,3 +569,9 @@ variable "supported_stacks" {
     error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_INSPECTION' or 'BIGQUERY_DISCOVERY' but not both, and optionally 'GCS_DISCOVERY'."
   }
 }
+
+variable "default_domain_name" {
+  type = string
+  default = "default_domain"
+  description = "default domain to use when domain_mapping is empty. This is used in deployments where only one domain is required and/or as a fallback for projects and datasets without explicit domain mapping."
+}

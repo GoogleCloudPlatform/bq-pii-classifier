@@ -37,7 +37,7 @@ module "cloud-run-tagger" {
     },
     {
       name  = "GCS_FLAGS_BUCKET",
-      value = var.gcs_flags_bucket_name,
+      value = google_storage_bucket.gcs_flags_bucket.name,
     },
     {
       name  = "DLP_DATASET",
@@ -74,6 +74,10 @@ module "cloud-run-tagger" {
     {
       name  = "INFO_TYPE_MAP",
       value = jsonencode(local.info_types_map),
+    },
+    {
+      name  = "DEFAULT_DOMAIN_NAME",
+      value = var.default_domain_name,
     }
   ]
 }
@@ -114,7 +118,7 @@ module "cloud-run-tagging-dispatcher" {
     },
     {
       name  = "GCS_FLAGS_BUCKET",
-      value = var.gcs_flags_bucket_name,
+      value = google_storage_bucket.gcs_flags_bucket.name,
     },
     {
       name  = "SOLUTION_DATASET",

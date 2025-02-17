@@ -23,7 +23,9 @@ public class FindingsReaderStandardDlp implements FindingsReader {
     private String dlpProject;
     private String sqlTemplatePath;
 
-    public FindingsReaderStandardDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpTable, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView, String sqlTemplatePath) {
+    private String defaultDomainName;
+
+    public FindingsReaderStandardDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpTable, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView, String sqlTemplatePath, String defaultDomainName) {
         this.bqService = bqService;
         this.dlpProject = dlpProject;
         this.dlpDataset = dlpDataset;
@@ -32,6 +34,7 @@ public class FindingsReaderStandardDlp implements FindingsReader {
         this.projectDomainMapView = projectDomainMapView;
         this.infoTypesPolicyTagsMapView = infoTypesPolicyTagsMapView;
         this.sqlTemplatePath = sqlTemplatePath;
+        this.defaultDomainName = defaultDomainName;
     }
 
     private String dlpDataset;
@@ -61,7 +64,8 @@ public class FindingsReaderStandardDlp implements FindingsReader {
                 .replace("${config_view_project_domain_map}", projectDomainMapView)
                 .replace("${results_table}", dlpTable)
                 .replace("${param_lookup_key}", dlpJobName)
-                .replace("${param_region}", region);
+                .replace("${param_region}", region)
+                .replace("${default_domain_name}", defaultDomainName);
     }
 
     /**

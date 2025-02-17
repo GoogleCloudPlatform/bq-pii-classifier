@@ -94,7 +94,8 @@ public class TaggerController {
                     environment.getIsAutoDlpMode() ? environment.getDlpTableAuto() : environment.getDlpTableStandard(),
                     environment.getConfigViewDatasetDomainMap(),
                     environment.getConfigViewProjectDomainMap(),
-                    environment.getConfigViewInfoTypePolicyTagsMap()
+                    environment.getConfigViewInfoTypePolicyTagsMap(),
+                    environment.getDefaultDomainName()
             );
 
             Tagger tagger = new Tagger(

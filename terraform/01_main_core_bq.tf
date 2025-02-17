@@ -5,11 +5,11 @@ locals {
   "SELECT '${entry["region"]}' AS region, '${entry["domain"]}' AS domain, '${entry["classification"]}' AS classification, '${entry["info_type"]}' AS info_type, '${entry["policy_tag_id"]}' AS policy_tag"
   ]
 
-  project_domain_map_select_statements = [for entry in local.project_and_domains_filtered:
+  project_domain_map_select_statements = length(local.project_and_domains_filtered) == 0 ? ["SELECT CAST(NULL AS STRING) AS project, CAST(NULL AS STRING) AS domain"] : [for entry in local.project_and_domains_filtered:
   "SELECT '${entry["project"]}' AS project, '${entry["domain"]}' AS domain"
   ]
 
-  dataset_domain_map_select_statements = length(local.datasets_and_domains_filtered) == 0 ? ["SELECT '' AS project, '' AS dataset, '' AS domain"] :[for entry in local.datasets_and_domains_filtered:
+  dataset_domain_map_select_statements = length(local.datasets_and_domains_filtered) == 0 ? ["SELECT CAST(NULL AS STRING) AS project, CAST(NULL AS STRING) AS dataset, CAST(NULL AS STRING) AS domain"] :[for entry in local.datasets_and_domains_filtered:
   "SELECT '${entry["project"]}' AS project, '${entry["dataset"]}' AS dataset, '${entry["domain"]}' AS domain"
   ]
 }

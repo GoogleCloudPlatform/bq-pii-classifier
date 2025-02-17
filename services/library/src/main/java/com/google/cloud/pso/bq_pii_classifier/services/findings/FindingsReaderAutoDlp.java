@@ -27,7 +27,9 @@ public class FindingsReaderAutoDlp implements FindingsReader {
     private String projectDomainMapView;
     private String infoTypesPolicyTagsMapView;
 
-    public FindingsReaderAutoDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpLatestFindingsView, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView) {
+    private String defaultDomainName;
+
+    public FindingsReaderAutoDlp(BigQueryService bqService, String dlpProject, String dlpDataset, String dlpLatestFindingsView, String datasetDomainMapView, String projectDomainMapView, String infoTypesPolicyTagsMapView, String defaultDomainName) {
         this.bqService = bqService;
         this.dlpProject = dlpProject;
         this.dlpDataset = dlpDataset;
@@ -35,6 +37,7 @@ public class FindingsReaderAutoDlp implements FindingsReader {
         this.datasetDomainMapView = datasetDomainMapView;
         this.projectDomainMapView = projectDomainMapView;
         this.infoTypesPolicyTagsMapView = infoTypesPolicyTagsMapView;
+        this.defaultDomainName = defaultDomainName;
     }
 
     // inspectedTableSpec:  "project.dataset.table"
@@ -52,7 +55,8 @@ public class FindingsReaderAutoDlp implements FindingsReader {
                 .replace("${config_view_dataset_domain_map}", datasetDomainMapView)
                 .replace("${config_view_project_domain_map}", projectDomainMapView)
                 .replace("${results_table}", dlpLatestFindingsView)
-                .replace("${param_lookup_key}", inspectedTableSpec);
+                .replace("${param_lookup_key}", inspectedTableSpec)
+                .replace("${default_domain_name}", defaultDomainName);
     }
 
     /**

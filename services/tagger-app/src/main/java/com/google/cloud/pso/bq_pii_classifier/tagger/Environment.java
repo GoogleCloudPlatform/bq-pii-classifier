@@ -99,5 +99,11 @@ public class Environment {
         return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
     }
 
+    public String getDefaultDomainName(){
+        return Utils.getConfigFromEnv("DEFAULT_DOMAIN_NAME", true);
+    }
+
+
+
 
 }

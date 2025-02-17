@@ -85,7 +85,7 @@ locals {
   ])
 
   // Concat project and dataset domains and filter out empty strings
-  domains = distinct(concat(local.project_domains, local.dataset_domains))
+  domains = distinct(concat(local.project_domains, local.dataset_domains, [var.default_domain_name]))
 
   # comma separated string with taxonomy names
   created_taxonomies = join(",", [for taxonomy in module.data-catalog[*].created_taxonomy : taxonomy.name])
@@ -100,7 +100,7 @@ locals {
 
   taxonomy_numbers = distinct([for x in var.classification_taxonomy: x["taxonomy_number"]])
 
-  // this return a list of lists like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
+  // this return a list of lists of [[gcp_region, domain, taxonomy_number]] like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
   taxonomies_to_be_created = setproduct(tolist(var.source_data_regions), local.domains, local.taxonomy_numbers)
 
   inspection_templates_count = max([for x in var.classification_taxonomy: x["inspection_template_number"]]...)
