@@ -271,6 +271,10 @@ module "cloud-run-tagger-gcs" {
     {
       name  = "INFO_TYPE_MAP",
       value = jsonencode(var.info_type_map),
+    },
+    {
+      name  = "EXISTING_LABELS_REGEX",
+      value = var.gcs_existing_labels_regex,
     }
   ]
 }

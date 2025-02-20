@@ -26,13 +26,17 @@ public class GcsTaggerConfig {
     private Boolean isDryRunLabels;
     private Map<String, InfoTypeInfo> infoTypeMap;
 
+    private String existingLabelsRegex;
+
     public GcsTaggerConfig(String projectId,
                            Boolean isDryRunLabels,
-                           Map<String, InfoTypeInfo> infoTypeMap
+                           Map<String, InfoTypeInfo> infoTypeMap,
+                           String existingLabelsRegex
                         ) {
         this.projectId = projectId;
         this.isDryRunLabels = isDryRunLabels;
         this.infoTypeMap = infoTypeMap;
+        this.existingLabelsRegex = existingLabelsRegex;
     }
 
     public Boolean isDryRunLabels() {
@@ -47,12 +51,17 @@ public class GcsTaggerConfig {
         return infoTypeMap;
     }
 
+    public String getExistingLabelsRegex() {
+        return existingLabelsRegex;
+    }
+
     @Override
     public String toString() {
         return "GcsTaggerConfig{" +
                 "projectId='" + projectId + '\'' +
                 ", isDryRunLabels=" + isDryRunLabels +
                 ", infoTypeMap=" + infoTypeMap +
+                ", existingLabelsRegex=" + existingLabelsRegex +
                 '}';
     }
 }

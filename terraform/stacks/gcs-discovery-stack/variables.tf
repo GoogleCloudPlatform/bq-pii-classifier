@@ -201,3 +201,7 @@ variable "bq_remote_func_get_buckets_metadata" {
 variable "sa_bq_remote_func_get_buckets_metadata" {
   type = string
 }
+
+variable "gcs_existing_labels_regex" {
+  type = string
+}

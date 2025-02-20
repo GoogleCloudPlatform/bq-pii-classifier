@@ -55,6 +55,7 @@ module "gcs-discovery-stack" {
   tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
   bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
   sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
+  gcs_existing_labels_regex = var.gcs_existing_labels_regex
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)

@@ -30,7 +30,8 @@ public class Environment {
         return new GcsTaggerConfig(
                 getProjectId(),
                 getIsDryRunLabels(),
-                getInfoTypeMap()
+                getInfoTypeMap(),
+                getExistingLabelsRegex()
         );
     }
 
@@ -48,6 +49,10 @@ public class Environment {
 
     public Map<String, InfoTypeInfo> getInfoTypeMap(){
         return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
+    }
+
+    public String getExistingLabelsRegex(){
+        return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
     }
 
 

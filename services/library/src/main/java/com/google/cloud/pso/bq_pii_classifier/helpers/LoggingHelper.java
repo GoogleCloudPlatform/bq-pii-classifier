@@ -16,10 +16,7 @@
 
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.ApplicationLog;
-import com.google.cloud.pso.bq_pii_classifier.entities.FunctionLifeCycleEvent;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
-import com.google.cloud.pso.bq_pii_classifier.entities.TagHistoryLogEntry;
+import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -124,6 +121,7 @@ public class LoggingHelper {
                                  String labelKey,
                                  String labelValue,
                                  Boolean isDryRun,
+                                 ResourceLabelingAction action,
                                  String tracker){
 
         Object [] attributes = new Object[]{
@@ -131,15 +129,17 @@ public class LoggingHelper {
                 kv("labels_history_log_project_id", bucketProject),
                 kv("labels_history_log_label_key", labelKey),
                 kv("labels_history_log_label_value", labelValue),
+                kv("labels_history_log_label_action", action),
                 kv("labels_history_log_is_dry_run", isDryRun),
         };
 
         logWithTracker(
                 ApplicationLog.GCS_LABEL_HISTORY_LOG,
                 tracker,
-                String.format("Labels: bucket  %s, isDryRunLabels = %s, KV (%s, %s)",
+                String.format("Labels: bucket  %s, isDryRunLabels = %s, action = %s ,KV (%s, %s)",
                         bucketName,
                         isDryRun,
+                        action,
                         labelKey,
                         labelValue),
                 Level.INFO,

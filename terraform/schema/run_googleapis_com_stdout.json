@@ -264,6 +264,11 @@
         "mode": "NULLABLE",
         "name": "labels_history_log_bucket_name",
         "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "labels_history_log_label_action",
+        "type": "STRING"
       }
     ],
     "mode": "NULLABLE",

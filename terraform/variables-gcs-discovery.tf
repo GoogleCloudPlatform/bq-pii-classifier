@@ -148,3 +148,9 @@ variable "sa_bq_remote_func_get_buckets_metadata" {
   default = "sa-func-get-buckets-metadata"
 }
 
+variable "gcs_existing_labels_regex" {
+  type = string
+  default = "(?!)" // Negative lookahead with an empty pattern to never match labels
+  description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
+}
+
