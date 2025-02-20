@@ -29,17 +29,10 @@ public class Environment {
         return new TaggerConfig(
                 getProjectId(),
                 new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
-                getDlpDataset(),
-                getDlpTableStandard(),
-                getDlpTableAuto(),
-                getConfigViewInfoTypePolicyTagsMap(),
-                getConfigViewDatasetDomainMap(),
-                getConfigViewProjectDomainMap(),
-                getPromoteMixedTypes(),
-                getIsAutoDlpMode(),
                 getIsDryRunTags(),
                 getIsDryRunLabels(),
-                getInfoTypeMap()
+                getInfoTypeMap(),
+                getExistingLabelsRegex()
         );
     }
 
@@ -103,6 +96,9 @@ public class Environment {
         return Utils.getConfigFromEnv("DEFAULT_DOMAIN_NAME", true);
     }
 
+    public String getExistingLabelsRegex(){
+        return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
+    }
 
 
 

@@ -91,6 +91,7 @@ public class LoggingHelper {
                                  String labelKey,
                                  String labelValue,
                                  Boolean isDryRun,
+                                 ResourceLabelingAction action,
                                  String tracker){
 
         Object [] attributes = new Object[]{
@@ -99,15 +100,17 @@ public class LoggingHelper {
                 kv("labels_history_log_table_id", tableSpec.getTable()),
                 kv("labels_history_log_label_key", labelKey),
                 kv("labels_history_log_label_value", labelValue),
+                kv("labels_history_log_label_action", action),
                 kv("labels_history_log_is_dry_run", isDryRun),
         };
 
         logWithTracker(
                 ApplicationLog.LABEL_HISTORY_LOG,
                 tracker,
-                String.format("Labels: table %s, isDryRunLabels = %s, KV (%s, %s)",
+                String.format("Labels: table  %s, isDryRunLabels = %s, action = %s ,KV (%s, %s)",
                         tableSpec.toSqlString(),
                         isDryRun,
+                        action,
                         labelKey,
                         labelValue),
                 Level.INFO,

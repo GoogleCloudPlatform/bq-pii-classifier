@@ -19,10 +19,12 @@ package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableFieldSchema.PolicyTags;
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
+import com.google.cloud.pso.bq_pii_classifier.helpers.LabelsHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.FindingsReader;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
 import org.slf4j.event.Level;
 
@@ -130,24 +132,57 @@ public class Tagger {
                                 computedFieldsToPolicyTagsMap.toString()));
 
                 // construct a map of table labels based on the common labels and info type labels
-                Map<String, String> tableLabels = generateTableLabelsFromDlpFindings(tablePolicyTags,
+                Map<String, String> tableLabelsFromDlpFindings = generateTableLabelsFromDlpFindings(tablePolicyTags,
                         config.getInfoTypeMap());
 
-                //log found labels for this table
-                for (Map.Entry<String, String> labelEntry : tableLabels.entrySet()) {
+                // get existing table labels
+                Map<String, String> existingTableLabels = bqService.getTableLabels(targetTableSpec);
+
+                Map<Map.Entry<String, String>, ResourceLabelingAction> labelsWithActions = LabelsHelper.computeLabelsActions(existingTableLabels, tableLabelsFromDlpFindings, config.getExistingLabelsRegex());
+
+                Map<String, String> tableLabelsToSet = LabelsHelper.removeToBeDeletedLabels(labelsWithActions);
+
+                // log labels and actions applied on this table
+                int deletedLabelsCount = 0;
+                int newLabelsCount = 0;
+                int modifiedLabelsCount = 0;
+                int unchangedLabelsCount = 0;
+
+                for (Map.Entry<Map.Entry<String, String>, ResourceLabelingAction> labelWithAction :
+                        labelsWithActions.entrySet()) {
+
+                    switch (labelWithAction.getValue()) {
+                        case DELETE -> deletedLabelsCount += 1;
+                        case NEW_KEY -> newLabelsCount += 1;
+                        case NEW_VALUE -> modifiedLabelsCount += 1;
+                        case NO_CHANGE -> unchangedLabelsCount += 1;
+                    }
+
                     logger.logLabelsHistory(targetTableSpec,
-                            labelEntry.getKey(),
-                            labelEntry.getValue(),
+                            labelWithAction.getKey().getKey(),
+                            labelWithAction.getKey().getValue(),
                             config.isDryRunLabels(),
+                            labelWithAction.getValue(),
                             request.getTrackingId());
                 }
+
+                logger.logInfoWithTracker(
+                        request.getTrackingId(),
+                        String.format(
+                                "Labels Summary: table = %s, is_dry_run_labels = %s, new labels = %s, changed values = %s, no change = %s, deleted = %s .",
+                                targetTableSpec.toSqlString(),
+                                config.isDryRunLabels(),
+                                newLabelsCount,
+                                modifiedLabelsCount,
+                                unchangedLabelsCount,
+                                deletedLabelsCount));
 
                 // Apply policy tags to columns in BigQuery
                 // If isDryRun = True no actual tagging will happen on BigQuery and Dry-Run log entries will be written instead
                 List<TableFieldSchema> updatedFields = applyPolicyTagsAndLabels(
                         targetTableSpec,
                         computedFieldsToPolicyTagsMap,
-                        tableLabels,
+                        tableLabelsToSet,
                         config.getAppOwnedTaxonomies(),
                         config.isDryRunTags(),
                         config.isDryRunLabels(),
@@ -357,7 +392,10 @@ public class Tagger {
 
         // if this is a wet run for both tags and labels, patch them in one request
         if (!isDryRunTags && !isDryRunLabels) {
-            bqService.patchTable(tableSpec, updatedFields, tableLabels);
+            //bqService.patchTable(tableSpec, updatedFields, tableLabels);
+            bqService.patchTableSchema(tableSpec, updatedFields);
+            bqService.overWriteTableLabels(tableSpec, tableLabels);
+
             String msg = String.format(
                     "Policy tags and resource labels applied to table %s.",
                     tableSpec.toSqlString()
@@ -373,7 +411,8 @@ public class Tagger {
                 logger.logInfoWithTracker(trackingId, msg);
             }
             if (isDryRunTags && !isDryRunLabels) {
-                bqService.patchTableLabels(tableSpec, tableLabels);
+                //bqService.patchTableLabels(tableSpec, tableLabels);
+                bqService.overWriteTableLabels(tableSpec, tableLabels);
                 String msg = String.format(
                         "Resource labels applied to table %s.",
                         tableSpec.toSqlString()

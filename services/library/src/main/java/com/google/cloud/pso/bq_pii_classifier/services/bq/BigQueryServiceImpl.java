@@ -133,6 +133,13 @@ public class BigQueryServiceImpl implements BigQueryService {
                         .setLabels(tableLabels));
     }
 
+    public Map<String, String> getTableLabels(TableSpec tableSpec) throws IOException {
+        return bqAPI.tables()
+                .get(tableSpec.getProject(), tableSpec.getDataset(), tableSpec.getTable())
+                .execute()
+                .getLabels();
+    }
+
     private void patchTable(TableSpec tableSpec, Table newTableModel) throws IOException {
 
         bqAPI.tables()
@@ -154,5 +161,14 @@ public class BigQueryServiceImpl implements BigQueryService {
     @Override
     public boolean tableExists(TableSpec tableSpec) {
         return bqAPIWrapper.getTable(tableSpec.toTableId()) != null;
+    }
+
+    public void overWriteTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) {
+        com.google.cloud.bigquery.Table updatedTable = bqAPIWrapper.getTable(tableSpec.toTableId())
+                .toBuilder()
+                .setLabels(tableLabels)
+                .build();
+
+        bqAPIWrapper.update(updatedTable);
     }
 }

@@ -575,3 +575,9 @@ variable "default_domain_name" {
   default = "default_domain"
   description = "default domain to use when domain_mapping is empty. This is used in deployments where only one domain is required and/or as a fallback for projects and datasets without explicit domain mapping."
 }
+
+variable "bq_existing_labels_regex" {
+  type = string
+  default = "(?!)" // Negative lookahead with an empty pattern to never match labels
+  description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
+}

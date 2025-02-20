@@ -42,5 +42,14 @@ public interface BigQueryService {
 
     BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;
 
+    Map<String, String> getTableLabels(TableSpec tableSpec) throws IOException;
+
     boolean tableExists(TableSpec tableSpec);
+
+    /**
+     * Set table labels to the one supplied only. This is different from patchTableLabels that appends and updates labels only but doesn't delete
+     * @param tableSpec table to be updated
+     * @param tableLabels table labels to be attached to the table
+     */
+    void overWriteTableLabels(TableSpec tableSpec, Map<String, String> tableLabels);
 }

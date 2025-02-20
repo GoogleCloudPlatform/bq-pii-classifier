@@ -103,16 +103,16 @@ public class GcsTagger {
 
     // construct a map of label key, label value based on all labels configured for all detected
     // info types
-    Map<String, String> bucketLabels =
+    Map<String, String> bucketLabelsFromDlpFindings =
         generateBucketLabelsFromDlpFindings(
             profileSummary.getInfoTypes(), detectedInfoTypesWithMetadata);
 
-    // compute which labels to add, keep or remove and execute the actions based on
+    // compute which labels to add, keep or remove. And execute the actions based on
     // config.isDryRunLabels()
     Map<Map.Entry<String, String>, ResourceLabelingAction> labelsWithActions =
         gcsService.mergeLabelsToBucket(
             profileSummary.getBucketName(),
-            bucketLabels,
+            bucketLabelsFromDlpFindings,
             config.getExistingLabelsRegex(),
             config.isDryRunLabels());
 
@@ -142,20 +142,16 @@ public class GcsTagger {
           request.getTrackingId());
     }
 
-    // attach labels to GCS bucket based on the isDryRunLabels()
-    if (!config.isDryRunLabels() && bucketLabels.size() > 0) {
-
-      logger.logInfoWithTracker(
-          request.getTrackingId(),
-          String.format(
-              "Labels Summary: bucket = %s, new labels = %s, changed values = %s, no change = %s, deleted = %s .",
-                  profileSummary.getBucketPath(),
-                  newLabelsCount,
-                  modifiedLabelsCount,
-                  unchangedLabelsCount,
-                  deletedLabelsCount
-                  ));
-    }
+    logger.logInfoWithTracker(
+        request.getTrackingId(),
+        String.format(
+            "Labels Summary: bucket = %s, is_dry_run_labels = %s, new labels = %s, changed values = %s, no change = %s, deleted = %s .",
+            profileSummary.getBucketPath(),
+            config.isDryRunLabels(),
+            newLabelsCount,
+            modifiedLabelsCount,
+            unchangedLabelsCount,
+            deletedLabelsCount));
 
     // Add a flag key marking that we already completed this request and no additional runs
     // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has

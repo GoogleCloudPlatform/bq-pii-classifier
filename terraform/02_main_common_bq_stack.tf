@@ -78,6 +78,10 @@ module "cloud-run-tagger" {
     {
       name  = "DEFAULT_DOMAIN_NAME",
       value = var.default_domain_name,
+    },
+    {
+      name  = "EXISTING_LABELS_REGEX",
+      value = var.bq_existing_labels_regex
     }
   ]
 }

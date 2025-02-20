@@ -7,6 +7,7 @@ jsonPayload.labels_history_log_dataset_id AS dataset_id,
 jsonPayload.labels_history_log_table_id AS table_id,
 jsonPayload.labels_history_log_label_key AS label_key,
 jsonPayload.labels_history_log_label_value AS label_value,
+jsonPayload.labels_history_log_label_action AS label_action,
 jsonPayload.labels_history_log_is_dry_run AS is_dry_run_labels,
 FROM `${project}.${dataset}.${logging_table}`
 WHERE jsonPayload.global_app_log = 'LABEL_HISTORY_LOG'
