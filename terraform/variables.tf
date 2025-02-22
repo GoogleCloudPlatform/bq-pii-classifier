@@ -581,3 +581,9 @@ variable "bq_existing_labels_regex" {
   default = "(?!)" // Negative lookahead with an empty pattern to never match labels
   description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
 }
+
+variable "deploy_dlp_inspection_template_to_global_region" {
+  type = bool
+  default = false
+  description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
+}

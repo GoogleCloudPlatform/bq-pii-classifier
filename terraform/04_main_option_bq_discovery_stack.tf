@@ -1,5 +1,5 @@
 locals {
-  dlp_region = var.data_region == "eu" ? "europe" : var.data_region
+  dlp_regional_end_point = var.data_region == "eu" ? "europe" : var.data_region
 }
 
 
@@ -11,7 +11,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
   // Project-level config. Only data in that project could be scanned
   #    parent = "projects/<project id>/locations/${local.dlp_region}"
 
-  parent = "organizations/${var.dlp_bq_scan_org_id}/locations/${local.dlp_region}"
+  parent = "organizations/${var.dlp_bq_scan_org_id}/locations/${local.dlp_regional_end_point}"
 
   org_config {
     // The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the cloud DLP API must be enabled
@@ -23,7 +23,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
     }
   }
 
-  location = local.dlp_region
+  location = local.dlp_regional_end_point
 
   // inspection template(s) that will be used to inspect BQ tables
   inspect_templates = local.dlp_inspection_templates_ids_list

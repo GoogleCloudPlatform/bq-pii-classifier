@@ -154,11 +154,14 @@ resource "google_logging_project_sink" "bigquery-logging-sink" {
 ### DLP ####
 
 # deploy 1 dlp inspection template in each source data region
+locals {
+  dlp_regions = var.deploy_dlp_inspection_template_to_global_region? concat(tolist(var.source_data_regions), ["global"]): var.source_data_regions
+}
 module "dlp" {
-  count = length(var.source_data_regions)
+  count = length(local.dlp_regions)
   source                  = "./modules/dlp"
   project                 = var.project
-  region                  = tolist(var.source_data_regions)[count.index] # create inspection template in the same region as source data
+  region                  = tolist(local.dlp_regions)[count.index] # create inspection template in the same region as source data
   classification_taxonomy = var.classification_taxonomy
 
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
