@@ -218,22 +218,21 @@ public class LoggingHelper {
     }
 
     // To log failed processing of projects, datasets or tables
-    public void logFailedGcsDispatcherEntityId(String trackingId, String bucketName, String bucketProject, Exception ex) {
+    public void logFailedGcsDispatcherEntityId(String trackingId, Throwable throwable) {
 
         Object [] attributes = new Object[]{
-                kv("failed_dispatcher_entity_id", bucketName),
-                kv("failed_dispatcher_entity_project_id", bucketProject),
-                kv("failed_dispatcher_ex_name", ex.getClass().getName()),
-                kv("failed_dispatcher_ex_msg", ex.getMessage())
+//                kv("failed_dispatcher_entity_id", bucketName),
+//                kv("failed_dispatcher_entity_project_id", bucketProject),
+                kv("failed_dispatcher_ex_name", throwable.getClass().getName()),
+                kv("failed_dispatcher_ex_msg", throwable.getMessage())
         };
 
         logWithTracker(
                 ApplicationLog.GCS_FAILED_DISPATCHED_REQUESTS_LOG,
                 trackingId,
-                String.format("Failed to process bucket `%s`.Exception: %s. Msg: %s",
-                        bucketName,
-                        ex.getClass().getName(),
-                        ex.getMessage()
+                String.format("Failed to publish a batch to PubSub.Exception: %s. Msg: %s",
+                        throwable.getClass().getName(),
+                        throwable.getMessage()
                 ),
                 Level.ERROR,
                 attributes

@@ -20,24 +20,32 @@ import com.google.cloud.pso.bq_pii_classifier.entities.SolutionMode;
 
 public class GcsDispatcherConfig {
 
-    private String projectId;
-    private String computeRegionId;
-    private String dataRegionId;
+    private final String projectId;
+    private final String computeRegionId;
+    private final String dataRegionId;
 
-    private String dlpConfigParent;
-    private String outputTopic;
+    private final String dlpResultsDatasetName;
+
+    private final String dlpResultsTableName;
+
+    private final String dispatcherRunsTableName;
+    private final String outputTopic;
 
     public GcsDispatcherConfig(String projectId,
                                String computeRegionId,
                                String dataRegionId,
-                               String dlpConfigParent,
+                               String dlpResultsDatasetName,
+                               String dlpResultsTableName,
+                               String dispatcherRunsTableName,
                                String outputTopic
                             ) {
         this.projectId = projectId.toLowerCase();
         this.computeRegionId = computeRegionId.toLowerCase();
         this.dataRegionId = dataRegionId.toLowerCase();
+        this.dlpResultsDatasetName = dlpResultsDatasetName.toLowerCase();
+        this.dlpResultsTableName = dlpResultsTableName.toLowerCase();
+        this.dispatcherRunsTableName = dispatcherRunsTableName.toLowerCase();
         this.outputTopic = outputTopic.toLowerCase();
-        this.dlpConfigParent = dlpConfigParent;
     }
 
 
@@ -58,18 +66,28 @@ public class GcsDispatcherConfig {
         return outputTopic;
     }
 
-    public String getDlpConfigParent() {
-        return dlpConfigParent;
+    public String getDlpResultsDatasetName() {
+        return dlpResultsDatasetName;
+    }
+
+    public String getDlpResultsTableName() {
+        return dlpResultsTableName;
+    }
+
+    public String getDispatcherRunsTableName() {
+        return dispatcherRunsTableName;
     }
 
     @Override
     public String toString() {
-        return "DispatcherConfig{" +
+        return "GcsDispatcherConfig{" +
                 "projectId='" + projectId + '\'' +
                 ", computeRegionId='" + computeRegionId + '\'' +
                 ", dataRegionId='" + dataRegionId + '\'' +
-                ", dlpConfigParent='" + dlpConfigParent + '\'' +
-                ", outputTopic='" + outputTopic +
+                ", dlpResultsDatasetName='" + dlpResultsDatasetName + '\'' +
+                ", dlpResultsTableName='" + dlpResultsTableName + '\'' +
+                ", dispatcherRunsTableName='" + dispatcherRunsTableName + '\'' +
+                ", outputTopic='" + outputTopic + '\'' +
                 '}';
     }
 }

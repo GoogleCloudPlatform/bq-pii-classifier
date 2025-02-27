@@ -17,7 +17,6 @@ public class GcsServiceImpl implements GcsService {
 
   public GcsServiceImpl() {
     this.storage = StorageOptions.newBuilder().build().getService();
-    ;
   }
 
   public Map<Map.Entry<String, String>, ResourceLabelingAction> mergeLabelsToBucket(String bucketName,

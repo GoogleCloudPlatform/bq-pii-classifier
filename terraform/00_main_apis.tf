@@ -30,6 +30,14 @@ resource "google_project_service" "run_api" {
   disable_on_destroy = false
 }
 
+# Enable batch API to run long running dispatcher jobs
+resource "google_project_service" "batch_api" {
+  project = var.project
+  service = "batch.googleapis.com"
+
+  disable_on_destroy = false
+}
+
 ##### Enable datastore API because the bq-remote-func-get-table-policy-tags function is using it as a cache layer
 
 resource "google_project_service" "datastore_api" {

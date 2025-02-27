@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "run_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "tracking_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "bucket_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "project_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "info_types",
+    "type": "STRING"
+  }
+]

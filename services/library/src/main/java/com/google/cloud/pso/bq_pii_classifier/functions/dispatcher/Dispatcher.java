@@ -265,7 +265,7 @@ public class Dispatcher {
 
                         logger.logWarnWithTracker(runId, msg);
                     } else {
-                        logger.logInfoWithTracker(runId, String.format("Tables found in dataset %s : %s", dataset, tablesIncludeList));
+                        logger.logInfoWithTracker(runId, String.format("Tables count found in dataset %s : %s", dataset, tablesIncludeList.size()));
 
                         // accumulate all messages to be omitted after the loop
                         List<JsonMessage> jsonMessages = processTables(tablesIncludeList,
@@ -312,7 +312,7 @@ public class Dispatcher {
                     logger.logWarnWithTracker(runId, msg);
                 } else {
 
-                    logger.logInfoWithTracker(runId, String.format("Datasets found in project %s : %s", project, projectDatasets));
+                    logger.logInfoWithTracker(runId, String.format("Datasets count found in project %s : %s", project, projectDatasets.size()));
                 }
 
             } catch (Exception exception) {

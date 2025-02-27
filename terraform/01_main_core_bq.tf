@@ -343,3 +343,16 @@ resource "google_bigquery_table" "logging_view_label_history_gcs" {
     )
   }
 }
+
+resource "google_bigquery_table" "dispatcher_runs_gcs_table" {
+
+  project = var.project
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "dispatcher_runs_gcs"
+
+  clustering = ["run_id"]
+
+  schema = file("schema/dispatcher_runs_gcs.json")
+
+  deletion_protection = var.terraform_data_deletion_protection
+}

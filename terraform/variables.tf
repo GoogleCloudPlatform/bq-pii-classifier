@@ -452,8 +452,8 @@ variable "dispatcher_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
   type = number
   # Dispatcher might need relatively long time to process large BigQuery scan scopes
-  default = 540
-  # 9m
+  default = 3600 # 60m  # 540 # 9m
+
 }
 
 variable "dispatcher_subscription_ack_deadline_seconds" {
@@ -586,4 +586,14 @@ variable "deploy_dlp_inspection_template_to_global_region" {
   type = bool
   default = false
   description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
+}
+
+variable "dispatcher_service_max_cpu" {
+  type = number
+  default = 8
+}
+
+variable "dispatcher_service_max_memory" {
+  type = string
+  default = "32Gi"
 }

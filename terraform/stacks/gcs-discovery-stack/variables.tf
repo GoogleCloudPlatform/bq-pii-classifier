@@ -205,3 +205,15 @@ variable "sa_bq_remote_func_get_buckets_metadata" {
 variable "gcs_existing_labels_regex" {
   type = string
 }
+
+variable "dispatcher_service_max_cpu" {
+  type = number
+}
+
+variable "dispatcher_service_max_memory" {
+  type = string
+}
+
+variable "dispatcher_runs_table" {
+  type = string
+}

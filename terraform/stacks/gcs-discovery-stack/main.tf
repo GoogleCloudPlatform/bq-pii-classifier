@@ -173,7 +173,9 @@ module "cloud-run-tagging-dispatcher-gcs" {
   # Dispatcher could take time to list large number of tables
   timeout_seconds               = var.dispatcher_service_timeout_seconds
   max_containers                = 1
-  max_cpu                       = 2
+  max_cpu                       = var.dispatcher_service_max_cpu
+  max_memory                    = var.dispatcher_service_max_memory
+  max_requests_per_container    = 1 # process one tagging dispatcher request at a time
   environment_variables         = [
     {
       name  = "PROJECT_ID",
@@ -189,17 +191,24 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "TAGGER_TOPIC",
-      value = module.pubsub-tagger-gcs.topic-name
+      value = "dataflow-test" // module.pubsub-tagger-gcs.topic-name
     },
     {
       name  = "GCS_FLAGS_BUCKET",
       value = var.gcs_flags_bucket_name,
     },
-    # TODO: make this more dynamic by letting the user decide on a project or org level and reflect it in the config module
     {
-      name  = "DLP_CONFIG_PARENT",
-      value = "organizations/${var.dlp_gcs_scan_org_id}"
-    }
+      name  = "DLP_RESULTS_DATASET",
+      value = var.bq_results_dataset,
+    },
+    {
+      name  = "DLP_RESULTS_TABLE",
+      value = var.dlp_gcs_bq_results_table_name,
+    },
+    {
+      name  = "DISPATCHER_RUNS_TABLE",
+      value = var.dispatcher_runs_table,
+    },
   ]
 }
 
@@ -246,11 +255,16 @@ module "cloud-run-tagger-gcs" {
   invoker_service_account_email = google_service_account.sa_tagger_gcs_tasks.email
   # Dispatcher could take time to list large number of tables
   timeout_seconds               = var.tagger_service_timeout_seconds
-  # GCS Tagger hits the DLP API (get file store profile) and Cloud Storage API (update bucket)
-  # DLP API: 600 requests per minute
-  # Storage API: NA
-  max_containers                = 1
-  max_requests_per_container    = 80
+  # Discovery Tagging:
+  #   GCS Tagger hits the DLP API (get file store profile) and Cloud Storage API (update bucket)
+  #   DLP API: 600 requests per minute
+  #   Storage API: NA
+  # Dispatcher Tagging:
+  #   Only hits the Storage API to add labels to buckets
+  max_containers                = 100
+  max_requests_per_container    = 800
+  max_cpu                       = 8
+  max_memory                    = "16Gi"
   environment_variables         = [
     {
       name  = "IS_DRY_RUN_LABELS",
@@ -345,4 +359,20 @@ module "bq-remote-func-get-buckets-metadata" {
   bigquery_dataset_name          = var.bq_results_dataset
   deployment_procedure_path      = "modules/bq-remote-function/procedures/deploy_get_buckets_metadata_remote_func.tpl"
   cloud_functions_sa_extra_roles = []
+}
+
+locals {
+  tagging_dispatcher_sa_roles = [
+    "roles/bigquery.jobUser", # to run the query that reads DLP findings
+    "roles/bigquery.dataEditor", # to insert dispatched tracking Ids to table dispatcher_runs
+    "roles/batch.agentReporter", # to run Cloud Batch jobs
+    "roles/logging.logWriter" # to run Cloud Batch jobs
+  ]
+}
+
+resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
+  count = length(local.tagging_dispatcher_sa_roles)
+  project = var.project
+  role = local.tagging_dispatcher_sa_roles[count.index]
+  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
 }

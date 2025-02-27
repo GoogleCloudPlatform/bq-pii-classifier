@@ -21,9 +21,10 @@ import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.gcs.GcsDispat
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.gcs.GcsScope;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
+import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.gcs.DlpApiGcsScanner;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.gcs.DlpResultsForGcsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import com.google.gson.Gson;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-
-import java.util.Base64;
 
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
@@ -85,23 +84,22 @@ public class TaggingDispatcherController {
 
             logger.logInfoWithTracker(runId, String.format("Parsed JSON input %s ", gcsScope.toString()));
 
+            BigQueryService bigQueryService = new BigQueryServiceImpl();
+
             GcsDispatcher dispatcher = new GcsDispatcher(
                     environment.toConfig(),
+                    bigQueryService,
                     new PubSubServiceImpl(),
-                    new DlpApiGcsScanner(),
+                    new DlpResultsForGcsScannerImpl(
+                            bigQueryService,
+                            "sql/v_gcs_dispatcher.tpl"
+                    ),
                     new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                     "tagging-dispatcher-gcs-flags",
                     runId
             );
 
-
-            PubSubPublishResults results = dispatcher.execute(gcsScope, requestBody.getMessage().getMessageId());
-
-            state = String.format("Publishing results: %s SUCCESS MESSAGES and %s FAILED MESSAGES",
-                    results.getSuccessMessages().size(),
-                    results.getFailedMessages().size());
-
-            logger.logInfoWithTracker(runId, state);
+            dispatcher.execute(gcsScope, requestBody.getMessage().getMessageId());
 
         } catch (Exception e) {
             logger.logNonRetryableExceptions(runId, e);

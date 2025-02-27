@@ -28,9 +28,24 @@ public class GcsDlpProfileSummary{
     private final String fileStoreProfileName;
     private final String bucketPath;
     private final String bucketName;
-
     private final String projectId;
     private final Set<String> infoTypes; // New field, optional
+
+    public GcsDlpProfileSummary(String bucketName, String projectId, Set<String> infoTypes){
+
+
+        if (bucketName.startsWith("gs://")) {
+            throw new IllegalArgumentException(String.format(
+                    "bucketName should not start with gs://. Provided bucketName is '%s'",
+                    bucketName));
+        }
+
+        this.bucketName = bucketName;
+        this.bucketPath = String.format("gs://%s", bucketName);
+        this.projectId = projectId;
+        this.infoTypes = infoTypes;
+        this.fileStoreProfileName = null;
+    }
 
     public GcsDlpProfileSummary(String fileStoreProfileName, String bucketPath, String projectId, Set<String> infoTypes) {
         this.fileStoreProfileName = fileStoreProfileName;

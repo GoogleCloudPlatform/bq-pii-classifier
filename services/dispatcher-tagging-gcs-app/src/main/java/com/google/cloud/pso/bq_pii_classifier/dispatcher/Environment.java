@@ -32,7 +32,9 @@ public class Environment {
                 getProjectId(),
                 getComputeRegionId(),
                 getDataRegionId(),
-                getDlpConfigParent(),
+                getDlpResultsDataset(),
+                getDlpResultsTable(),
+                getDispatcherRunsTable(),
                 getTaggerTopic()
         );
     }
@@ -59,5 +61,11 @@ public class Environment {
         return Utils.getConfigFromEnv("DLP_CONFIG_PARENT", true);
     }
 
+    public String getDlpResultsDataset(){
+        return Utils.getConfigFromEnv("DLP_RESULTS_DATASET", true);
+    }
 
+    public String getDlpResultsTable () {return Utils.getConfigFromEnv("DLP_RESULTS_TABLE", true);}
+
+    public String getDispatcherRunsTable () {return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);}
 }

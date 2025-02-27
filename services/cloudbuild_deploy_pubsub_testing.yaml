@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'europe-west3-docker.pkg.dev/bqsc-host-v1/docker-repo/pubsub-publisher-testing:latest', '.']
+images:
+  - 'europe-west3-docker.pkg.dev/bqsc-host-v1/docker-repo/pubsub-publisher-testing:latest'

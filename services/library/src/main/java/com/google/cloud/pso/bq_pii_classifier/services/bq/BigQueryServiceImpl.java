@@ -73,6 +73,7 @@ public class BigQueryServiceImpl implements BigQueryService {
                         // Interactive queries have a limit of 100 concurrent ones. This is handled by
                         // Cloud run number of parallel requests and PubSub retries
                         .setPriority(QueryJobConfiguration.Priority.INTERACTIVE)
+                        .setAllowLargeResults(true)
                         .build();
 
         JobId jobId = JobId.of(UUID.randomUUID().toString());

@@ -56,6 +56,9 @@ module "gcs-discovery-stack" {
   bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
   sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
   gcs_existing_labels_regex = var.gcs_existing_labels_regex
+  dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
+  dispatcher_service_max_memory = var.dispatcher_service_max_memory
+  dispatcher_runs_table = google_bigquery_table.dispatcher_runs_gcs_table.table_id
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
