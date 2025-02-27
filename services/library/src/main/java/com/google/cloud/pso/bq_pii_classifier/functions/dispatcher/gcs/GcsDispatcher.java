@@ -57,8 +57,6 @@ public class GcsDispatcher {
   private static final Integer functionNumber = 1;
 
   private final LoggingHelper logger;
-
-  private BigQueryService bqService;
   private PubSubService pubSubService;
 
   private DlpResultsForGcsScanner scanner;
@@ -69,7 +67,6 @@ public class GcsDispatcher {
 
   public GcsDispatcher(
           GcsDispatcherConfig config,
-          BigQueryService bqService,
           PubSubService pubSubService,
           DlpResultsForGcsScanner scanner,
           PersistentSet persistentSet,
@@ -77,7 +74,6 @@ public class GcsDispatcher {
           String runId) {
 
     this.config = config;
-    this.bqService = bqService;
     this.pubSubService = pubSubService;
     this.scanner = scanner;
     this.persistentSet = persistentSet;
@@ -119,61 +115,6 @@ public class GcsDispatcher {
       persistentSet.add(flagFileName);
     }
 
-    long startTimeMilis = System.currentTimeMillis();
-
-    // Configure how many messages the publisher client can hold in memory
-    // and what to do when messages exceed the limit.
-    FlowControlSettings flowControlSettings =
-            FlowControlSettings.newBuilder()
-                    // Block more messages from being published when the limit is reached. The other
-                    // options are Ignore (or continue publishing) and ThrowException (or error out).
-                    .setLimitExceededBehavior(FlowController.LimitExceededBehavior.Block)
-                    .setMaxOutstandingRequestBytes(10 * 1024 * 1024L) // 10 MiB
-                    .setMaxOutstandingElementCount(1000L) // 100 messages
-                    .build();
-
-    // Configure batching settings
-    BatchingSettings batchingSettings = BatchingSettings.newBuilder()
-            .setElementCountThreshold(100L) // default: 100 messages, max 1000
-            .setRequestByteThreshold(1000000L) // default: 1000 bytes // max 10mb this makes it faster
-            .setDelayThreshold(Duration.ofMillis(1)) // default: 1 ms
-            .setFlowControlSettings(flowControlSettings)
-            .build();
-
-
-    // Configure retry settings
-    RetrySettings retrySettings = RetrySettings.newBuilder()
-            .setInitialRetryDelay(Duration.ofMillis(100)) // default: 100 ms
-            .setRetryDelayMultiplier(2.0) // default: 1.3
-            .setMaxRetryDelay(Duration.ofSeconds(60)) // default: 60 seconds
-            .setInitialRpcTimeout(Duration.ofSeconds(1)) // default: 5 seconds
-            .setRpcTimeoutMultiplier(1.0) // default: 1.0
-            .setMaxRpcTimeout(Duration.ofSeconds(600)) // default: 600 seconds
-            .setTotalTimeout(Duration.ofSeconds(600)) // default: 600 seconds
-            .build();
-
-    // Provides an executor service for processing messages. The default
-    // `executorProvider` used by the publisher has a default thread count of
-    // 5 * the number of processors available to the Java virtual machine.
-    ExecutorProvider executorProvider =
-            InstantiatingExecutorProvider.newBuilder()
-                    .setExecutorThreadCount(5 * Runtime.getRuntime().availableProcessors())
-                    .build();
-
-    // Create a publisher instance with batching and retry settings
-    Publisher publisher = Publisher.newBuilder(TopicName.of(config.getProjectId(), config.getOutputTopic()))
-            .setBatchingSettings(batchingSettings)
-            .setRetrySettings(retrySettings)
-            .setExecutorProvider(executorProvider)
-            .build();
-
-
-    // Publish each row to Pub/Sub and stream to BigQuery
-    List<ApiFuture<String>> futures = new ArrayList<>();
-    AtomicInteger bqRowsCounter = new AtomicInteger(0);
-    AtomicInteger successfulPublishes = new AtomicInteger(0); // Counter for successful publishes
-    AtomicInteger failedPublishes = new AtomicInteger(0);
-
     logger.logInfoWithTracker(runId, "Executing the BigQuery query..");
     TableResult dlpFindingsQueryResults = scanner.getGcsDlpProfilesFromBigQuery(
             config.getProjectId(),
@@ -187,83 +128,12 @@ public class GcsDispatcher {
     logger.logInfoWithTracker(runId,
             String.format("BigQuery query returned %s rows", dlpFindingsQueryResults.getTotalRows()));
 
-
-    for (FieldValueList row: dlpFindingsQueryResults.iterateAll()) {
-      bqRowsCounter.incrementAndGet();
-
-      String bucketName = row.get("bucket_name").getStringValue();
-      String projectId = row.get("project_id").getStringValue();
-      String infoTypesStrList = row.get("info_types").getStringValue();
-
-      String trackingId = TrackingHelper.generateTrackingId(runId, bucketName);
-      GcsTaggerRequest taggerRequest = new GcsTaggerRequest(
-              runId,
-              trackingId,
-              new GcsDlpProfileSummary(
-                      bucketName,
-                      projectId,
-                      new HashSet<>(Utils.tokenize(infoTypesStrList, ",", true))
-              )
-      );
-
-      ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
-      ApiFuture<String> future = publisher.publish(
-              PubsubMessage.newBuilder()
-                      .setData(data)
-                      .build());
-
-      // Add a callback to handle publish result and stream to BigQuery
-      ApiFutures.addCallback(future, new ApiFutureCallback<>() {
-        @Override
-        public void onFailure(Throwable throwable) {
-          failedPublishes.incrementAndGet();
-          //System.err.println("Error publishing message: " + throwable.getMessage());
-          // Handle error, e.g., log or store in an error table
-          logger.logFailedGcsDispatcherEntityId(
-                  runId,
-                  throwable
-          );
-        }
-
-        @Override
-        public void onSuccess(String messageId) {
-          successfulPublishes.incrementAndGet();
-          if(successfulPublishes.get() % 1000000 == 0){
-            long elapsedSeconds = (System.currentTimeMillis() - startTimeMilis) / 1000;
-            logger.logInfoWithTracker(runId,
-                    String.format("PubSub successful messages count so far: %s after %s seconds ( %s mins)",
-                            successfulPublishes.get(),
-                            elapsedSeconds,
-                            elapsedSeconds/60
-                            ));
-          }
-        }
-      });
-
-      futures.add(future);
-    }
-
-    // Wait for all publish futures to complete
-    ApiFutures.allAsList(futures).get();
-
-    // Shutdown the publisher
-    publisher.shutdown();
-    publisher.awaitTermination(1, TimeUnit.MINUTES);
-
-    long endTimeMilis = System.currentTimeMillis();
-
-    logger.logInfoWithTracker(runId,
-            String.format("Total profiles fetched and processed from BigQuery : %s", bqRowsCounter.get()));
-
-    logger.logInfoWithTracker(runId,
-            String.format("Total PubSub successful messages : %s", successfulPublishes.get()));
-
-    logger.logInfoWithTracker(runId,
-            String.format("Total PubSub failed messages : %s", failedPublishes.get()));
-
-    logger.logInfoWithTracker(runId,
-            String.format("Total duration in seconds : %s", (endTimeMilis-startTimeMilis)/1000));
-
+    pubSubService.publishBigQueryTableResults(dlpFindingsQueryResults,
+            config.getProjectId(),
+            config.getOutputTopic(),
+            runId,
+            logger,
+            1000);
 
     logger.logFunctionEnd(runId);
   }

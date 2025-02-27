@@ -23,10 +23,11 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplForBigQueryDispatcher;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.BigQueryScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplAbstract;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import com.google.gson.Gson;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-
-import java.util.Base64;
 
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
@@ -87,15 +86,15 @@ public class InspectionDispatcherController {
 
             logger.logInfoWithTracker(runId, String.format("Parsed JSON input %s ", bqScope.toString()));
 
-            Dispatcher dispatcher = new Dispatcher(
-                    environment.toConfig(),
-                    new BigQueryServiceImpl(),
-                    new PubSubServiceImpl(),
-                    new BigQueryScannerImpl(),
-                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                    "inspection-dispatcher-flags",
-                    runId
-            );
+      Dispatcher dispatcher =
+          new Dispatcher(
+              environment.toConfig(),
+              new BigQueryServiceImpl(),
+              new PubSubServiceImplForBigQueryDispatcher(),
+              new BigQueryScannerImpl(),
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "inspection-dispatcher-flags",
+              runId);
 
             PubSubPublishResults results = dispatcher.execute(bqScope, requestBody.getMessage().getMessageId());
 

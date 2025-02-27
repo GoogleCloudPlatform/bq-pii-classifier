@@ -191,7 +191,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "TAGGER_TOPIC",
-      value = "dataflow-test" // module.pubsub-tagger-gcs.topic-name
+      value = module.pubsub-tagger-gcs.topic-name
     },
     {
       name  = "GCS_FLAGS_BUCKET",
@@ -325,7 +325,6 @@ resource "google_cloud_scheduler_job" "gcs_tagging_scheduler" {
     data       = base64encode(jsonencode({
       projectsRegex = var.dlp_gcs_project_id_regex
       bucketsRegex = var.dlp_gcs_bucket_name_regex
-      sourceDataRegions = var.source_data_regions
     }))
   }
 }

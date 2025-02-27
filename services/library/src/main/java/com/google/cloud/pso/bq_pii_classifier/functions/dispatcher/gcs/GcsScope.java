@@ -25,12 +25,9 @@ public class GcsScope {
     private final String projectsRegex;
     private final String bucketsRegex;
 
-    private List<String> sourceDataRegions;
-
-    public GcsScope(String projectsRegex, String bucketsRegex, List<String> sourceDataRegions) {
+    public GcsScope(String projectsRegex, String bucketsRegex) {
         this.projectsRegex = projectsRegex;
         this.bucketsRegex = bucketsRegex;
-        this.sourceDataRegions = sourceDataRegions;
     }
 
     public String getProjectsRegex() {
@@ -41,16 +38,11 @@ public class GcsScope {
         return bucketsRegex;
     }
 
-    public List<String> getSourceDataRegions() {
-        return sourceDataRegions;
-    }
-
     @Override
     public String toString() {
         return "GcsScope{" +
                 "projectsRegex='" + projectsRegex + '\'' +
                 ", bucketsRegex='" + bucketsRegex + '\'' +
-                ", sourceDataRegions='" + sourceDataRegions + '\'' +
                 '}';
     }
 
@@ -59,11 +51,11 @@ public class GcsScope {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GcsScope gcsScope = (GcsScope) o;
-        return Objects.equal(projectsRegex, gcsScope.projectsRegex) && Objects.equal(bucketsRegex, gcsScope.bucketsRegex) && Objects.equal(sourceDataRegions, gcsScope.sourceDataRegions);
+        return Objects.equal(projectsRegex, gcsScope.projectsRegex) && Objects.equal(bucketsRegex, gcsScope.bucketsRegex);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(projectsRegex, bucketsRegex, sourceDataRegions);
+        return Objects.hashCode(projectsRegex, bucketsRegex);
     }
 }

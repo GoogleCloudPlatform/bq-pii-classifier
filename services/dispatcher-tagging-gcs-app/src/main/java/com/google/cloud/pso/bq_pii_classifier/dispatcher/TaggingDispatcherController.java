@@ -23,7 +23,8 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplAbstract;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplForGcsDispatcher;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.gcs.DlpResultsForGcsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import org.springframework.boot.SpringApplication;
@@ -86,18 +87,14 @@ public class TaggingDispatcherController {
 
             BigQueryService bigQueryService = new BigQueryServiceImpl();
 
-            GcsDispatcher dispatcher = new GcsDispatcher(
-                    environment.toConfig(),
-                    bigQueryService,
-                    new PubSubServiceImpl(),
-                    new DlpResultsForGcsScannerImpl(
-                            bigQueryService,
-                            "sql/v_gcs_dispatcher.tpl"
-                    ),
-                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                    "tagging-dispatcher-gcs-flags",
-                    runId
-            );
+      GcsDispatcher dispatcher =
+          new GcsDispatcher(
+              environment.toConfig(),
+              new PubSubServiceImplForGcsDispatcher(),
+              new DlpResultsForGcsScannerImpl(bigQueryService, "sql/v_gcs_dispatcher.tpl"),
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "tagging-dispatcher-gcs-flags",
+              runId);
 
             dispatcher.execute(gcsScope, requestBody.getMessage().getMessageId());
 

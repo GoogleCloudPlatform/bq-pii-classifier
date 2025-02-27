@@ -16,12 +16,30 @@
 
 package com.google.cloud.pso.bq_pii_classifier.services.pubsub;
 
+import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.entities.JsonMessage;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public interface PubSubService {
 
-    PubSubPublishResults publishTableOperationRequests(String projectId, String topicId, List<JsonMessage> messages) throws IOException, InterruptedException;
+  PubSubPublishResults publishTableOperationRequests(
+      String projectId, String topicId, List<JsonMessage> messages)
+      throws IOException, InterruptedException;
+
+  public void publishBigQueryTableResults(
+      TableResult bqTableResults,
+      String pubSubProjectId,
+      String pubSubTopic,
+      String runId,
+      LoggingHelper logger,
+      long successMessagesIntervalForLogging)
+      throws IOException,
+          ExecutionException,
+          InterruptedException,
+          NonRetryableApplicationException;
 }

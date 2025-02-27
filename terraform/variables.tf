@@ -595,5 +595,5 @@ variable "dispatcher_service_max_cpu" {
 
 variable "dispatcher_service_max_memory" {
   type = string
-  default = "32Gi"
+  default = "16Gi"
 }

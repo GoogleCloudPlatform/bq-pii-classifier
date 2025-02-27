@@ -22,8 +22,6 @@ SELECT
     a.bucket_name,
     a.project_id,
     a.info_types
-FROM a
-CROSS JOIN (SELECT num AS number FROM UNNEST(GENERATE_ARRAY(1, 10000)) AS num) AS s
-LIMIT 100000000;
+FROM a;
 
 SELECT * FROM `${project}.${dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';

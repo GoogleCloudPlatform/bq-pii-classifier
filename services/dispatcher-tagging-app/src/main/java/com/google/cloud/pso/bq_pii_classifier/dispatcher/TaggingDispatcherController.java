@@ -23,7 +23,8 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubPublishResults;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplAbstract;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplForBigQueryDispatcher;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.*;
 import org.springframework.boot.SpringApplication;
@@ -36,8 +37,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import com.google.gson.Gson;
 import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-
-import java.util.Base64;
 
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
@@ -104,15 +103,15 @@ public class TaggingDispatcherController {
                 );
             }
 
-            Dispatcher dispatcher = new Dispatcher(
-                    environment.toConfig(),
-                    new BigQueryServiceImpl(),
-                    new PubSubServiceImpl(),
-                    dlpResultsScanner,
-                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                    "tagging-dispatcher-flags",
-                    runId
-            );
+      Dispatcher dispatcher =
+          new Dispatcher(
+              environment.toConfig(),
+              new BigQueryServiceImpl(),
+              new PubSubServiceImplForBigQueryDispatcher(),
+              dlpResultsScanner,
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "tagging-dispatcher-flags",
+              runId);
 
             PubSubPublishResults results = dispatcher.execute(bqScope, requestBody.getMessage().getMessageId());
 
