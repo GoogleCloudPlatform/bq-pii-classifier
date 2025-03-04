@@ -19,7 +19,7 @@ package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 import com.google.cloud.bigquery.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamer;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpFindingsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 
@@ -31,7 +31,7 @@ public class Dispatcher {
   private static final Integer functionNumber = 1;
   private final LoggingHelper logger;
   private final BigQueryToPubSubStreamer bigQueryToPubSubStreamer;
-  private final DlpResultsScanner scanner;
+  private final DlpFindingsScanner scanner;
   private final DispatcherConfig config;
   private final PersistentSet persistentSet;
   private final String persistentSetObjectPrefix;
@@ -40,7 +40,7 @@ public class Dispatcher {
   public Dispatcher(
           DispatcherConfig config,
           BigQueryToPubSubStreamer bigQueryToPubSubStreamer,
-          DlpResultsScanner scanner,
+          DlpFindingsScanner scanner,
           PersistentSet persistentSet,
           String persistentSetObjectPrefix,
           String runId) {

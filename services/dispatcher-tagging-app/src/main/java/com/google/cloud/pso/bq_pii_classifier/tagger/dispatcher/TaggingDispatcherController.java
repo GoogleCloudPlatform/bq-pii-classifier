@@ -23,8 +23,8 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamerForBQDispatcher;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpResultsScannerImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpFindingsScanner;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpFindingsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -102,8 +102,8 @@ public class TaggingDispatcherController {
 
       logger.logInfoWithTracker(runId, String.format("Sql parameters map %s", sqlParamsMap));
 
-      DlpResultsScanner dlpResultsScanner =
-          new UniversalDlpResultsScannerImpl(
+      DlpFindingsScanner dlpFindingsScanner =
+          new UniversalDlpFindingsScannerImpl(
               "sql/v_bq_auto_dlp_dispatcher.tpl",
               sqlParamsMap,
               bigQueryService);
@@ -112,7 +112,7 @@ public class TaggingDispatcherController {
           new Dispatcher(
               environment.toConfig(),
               new BigQueryToPubSubStreamerForBQDispatcher(),
-              dlpResultsScanner,
+                  dlpFindingsScanner,
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "tagging-dispatcher-flags",
               runId);

@@ -1,6 +1,5 @@
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
 import org.junit.Test;
 
 import java.util.Map;
@@ -20,8 +19,8 @@ public class InfoTypeInfoTest {
         Map<String, InfoTypeInfo> map = InfoTypeInfo.fromJsonMap(input);
 
         assertEquals(2, map.size());
-        assertEquals("Health_PII", map.get("BLOOD_TYPE").getClassification());
-        assertEquals("dg_data_category_health", map.get("BLOOD_TYPE").getLabels().get(0).key());
-        assertEquals("yes", map.get("BLOOD_TYPE").getLabels().get(0).value());
+        assertEquals("Health_PII", map.get("BLOOD_TYPE").classification());
+        assertEquals("dg_data_category_health", map.get("BLOOD_TYPE").labels().get(0).key());
+        assertEquals("yes", map.get("BLOOD_TYPE").labels().get(0).value());
     }
 }

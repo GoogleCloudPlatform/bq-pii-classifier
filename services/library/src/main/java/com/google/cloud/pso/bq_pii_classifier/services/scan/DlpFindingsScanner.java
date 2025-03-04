@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Used with Tagging Dispatcher(s) to list down dlp profiles to be used for tagging resources
  */
-public interface DlpResultsScanner {
+public interface DlpFindingsScanner {
 
     TableResult getDlpProfilesFromBigQuery(String runId) throws IOException, InterruptedException;
 }

@@ -16,21 +16,4 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-public record DispatcherConfig(String projectId, String outputTopic) {
-
-    public DispatcherConfig(String projectId,
-                            String outputTopic
-                            ) {
-        this.projectId = projectId.toLowerCase();
-        this.outputTopic = outputTopic.toLowerCase();
-    }
-
-
-    @Override
-    public String toString() {
-        return "GcsDispatcherConfig{" +
-                "projectId='" + projectId + '\'' +
-                ", outputTopic='" + outputTopic + '\'' +
-                '}';
-    }
-}
+public record DispatcherConfig(String projectId, String outputTopic) { }

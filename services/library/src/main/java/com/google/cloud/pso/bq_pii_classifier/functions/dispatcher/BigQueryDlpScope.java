@@ -16,14 +16,4 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-public record BigQueryDlpScope(String projectsRegex, String datasetsRegex, String tablesRegex) {
-
-    @Override
-    public String toString() {
-        return "BigQueryScope{" +
-                "projectsRegex='" + projectsRegex + '\'' +
-                ", datasetsRegex='" + datasetsRegex + '\'' +
-                ", tablesRegex='" + tablesRegex + '\'' +
-                '}';
-    }
-}
+public record BigQueryDlpScope(String projectsRegex, String datasetsRegex, String tablesRegex) { }

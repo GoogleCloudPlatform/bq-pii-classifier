@@ -23,8 +23,8 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamerForGcsDispatcher;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
-import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpResultsScannerImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpFindingsScanner;
+import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpFindingsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -88,15 +88,15 @@ public class TaggingDispatcherController {
 
             BigQueryService bigQueryService = new BigQueryServiceImpl();
 
-            DlpResultsScanner dlpResultsScanner = new UniversalDlpResultsScannerImpl(
+            DlpFindingsScanner dlpFindingsScanner = new UniversalDlpFindingsScannerImpl(
                     "sql/v_gcs_dispatcher.tpl",
                     Map.of(
                             "${project}", environment.getProjectId(),
                             "${dataset}", environment.getDlpResultsDataset(),
                             "${dlp_gcs_results_table}", environment.getDlpResultsTable(),
                             "${dispatcher_runs_table}", environment.getDispatcherRunsTable(),
-                            "${project_name_regex}", gcsDlpScope.getProjectsRegex(),
-                            "${bucket_name_regex}", gcsDlpScope.getBucketsRegex(),
+                            "${project_name_regex}", gcsDlpScope.projectsRegex(),
+                            "${bucket_name_regex}", gcsDlpScope.bucketsRegex(),
                             "${run_id}", runId),
                     bigQueryService
             );
@@ -105,7 +105,7 @@ public class TaggingDispatcherController {
                     new Dispatcher(
                             environment.toConfig(),
                             new BigQueryToPubSubStreamerForGcsDispatcher(),
-                            dlpResultsScanner,
+                            dlpFindingsScanner,
                             new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                             "tagging-dispatcher-gcs-flags",
                             runId);

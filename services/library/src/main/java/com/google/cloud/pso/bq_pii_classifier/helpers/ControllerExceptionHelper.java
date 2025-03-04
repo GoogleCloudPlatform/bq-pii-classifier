@@ -135,7 +135,7 @@ public class ControllerExceptionHelper {
         ThrowableInfo exInfo = causedByRetryableException(ex);
 
         if(exInfo.isRetryable()){
-            logger.logRetryableExceptions(trackingId, ex, exInfo.getNotes());
+            logger.logRetryableExceptions(trackingId, ex, exInfo.notes());
             return new ResponseEntity(ex.getMessage(), HttpStatus.TOO_MANY_REQUESTS);
 
         }else{

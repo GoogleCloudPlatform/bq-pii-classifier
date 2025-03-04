@@ -43,8 +43,8 @@ public class TaggerController {
 
   private final LoggingHelper logger;
   private static final Integer functionNumber = 3;
-  private Gson gson;
-  Environment environment;
+  private final Gson gson;
+  private final Environment environment;
 
   public TaggerController() {
 

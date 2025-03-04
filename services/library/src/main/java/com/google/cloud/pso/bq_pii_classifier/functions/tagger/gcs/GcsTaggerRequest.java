@@ -22,7 +22,7 @@ import com.google.common.base.Objects;
 
 public class GcsTaggerRequest extends Operation {
 
-    private GcsDlpProfileSummary gcsDlpProfileSummary;
+    private final GcsDlpProfileSummary gcsDlpProfileSummary;
 
     public GcsTaggerRequest(String runId, String trackingId, GcsDlpProfileSummary gcsDlpProfileSummary) {
         super(runId, trackingId);

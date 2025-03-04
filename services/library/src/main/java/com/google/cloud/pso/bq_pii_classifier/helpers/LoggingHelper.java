@@ -34,12 +34,13 @@ public class LoggingHelper {
     // Used to create a trace
     private final String projectId;
 
-    private final String applicationName = "bq-pii-classifier";
+    private final String applicationName;
 
     public LoggingHelper(String loggerName, Integer functionNumber, String projectId) {
         this.loggerName = loggerName;
         this.functionNumber = functionNumber;
         this.projectId = projectId;
+        this.applicationName = "bq-pii-classifier";
 
         logger = LoggerFactory.getLogger(loggerName);
     }
@@ -67,21 +68,21 @@ public class LoggingHelper {
     public void logTagHistory(TagHistoryLogEntry l, String tracker){
 
         Object [] attributes = new Object[]{
-                kv("tag_history_log_project_id", l.getTableSpec().project()),
-                kv("tag_history_log_dataset_id", l.getTableSpec().dataset()),
-                kv("tag_history_log_table_id", l.getTableSpec().table()),
-                kv("tag_history_log_field_name", l.getFieldName()),
-                kv("tag_history_log_existing_policy_tag_id", l.getExistingPolicyTagId()),
-                kv("tag_history_log_new_policy_tag_id", l.getNewPolicyTagId()),
-                kv("tag_history_log_column_tagging_action", l.getColumnTaggingAction().toString()),
-                kv("tag_history_log_description", l.getNewPolicyTagId()),
+                kv("tag_history_log_project_id", l.tableSpec().project()),
+                kv("tag_history_log_dataset_id", l.tableSpec().dataset()),
+                kv("tag_history_log_table_id", l.tableSpec().table()),
+                kv("tag_history_log_field_name", l.fieldName()),
+                kv("tag_history_log_existing_policy_tag_id", l.existingPolicyTagId()),
+                kv("tag_history_log_new_policy_tag_id", l.newPolicyTagId()),
+                kv("tag_history_log_column_tagging_action", l.columnTaggingAction().toString()),
+                kv("tag_history_log_description", l.newPolicyTagId()),
         };
 
         logWithTracker(
                 ApplicationLog.TAG_HISTORY_LOG,
                 tracker,
                 l.toLogString(),
-                l.getLogLevel(),
+                l.logLevel(),
                 attributes
         );
 

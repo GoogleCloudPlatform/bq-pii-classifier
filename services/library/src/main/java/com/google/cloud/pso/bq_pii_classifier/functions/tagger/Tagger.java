@@ -503,7 +503,7 @@ public class Tagger {
       // lookup the labels associated with that info type based on the classification taxonomy (in
       // Terraform)
       // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
-      for (ResourceLabel infoTypeLabel : infoTypeMap.get(infoType).getLabels()) {
+      for (ResourceLabel infoTypeLabel : infoTypeMap.get(infoType).labels()) {
         tableLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
       }
     }

@@ -18,42 +18,4 @@ package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
 import com.google.common.base.Objects;
 
-public class GcsDlpScope {
-
-    private final String projectsRegex;
-    private final String bucketsRegex;
-
-    public GcsDlpScope(String projectsRegex, String bucketsRegex) {
-        this.projectsRegex = projectsRegex;
-        this.bucketsRegex = bucketsRegex;
-    }
-
-    public String getProjectsRegex() {
-        return projectsRegex;
-    }
-
-    public String getBucketsRegex() {
-        return bucketsRegex;
-    }
-
-    @Override
-    public String toString() {
-        return "GcsScope{" +
-                "projectsRegex='" + projectsRegex + '\'' +
-                ", bucketsRegex='" + bucketsRegex + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GcsDlpScope gcsDlpScope = (GcsDlpScope) o;
-        return Objects.equal(projectsRegex, gcsDlpScope.projectsRegex) && Objects.equal(bucketsRegex, gcsDlpScope.bucketsRegex);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(projectsRegex, bucketsRegex);
-    }
-}
+public record GcsDlpScope(String projectsRegex, String bucketsRegex) { }

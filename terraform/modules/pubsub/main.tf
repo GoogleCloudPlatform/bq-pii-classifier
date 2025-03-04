@@ -24,7 +24,7 @@ resource "google_pubsub_subscription" "subscription" {
 
   # If retain_acked_messages is true, then message_retention_duration also configures the retention of acknowledged messages, and thus configures how far back in time a subscriptions.seek can be done.
   # Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window
-  retain_acked_messages = false
+  retain_acked_messages = var.retain_acked_messages
 
   enable_message_ordering  = false
 

@@ -217,3 +217,7 @@ variable "dispatcher_service_max_memory" {
 variable "dispatcher_runs_table" {
   type = string
 }
+
+variable "retain_dlp_tagger_pubsub_messages" {
+  type = bool
+}

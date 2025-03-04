@@ -122,7 +122,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.pubsub-tagger-gcs.topic-id
+      topic             = module.pubsub-tagger-gcs-for-dlp.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "NEW_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
@@ -132,7 +132,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.pubsub-tagger-gcs.topic-id
+      topic             = module.pubsub-tagger-gcs-for-dlp.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "CHANGED_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
@@ -183,7 +183,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "TAGGER_TOPIC",
-      value = module.pubsub-tagger-gcs.topic-name
+      value = module.pubsub-tagger-gcs-for-dispatcher.topic-name
     },
     {
       name  = "GCS_FLAGS_BUCKET",
@@ -285,20 +285,36 @@ module "cloud-run-tagger-gcs" {
   ]
 }
 
-module "pubsub-tagger-gcs" {
+module "pubsub-tagger-gcs-for-dlp" {
   source                                  = "../../modules/pubsub"
   project                                 = var.project
   subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
-  subscription_name                       = var.tagger_gcs_pubsub_sub
+  subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dlp"
   subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
-  topic                                   = var.tagger_gcs_pubsub_topic
-  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email, var.dlp_service_account_email]
+  topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dlp"
+  topic_publishers_sa_emails              = [var.dlp_service_account_email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  retain_acked_messages                   = var.retain_dlp_tagger_pubsub_messages # to enable replays for messages published by DLP
 
+}
+
+module "pubsub-tagger-gcs-for-dispatcher" {
+  source                                  = "../../modules/pubsub"
+  project                                 = var.project
+  subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
+  subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dispatcher"
+  subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
+  topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dispatcher"
+  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email]
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
 resource "google_cloud_scheduler_job" "gcs_tagging_scheduler" {

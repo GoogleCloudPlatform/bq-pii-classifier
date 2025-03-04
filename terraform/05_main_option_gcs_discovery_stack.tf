@@ -59,6 +59,7 @@ module "gcs-discovery-stack" {
   dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
   dispatcher_service_max_memory = var.dispatcher_service_max_memory
   dispatcher_runs_table = google_bigquery_table.dispatcher_runs_gcs_table.table_id
+  retain_dlp_tagger_pubsub_messages = var.retain_dlp_tagger_pubsub_messages
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)

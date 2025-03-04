@@ -30,13 +30,13 @@ public class GcsTagger {
   private final LoggingHelper logger;
 
   private static final Integer functionNumber = 3;
-  private GcsTaggerConfig config;
+  private final GcsTaggerConfig config;
 
-  private DlpFindingsReader findingsReader;
+  private final DlpFindingsReader findingsReader;
 
-  private GcsService gcsService;
-  private PersistentSet persistentSet;
-  private String persistentSetObjectPrefix;
+  private final GcsService gcsService;
+  private final PersistentSet persistentSet;
+  private final String persistentSetObjectPrefix;
 
   public GcsTagger(
       GcsTaggerConfig config,
@@ -53,7 +53,7 @@ public class GcsTagger {
     this.persistentSetObjectPrefix = persistentSetObjectPrefix;
 
     logger =
-        new LoggingHelper(GcsTagger.class.getSimpleName(), functionNumber, config.getProjectId());
+        new LoggingHelper(GcsTagger.class.getSimpleName(), functionNumber, config.projectId());
   }
 
   /**
@@ -96,8 +96,16 @@ public class GcsTagger {
               request.getGcsDlpProfileSummary().getFileStoreProfileName());
     }
 
+    logger.logInfoWithTracker(
+            request.getTrackingId(),
+            String.format("Computed profile summary: %s ", profileSummary.toString()));
+
     Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata =
-        filterInfoTypesMetadataMap(profileSummary.getInfoTypes(), config.getInfoTypeMap());
+        filterInfoTypesMetadataMap(profileSummary.getInfoTypes(), config.infoTypeMap());
+
+    logger.logInfoWithTracker(
+            request.getTrackingId(),
+            String.format("detected info types with metadata: %s", detectedInfoTypesWithMetadata.toString()));
 
     // construct a map of label key, label value based on all labels configured for all detected
     // info types
@@ -111,7 +119,7 @@ public class GcsTagger {
         gcsService.mergeLabelsToBucket(
             profileSummary.getBucketName(),
             bucketLabelsFromDlpFindings,
-            config.getExistingLabelsRegex(),
+            config.existingLabelsRegex(),
             config.isDryRunLabels());
 
     // log labels and actions applied on this bucket
@@ -194,7 +202,7 @@ public class GcsTagger {
       // lookup the labels associated with that info type based on the classification taxonomy (in
       // Terraform)
       // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
-      for (ResourceLabel infoTypeLabel : infoTypeMetadataMap.get(infoType).getLabels()) {
+      for (ResourceLabel infoTypeLabel : infoTypeMetadataMap.get(infoType).labels()) {
         bucketLabels.put(
             infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
       }

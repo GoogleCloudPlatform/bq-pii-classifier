@@ -20,48 +20,4 @@ import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
 
 import java.util.Map;
 
-public class GcsTaggerConfig {
-
-    private String projectId;
-    private Boolean isDryRunLabels;
-    private Map<String, InfoTypeInfo> infoTypeMap;
-
-    private String existingLabelsRegex;
-
-    public GcsTaggerConfig(String projectId,
-                           Boolean isDryRunLabels,
-                           Map<String, InfoTypeInfo> infoTypeMap,
-                           String existingLabelsRegex
-                        ) {
-        this.projectId = projectId;
-        this.isDryRunLabels = isDryRunLabels;
-        this.infoTypeMap = infoTypeMap;
-        this.existingLabelsRegex = existingLabelsRegex;
-    }
-
-    public Boolean isDryRunLabels() {
-        return isDryRunLabels;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public Map<String, InfoTypeInfo> getInfoTypeMap() {
-        return infoTypeMap;
-    }
-
-    public String getExistingLabelsRegex() {
-        return existingLabelsRegex;
-    }
-
-    @Override
-    public String toString() {
-        return "GcsTaggerConfig{" +
-                "projectId='" + projectId + '\'' +
-                ", isDryRunLabels=" + isDryRunLabels +
-                ", infoTypeMap=" + infoTypeMap +
-                ", existingLabelsRegex=" + existingLabelsRegex +
-                '}';
-    }
-}
+public record GcsTaggerConfig(String projectId, Boolean isDryRunLabels, Map<String, InfoTypeInfo> infoTypeMap, String existingLabelsRegex) { }

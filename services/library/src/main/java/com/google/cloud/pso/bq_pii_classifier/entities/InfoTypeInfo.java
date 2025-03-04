@@ -6,31 +6,7 @@ import java.util.Map;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 
-public class InfoTypeInfo {
-
-    private String classification;
-    private List<ResourceLabel> labels;
-
-    public InfoTypeInfo(String classification, List<ResourceLabel> labels) {
-        this.classification = classification;
-        this.labels = labels;
-    }
-
-    public String getClassification() {
-        return classification;
-    }
-
-    public List<ResourceLabel> getLabels() {
-        return labels;
-    }
-
-    @Override
-    public String toString() {
-        return "InfoTypeInfo{" +
-                "classification='" + classification + '\'' +
-                ", labels=" + labels +
-                '}';
-    }
+public record InfoTypeInfo(String classification, List<ResourceLabel> labels) {
 
     public static Map<String, InfoTypeInfo> fromJsonMap(String jsonStr){
         Gson gson = new Gson();

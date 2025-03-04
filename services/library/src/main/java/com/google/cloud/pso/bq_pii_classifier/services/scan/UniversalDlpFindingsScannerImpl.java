@@ -25,14 +25,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class UniversalDlpResultsScannerImpl implements DlpResultsScanner {
+public class UniversalDlpFindingsScannerImpl implements DlpFindingsScanner {
     private final String bqQueryFile;
     private final Map<String, String> queryParameters;
     public final BigQueryService bqService;
 
-    public UniversalDlpResultsScannerImpl(String bqQueryFile,
-                                          Map<String, String> queryParameters,
-                                          BigQueryService bqService) {
+    public UniversalDlpFindingsScannerImpl(String bqQueryFile,
+                                           Map<String, String> queryParameters,
+                                           BigQueryService bqService) {
         this.bqQueryFile = bqQueryFile;
         this.queryParameters = queryParameters;
         this.bqService = bqService;
