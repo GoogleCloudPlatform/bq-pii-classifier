@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
+    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable
+    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.class, com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.Builder.class);
+            DataProfileAction.class, DataProfileAction.Builder.class);
   }
 
   /**
@@ -236,7 +236,7 @@ private static final long serialVersionUID = 0L;
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.getDescriptor().getEnumTypes().get(0);
+      return DataProfileAction.getDescriptor().getEnumTypes().get(0);
     }
 
     private static final EventType[] VALUES = values();
@@ -295,10 +295,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction)) {
+    if (!(obj instanceof DataProfileAction)) {
       return super.equals(obj);
     }
-    com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction other = (com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction) obj;
+    DataProfileAction other = (DataProfileAction) obj;
 
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
@@ -316,44 +316,44 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(byte[] data)
+  public static DataProfileAction parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(java.io.InputStream input)
+  public static DataProfileAction parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -361,26 +361,26 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseDelimitedFrom(java.io.InputStream input)
+  public static DataProfileAction parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input);
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseDelimitedFrom(
+  public static DataProfileAction parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction parseFrom(
+  public static DataProfileAction parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -393,7 +393,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction prototype) {
+  public static Builder newBuilder(DataProfileAction prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -418,18 +418,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessage.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction)
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileActionOrBuilder {
+          DataProfileActionOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.class, com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.Builder.class);
+              DataProfileAction.class, DataProfileAction.Builder.class);
     }
 
     // Construct using com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.newBuilder()
@@ -451,17 +451,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfileAction_descriptor;
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction getDefaultInstanceForType() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.getDefaultInstance();
+    public DataProfileAction getDefaultInstanceForType() {
+      return DataProfileAction.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction build() {
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction result = buildPartial();
+    public DataProfileAction build() {
+      DataProfileAction result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -469,24 +469,24 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction buildPartial() {
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction result = new com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction(this);
+    public DataProfileAction buildPartial() {
+      DataProfileAction result = new DataProfileAction(this);
       onBuilt();
       return result;
     }
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction) {
-        return mergeFrom((com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction)other);
+      if (other instanceof DataProfileAction) {
+        return mergeFrom((DataProfileAction)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction other) {
-      if (other == com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.getDefaultInstance()) return this;
+    public Builder mergeFrom(DataProfileAction other) {
+      if (other == DataProfileAction.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -533,12 +533,12 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction)
-  private static final com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction DEFAULT_INSTANCE;
+  private static final DataProfileAction DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction();
+    DEFAULT_INSTANCE = new DataProfileAction();
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction getDefaultInstance() {
+  public static DataProfileAction getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
@@ -574,7 +574,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction getDefaultInstanceForType() {
+  public DataProfileAction getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

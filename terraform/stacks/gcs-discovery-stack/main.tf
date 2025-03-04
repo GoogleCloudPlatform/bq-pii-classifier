@@ -182,14 +182,6 @@ module "cloud-run-tagging-dispatcher-gcs" {
       value = var.project
     },
     {
-      name  = "COMPUTE_REGION_ID",
-      value = var.compute_region
-    },
-    {
-      name  = "DATA_REGION_ID",
-      value = var.data_region
-    },
-    {
       name  = "TAGGER_TOPIC",
       value = module.pubsub-tagger-gcs.topic-name
     },
@@ -208,7 +200,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     {
       name  = "DISPATCHER_RUNS_TABLE",
       value = var.dispatcher_runs_table,
-    },
+    }
   ]
 }
 

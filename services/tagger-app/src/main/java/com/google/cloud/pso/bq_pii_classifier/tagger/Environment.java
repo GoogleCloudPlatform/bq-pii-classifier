@@ -16,12 +16,16 @@
 package com.google.cloud.pso.bq_pii_classifier.tagger;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.DatasetDomainMapKey;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.InfoTypePolicyTagMapKey;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.InfoTypePolicyTagMapValue;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Type;
+import java.util.*;
 
 public class Environment {
 
@@ -32,7 +36,13 @@ public class Environment {
                 getIsDryRunTags(),
                 getIsDryRunLabels(),
                 getInfoTypeMap(),
-                getExistingLabelsRegex()
+                getExistingLabelsRegex(),
+                getDlpParent(),
+                getPromoteDlpOtherMatches(),
+                getInfoTypePolicyTagMap(),
+                getProjectDomainMap(),
+                getDatasetDomainMap(),
+                getDefaultDomainName()
         );
     }
 
@@ -60,10 +70,6 @@ public class Environment {
         return Utils.getConfigFromEnv("DLP_DATASET", true);
     }
 
-    public String getDlpTableStandard(){
-        return Utils.getConfigFromEnv("DLP_TABLE_STANDARD", true);
-    }
-
     public String getDlpTableAuto(){
         return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
     }
@@ -80,14 +86,6 @@ public class Environment {
         return Utils.getConfigFromEnv("VIEW_PROJECT_DOMAIN_MAP", true);
     }
 
-    public Boolean getPromoteMixedTypes(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("PROMOTE_MIXED_TYPES", true));
-    }
-
-    public Boolean getIsAutoDlpMode(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_AUTO_DLP_MODE", true));
-    }
-
     public Map<String, InfoTypeInfo> getInfoTypeMap(){
         return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
     }
@@ -100,6 +98,75 @@ public class Environment {
         return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
     }
 
+    public String getDlpParent(){
+        return Utils.getConfigFromEnv("DLP_PARENT", true);
+    }
+
+    public Boolean getPromoteDlpOtherMatches () {
+        return Boolean.valueOf(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
+    }
+
+
+    public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap(){
+        String json = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);
+
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+        List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+        Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> resultMap = new HashMap<>();
+
+        for (Map<String, String> item : dataList) {
+            resultMap.put(new InfoTypePolicyTagMapKey(
+                    item.get("info_type"),
+                    item.get("region"),
+                    item.get("domain")
+            ), new InfoTypePolicyTagMapValue(
+                    item.get("policy_tag_id"),
+                    item.get("classification")
+            ));
+        }
+        return  resultMap;
+    }
+
+    public Map<String, String> getProjectDomainMap(){
+        String json = Utils.getConfigFromEnv("PROJECT_DOMAIN_MAP", true);
+
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+        List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+        Map<String, String> resultMap = new HashMap<>();
+
+        for (Map<String, String> item : dataList) {
+            resultMap.put(item.get("project"), item.get("domain"));
+        }
+        return  resultMap;
+    }
+
+    public Map<DatasetDomainMapKey, String> getDatasetDomainMap(){
+        String json = Utils.getConfigFromEnv("DATASET_DOMAIN_MAP", true);
+
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+        List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+        Map<DatasetDomainMapKey, String> resultMap = new HashMap<>();
+
+        for (Map<String, String> item : dataList) {
+            resultMap.put(
+                    new DatasetDomainMapKey(
+                            item.get("project"),
+                            item.get("dataset")),
+                    item.get("domain"));
+        }
+        return  resultMap;
+    }
+
+
+
 
 
 }
+
+

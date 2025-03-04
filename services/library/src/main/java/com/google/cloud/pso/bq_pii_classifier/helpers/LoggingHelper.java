@@ -67,9 +67,9 @@ public class LoggingHelper {
     public void logTagHistory(TagHistoryLogEntry l, String tracker){
 
         Object [] attributes = new Object[]{
-                kv("tag_history_log_project_id", l.getTableSpec().getProject()),
-                kv("tag_history_log_dataset_id", l.getTableSpec().getDataset()),
-                kv("tag_history_log_table_id", l.getTableSpec().getTable()),
+                kv("tag_history_log_project_id", l.getTableSpec().project()),
+                kv("tag_history_log_dataset_id", l.getTableSpec().dataset()),
+                kv("tag_history_log_table_id", l.getTableSpec().table()),
                 kv("tag_history_log_field_name", l.getFieldName()),
                 kv("tag_history_log_existing_policy_tag_id", l.getExistingPolicyTagId()),
                 kv("tag_history_log_new_policy_tag_id", l.getNewPolicyTagId()),
@@ -95,9 +95,9 @@ public class LoggingHelper {
                                  String tracker){
 
         Object [] attributes = new Object[]{
-                kv("labels_history_log_project_id", tableSpec.getProject()),
-                kv("labels_history_log_dataset_id", tableSpec.getDataset()),
-                kv("labels_history_log_table_id", tableSpec.getTable()),
+                kv("labels_history_log_project_id", tableSpec.project()),
+                kv("labels_history_log_dataset_id", tableSpec.dataset()),
+                kv("labels_history_log_table_id", tableSpec.table()),
                 kv("labels_history_log_label_key", labelKey),
                 kv("labels_history_log_label_value", labelValue),
                 kv("labels_history_log_label_action", action),
@@ -164,9 +164,9 @@ public class LoggingHelper {
         Object [] attributes = new Object[]{
                 kv("dispatched_tracking_id", dispatchedTrackingId),
                 kv("dispatched_tablespec", tableSpec.toSqlString()),
-                kv("dispatched_tablespec_project", tableSpec.getProject()),
-                kv("dispatched_tablespec_dataset", tableSpec.getDataset()),
-                kv("dispatched_tablespec_table", tableSpec.getTable()),
+                kv("dispatched_tablespec_project", tableSpec.project()),
+                kv("dispatched_tablespec_dataset", tableSpec.dataset()),
+                kv("dispatched_tablespec_table", tableSpec.table()),
         };
 
         logWithTracker(

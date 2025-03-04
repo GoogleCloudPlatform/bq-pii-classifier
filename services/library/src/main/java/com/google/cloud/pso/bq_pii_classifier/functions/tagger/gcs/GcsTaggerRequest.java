@@ -19,9 +19,6 @@ package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
 import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.common.base.Objects;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class GcsTaggerRequest extends Operation {
 

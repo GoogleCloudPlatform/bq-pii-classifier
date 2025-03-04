@@ -44,7 +44,7 @@ public interface DataProfilePubSubMessageOrBuilder extends
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
    * @return The profile.
    */
-  com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile getProfile();
+  TableDataProfile getProfile();
   /**
    * <pre>
    * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
@@ -54,7 +54,7 @@ public interface DataProfilePubSubMessageOrBuilder extends
    *
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
    */
-  com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfileOrBuilder getProfileOrBuilder();
+  TableDataProfileOrBuilder getProfileOrBuilder();
 
   /**
    * <pre>
@@ -73,7 +73,7 @@ public interface DataProfilePubSubMessageOrBuilder extends
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
    * @return The event.
    */
-  com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType getEvent();
+  DataProfileAction.EventType getEvent();
 
   /**
    * <pre>
@@ -96,7 +96,7 @@ public interface DataProfilePubSubMessageOrBuilder extends
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
    * @return The fileStoreProfile.
    */
-  com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile getFileStoreProfile();
+  FileStoreDataProfile getFileStoreProfile();
   /**
    * <pre>
    * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
@@ -106,5 +106,5 @@ public interface DataProfilePubSubMessageOrBuilder extends
    *
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
    */
-  com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder();
+  FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder();
 }

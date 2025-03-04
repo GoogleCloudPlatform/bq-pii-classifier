@@ -26,7 +26,6 @@ import io.grpc.StatusRuntimeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
 import java.util.Set;
 
 public class ControllerExceptionHelper {

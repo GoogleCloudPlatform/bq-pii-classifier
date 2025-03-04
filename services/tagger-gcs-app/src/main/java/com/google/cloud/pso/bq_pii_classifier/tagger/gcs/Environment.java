@@ -16,13 +16,10 @@
 package com.google.cloud.pso.bq_pii_classifier.tagger.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class Environment {
 

@@ -20,31 +20,8 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
 import java.util.List;
-import java.util.Objects;
 
-public class TableSpec {
-
-    private String project;
-    private String dataset;
-    private String table;
-
-    public TableSpec(String project, String dataset, String table) {
-        this.project = project;
-        this.dataset = dataset;
-        this.table = table;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public String getDataset() {
-        return dataset;
-    }
-
-    public String getTable() {
-        return table;
-    }
+public record TableSpec(String project, String dataset, String table) {
 
     public String toSqlString(){
         return String.format("%s.%s.%s", project, dataset, table);
@@ -70,29 +47,5 @@ public class TableSpec {
                 tokens.get(4),
                 tokens.get(6)
         );
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TableSpec tableSpec = (TableSpec) o;
-        return Objects.equals(project, tableSpec.project) &&
-                Objects.equals(dataset, tableSpec.dataset) &&
-                Objects.equals(table, tableSpec.table);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(project, dataset, table);
-    }
-
-    @Override
-    public String toString() {
-        return "TableSpec{" +
-                "project='" + project + '\'' +
-                ", dataset='" + dataset + '\'' +
-                ", table='" + table + '\'' +
-                '}';
     }
 }

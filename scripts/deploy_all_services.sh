@@ -22,7 +22,23 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-./deploy_common_services.sh
+gcloud auth configure-docker "${COMPUTE_REGION}-docker.pkg.dev"
 
-./deploy_inspection_services.sh
+cd ../services
+mvn install
+mvn test
+
+cd dispatcher-tagging-app
+mvn compile jib:build -Dimage="${TAGGING_DISPATCHER_IMAGE}"
+
+cd ../tagger-app
+mvn compile jib:build -Dimage="${TAGGER_IMAGE}"
+
+cd ../dispatcher-tagging-gcs-app
+mvn compile jib:build -Dimage="${TAGGING_DISPATCHER_GCS_IMAGE}"
+
+cd ../tagger-gcs-app
+mvn compile jib:build -Dimage="${TAGGER_GCS_IMAGE}"
+
+
 

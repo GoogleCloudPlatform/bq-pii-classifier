@@ -1,5 +1,79 @@
 
-
+module "cloud-run-tagging-dispatcher" {
+  source                        = "./modules/cloud-run"
+  project                       = var.project
+  region                        = var.compute_region
+  service_image                 = local.tagging_dispatcher_service_image_uri
+  service_name                  = var.tagging_dispatcher_service_name
+  service_account_email         = google_service_account.sa_tagging_dispatcher.email
+  invoker_service_account_email = google_service_account.sa_tagging_dispatcher_tasks.email
+  # Dispatcher could take time to list large number of tables
+  timeout_seconds               = var.dispatcher_service_timeout_seconds
+  max_containers                = 1
+  max_cpu                       = 2
+  environment_variables         = [
+    {
+      name  = "TAGGER_TOPIC",
+      value = module.pubsub-tagger-for-dispatcher.topic-name,
+    },
+    {
+      name  = "COMPUTE_REGION_ID",
+      value = var.compute_region,
+    },
+    {
+      name  = "DATA_REGION_ID",
+      value = var.data_region,
+    },
+    {
+      name = "SOURCE_DATA_REGIONS",
+      value = jsonencode(var.source_data_regions),
+    },
+    {
+      name  = "PROJECT_ID",
+      value = var.project,
+    },
+    {
+      name  = "GCS_FLAGS_BUCKET",
+      value = google_storage_bucket.gcs_flags_bucket.name,
+    },
+    {
+      name  = "SOLUTION_DATASET",
+      value = google_bigquery_dataset.results_dataset.dataset_id,
+    },
+    {
+      name  = "DLP_TABLE_AUTO",
+      value = local.auto_dlp_results_latest_view,
+    },
+    {
+      name  = "LOGGING_TABLE",
+      value = google_bigquery_table.logging_table.table_id
+    },
+    {
+      name = "DLP_INSPECTION_TEMPLATES_IDS",
+      value = jsonencode(local.created_dlp_inspection_templates),
+    },
+    {
+      name  = "VIEW_INFOTYPE_POLICYTAGS_MAP",
+      value = google_bigquery_table.config_view_infotypes_policytags_map.table_id
+    },
+    {
+      name  = "VIEW_DATASET_DOMAIN_MAP",
+      value = google_bigquery_table.config_view_dataset_domain_map.table_id
+    },
+    {
+      name  = "VIEW_PROJECT_DOMAIN_MAP",
+      value = google_bigquery_table.config_view_project_domain_map.table_id
+    },
+    {
+      name  = "DEFAULT_DOMAIN_NAME",
+      value = var.default_domain_name,
+    },
+    {
+      name  = "DISPATCHER_RUNS_TABLE",
+      value = google_bigquery_table.dispatcher_runs_bq_table.table_id,
+    }
+  ]
+}
 
 module "cloud-run-tagger" {
   source                        = "./modules/cloud-run"
@@ -44,10 +118,6 @@ module "cloud-run-tagger" {
       value = google_bigquery_dataset.results_dataset.dataset_id,
     },
     {
-      name  = "DLP_TABLE_STANDARD",
-      value = google_bigquery_table.standard_dlp_results_table.table_id,
-    },
-    {
       name  = "DLP_TABLE_AUTO",
       value = local.auto_dlp_results_latest_view,
     },
@@ -64,14 +134,6 @@ module "cloud-run-tagger" {
       value = google_bigquery_table.config_view_project_domain_map.table_id
     },
     {
-      name  = "PROMOTE_MIXED_TYPES",
-      value = tostring(var.promote_mixed_info_types),
-    },
-    {
-      name  = "IS_AUTO_DLP_MODE",
-      value = tostring(local.is_auto_dlp_mode),
-    },
-    {
       name  = "INFO_TYPE_MAP",
       value = jsonencode(local.info_types_map),
     },
@@ -82,72 +144,27 @@ module "cloud-run-tagger" {
     {
       name  = "EXISTING_LABELS_REGEX",
       value = var.bq_existing_labels_regex
+    },
+    {
+      name  = "INFO_TYPE_POLICY_TAG_MAP",
+      value = jsonencode(local.created_policy_tags)
+    },
+    {
+      name  = "PROJECT_DOMAIN_MAP",
+      value = jsonencode(local.project_and_domains_filtered)
+    },
+    {
+      name  = "DATASET_DOMAIN_MAP",
+      value = jsonencode(local.datasets_and_domains_filtered)
+    },
+    {
+      name  = "DLP_PARENT",
+      value = google_data_loss_prevention_discovery_config.dlp_bq_org_folder.parent
+    },
+    {
+      name = "PROMOTE_DLP_OTHER_MATCHES"
+      value = var.promote_dlp_other_matches
     }
-  ]
-}
-
-
-module "cloud-run-tagging-dispatcher" {
-  source                        = "./modules/cloud-run"
-  project                       = var.project
-  region                        = var.compute_region
-  service_image                 = local.tagging_dispatcher_service_image_uri
-  service_name                  = var.tagging_dispatcher_service_name
-  service_account_email         = google_service_account.sa_tagging_dispatcher.email
-  invoker_service_account_email = google_service_account.sa_tagging_dispatcher_tasks.email
-  # Dispatcher could take time to list large number of tables
-  timeout_seconds               = var.dispatcher_service_timeout_seconds
-  max_containers                = 1
-  max_cpu                       = 2
-  environment_variables         = [
-    {
-      name  = "TAGGER_TOPIC",
-      value = module.pubsub-tagger.topic-name,
-    },
-    {
-      name  = "COMPUTE_REGION_ID",
-      value = var.compute_region,
-    },
-    {
-      name  = "DATA_REGION_ID",
-      value = var.data_region,
-    },
-    {
-      name = "SOURCE_DATA_REGIONS",
-      value = jsonencode(var.source_data_regions),
-    },
-    {
-      name  = "PROJECT_ID",
-      value = var.project,
-    },
-    {
-      name  = "GCS_FLAGS_BUCKET",
-      value = google_storage_bucket.gcs_flags_bucket.name,
-    },
-    {
-      name  = "SOLUTION_DATASET",
-      value = google_bigquery_dataset.results_dataset.dataset_id,
-    },
-    {
-      name  = "DLP_TABLE_STANDARD",
-      value = google_bigquery_table.standard_dlp_results_table.table_id,
-    },
-    {
-      name  = "DLP_TABLE_AUTO",
-      value = local.auto_dlp_results_latest_view,
-    },
-    {
-      name  = "IS_AUTO_DLP_MODE",
-      value = tostring(local.is_auto_dlp_mode),
-    },
-    {
-      name  = "LOGGING_TABLE",
-      value = google_bigquery_table.logging_table.table_id
-    },
-    {
-      name = "DLP_INSPECTION_TEMPLATES_IDS",
-      value = jsonencode(local.created_dlp_inspection_templates),
-    },
   ]
 }
 
@@ -167,16 +184,32 @@ module "pubsub-tagging-dispatcher" {
 
 }
 
-module "pubsub-tagger" {
+module "pubsub-tagger-for-dlp" {
   source                                  = "./modules/pubsub"
   project                                 = var.project
-  subscription_endpoint                   = module.cloud-run-tagger.service_endpoint
-  subscription_name                       = var.tagger_pubsub_sub
+  subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/discovery-service-handler"
+  subscription_name                       = "${var.tagger_pubsub_sub}_for_dlp"
   subscription_service_account            = google_service_account.sa_tagger_tasks.email
-  topic                                   = var.tagger_pubsub_topic
-  // Tagging Dispatcher and DLP service account must be able to publish messages to the Tagger
-  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher.email, local.dlp_service_account_email]
-  # Tagger is using BigQuery queries in BATCH mode to avoid INTERACTIVE query concurency limits and they might take longer time to execute under heavy load
+  topic                                   = "${var.tagger_pubsub_topic}_for_dlp"
+  // DLP service account must be able to publish messages to the Tagger
+  topic_publishers_sa_emails              = [local.dlp_service_account_email]
+  # 10m is max allowed
+  subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
+  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions
+  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  retain_acked_messages = var.retain_tagger_pubsub_messages
+}
+
+module "pubsub-tagger-for-dispatcher" {
+  source                                  = "./modules/pubsub"
+  project                                 = var.project
+  subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/tagging-dispatcher-handler"
+  subscription_name                       = "${var.tagger_pubsub_sub}_for_dispatcher"
+  subscription_service_account            = google_service_account.sa_tagger_tasks.email
+  topic                                   = "${var.tagger_pubsub_topic}_for_dispatcher"
+  // DLP service account must be able to publish messages to the Tagger
+  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher.email]
   # 10m is max allowed
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
@@ -200,10 +233,9 @@ resource "google_cloud_scheduler_job" "scheduler_job" {
     # topic.id is the topic's full resource name.
     topic_name = module.pubsub-tagging-dispatcher.topic-id
     data       = base64encode(jsonencode({
-      datasetIncludeList = var.datasets_include_list
-      projectIncludeList = var.projects_include_list
-      datasetExcludeList = var.datasets_exclude_list
-      tableExcludeList = var.tables_exclude_list
+      projectsRegex = var.dlp_bq_project_id_regex
+      datasetsRegex = var.dlp_bq_dataset_regex
+      tablesRegex = var.dlp_bq_table_regex
     }))
   }
 
@@ -277,11 +309,11 @@ resource "google_project_iam_member" "sa_tagging_dispatcher_bq_job_user" {
   member = "serviceAccount:${google_service_account.sa_tagging_dispatcher.email}"
 }
 
-// tagging dispatcher needs to read data from dlp results table and views created inside the solution-managed dataset
+// tagging dispatcher needs to read data from dlp results table and views created inside the solution-managed dataset and writing to dispatcher_runs
 // e.g. listing tables to be tagged
-resource "google_bigquery_dataset_access" "sa_tagging_dispatcher_bq_dataset_reader" {
+resource "google_bigquery_dataset_access" "sa_tagging_dispatcher_bq_dataset_editor" {
   dataset_id    = google_bigquery_dataset.results_dataset.dataset_id
-  role          = "roles/bigquery.dataViewer"
+  role          = "roles/bigquery.dataEditor"
   user_by_email = google_service_account.sa_tagging_dispatcher.email
 }
 

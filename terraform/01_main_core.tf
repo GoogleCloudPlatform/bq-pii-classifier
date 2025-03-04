@@ -26,14 +26,7 @@ data google_project "gcp_project" {
 
 locals {
 
-  # is_auto_dlp_mode is a legacy variable that is removed as a variable but still being used as a config in other modules
-  is_auto_dlp_mode = contains(var.supported_stacks, "BIGQUERY_DISCOVERY")
-
   tagging_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_service_image}"
-
-  inspection_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.inspection_dispatcher_service_image}"
-
-  inspector_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.inspector_service_image}"
 
   tagger_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_service_image}"
 
@@ -42,12 +35,6 @@ locals {
   cloud_scheduler_account_email = "service-${data.google_project.gcp_project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
 
   terraform_service_account_email = "${var.terraform_service_account}@${var.project}.iam.gserviceaccount.com"
-
-  // create a list of distinct projects where data to be inspected resides
-  data_projects = distinct(concat(
-    flatten([for dataset in var.datasets_include_list : split(".", dataset)[0]]), // parse project_name from "project_name.dataset_name"
-    var.projects_include_list // concat to the list of projects
-  ))
 
   dlp_inspection_templates_ids_list = flatten([for obj in local.created_dlp_inspection_templates : obj["ids"]])
 
@@ -98,12 +85,12 @@ locals {
 
   auto_dlp_results_latest_view = "${var.auto_dlp_results_table_name}_latest_v1"
 
-  taxonomy_numbers = distinct([for x in var.classification_taxonomy: x["taxonomy_number"]])
+  taxonomy_numbers = distinct([for x in var.classification_taxonomy : x["taxonomy_number"]])
 
   // this return a list of lists of [[gcp_region, domain, taxonomy_number]] like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
   taxonomies_to_be_created = setproduct(tolist(var.source_data_regions), local.domains, local.taxonomy_numbers)
 
-  inspection_templates_count = max([for x in var.classification_taxonomy: x["inspection_template_number"]]...)
+  inspection_templates_count = max([for x in var.classification_taxonomy : x["inspection_template_number"]]...)
 
   info_types_map = {
   for item in var.classification_taxonomy : item["info_type"] => {
@@ -118,10 +105,10 @@ locals {
 ### GCS RESOURCES ####
 
 resource "google_storage_bucket" "gcs_flags_bucket" {
-  project = var.project
-  name          = "${var.project}-${var.gcs_flags_bucket_name}"
+  project  = var.project
+  name     = "${var.project}-${var.gcs_flags_bucket_name}"
   # This bucket is used by the services so let's create in the same compute region
-  location      = var.compute_region
+  location = var.compute_region
 
   force_destroy = !var.terraform_data_deletion_protection
 
@@ -141,9 +128,9 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
 ### LOGGING ####
 
 resource "google_logging_project_sink" "bigquery-logging-sink" {
-  name = var.log_sink_name
-  destination = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
-  filter = "resource.type=cloud_run_revision jsonPayload.global_app=bq-pii-classifier"
+  name                   = var.log_sink_name
+  destination            = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
+  filter                 = "resource.type=cloud_run_revision jsonPayload.global_app=bq-pii-classifier"
   # Use a unique writer (creates a unique service account used for writing)
   unique_writer_identity = true
   bigquery_options {
@@ -155,13 +142,16 @@ resource "google_logging_project_sink" "bigquery-logging-sink" {
 
 # deploy 1 dlp inspection template in each source data region
 locals {
-  dlp_regions = var.deploy_dlp_inspection_template_to_global_region? concat(tolist(var.source_data_regions), ["global"]): var.source_data_regions
+  dlp_regions = var.deploy_dlp_inspection_template_to_global_region? concat(tolist(var.source_data_regions), [
+    "global"
+  ]) : var.source_data_regions
 }
 module "dlp" {
-  count = length(local.dlp_regions)
+  count                   = length(local.dlp_regions)
   source                  = "./modules/dlp"
   project                 = var.project
-  region                  = tolist(local.dlp_regions)[count.index] # create inspection template in the same region as source data
+  region                  = tolist(local.dlp_regions)[count.index]
+  # create inspection template in the same region as source data
   classification_taxonomy = var.classification_taxonomy
 
   custom_info_types_dictionaries = var.custom_info_types_dictionaries

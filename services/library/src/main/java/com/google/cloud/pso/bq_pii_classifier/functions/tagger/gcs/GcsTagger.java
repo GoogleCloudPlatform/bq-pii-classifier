@@ -17,12 +17,10 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.gcs.GcsFindingsReader;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReader;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +32,7 @@ public class GcsTagger {
   private static final Integer functionNumber = 3;
   private GcsTaggerConfig config;
 
-  private GcsFindingsReader findingsReader;
+  private DlpFindingsReader findingsReader;
 
   private GcsService gcsService;
   private PersistentSet persistentSet;
@@ -42,7 +40,7 @@ public class GcsTagger {
 
   public GcsTagger(
       GcsTaggerConfig config,
-      GcsFindingsReader findingsReader,
+      DlpFindingsReader findingsReader,
       GcsService gcsService,
       PersistentSet persistentSet,
       String persistentSetObjectPrefix)
@@ -198,7 +196,7 @@ public class GcsTagger {
       // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
       for (ResourceLabel infoTypeLabel : infoTypeMetadataMap.get(infoType).getLabels()) {
         bucketLabels.put(
-            infoTypeLabel.getKey().toLowerCase(), infoTypeLabel.getValue().toLowerCase());
+            infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
       }
     }
     return bucketLabels;

@@ -9,7 +9,6 @@ import com.google.cloud.storage.StorageOptions;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class GcsServiceImpl implements GcsService {
 

@@ -16,6 +16,7 @@
 
 package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Test;
 

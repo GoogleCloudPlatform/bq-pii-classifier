@@ -23,25 +23,6 @@ resource "google_bigquery_dataset" "results_dataset" {
   delete_contents_on_destroy = true
 }
 
-resource "google_bigquery_table" "standard_dlp_results_table" {
-
-  project = var.project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
-  table_id = var.standard_dlp_results_table_name
-
-  # ingestion time partitioning
-  time_partitioning {
-    type = "DAY"
-  }
-
-  # use job_name as a cluster to limit the number of bytes scanned to lookup job results
-  clustering = ["job_name"]
-
-  schema = file("schema/standard_dlp_results.json")
-
-  deletion_protection = var.terraform_data_deletion_protection
-}
-
 # Logging BQ sink must be able to write data to logging table in the dataset
 resource "google_bigquery_dataset_iam_member" "logging_sink_access" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
@@ -353,6 +334,19 @@ resource "google_bigquery_table" "dispatcher_runs_gcs_table" {
   clustering = ["run_id"]
 
   schema = file("schema/dispatcher_runs_gcs.json")
+
+  deletion_protection = var.terraform_data_deletion_protection
+}
+
+resource "google_bigquery_table" "dispatcher_runs_bq_table" {
+
+  project = var.project
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  table_id = "dispatcher_runs_bigquery"
+
+  clustering = ["run_id"]
+
+  schema = file("schema/dispatcher_runs_bigquery.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }

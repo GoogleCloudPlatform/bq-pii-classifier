@@ -15,24 +15,18 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.tagger;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
-import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
+import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.Tagger;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerDlpJobRequest;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerTableSpecRequest;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.FindingsReader;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.FindingsReaderFactory;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.gson.Gson;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,202 +36,122 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication(scanBasePackages = "com.google.cloud.pso.bq_pii_classifier")
 @RestController
 public class TaggerController {
 
-    private final LoggingHelper logger;
-    private static final Integer functionNumber = 3;
-    private Gson gson;
-    Environment environment;
+  private final LoggingHelper logger;
+  private static final Integer functionNumber = 3;
+  private final Gson gson;
+  private final Environment environment;
 
-    public TaggerController() {
+  public TaggerController() {
 
-        gson = new Gson();
-        environment = new Environment();
-        logger = new LoggingHelper(
-                TaggerController.class.getSimpleName(),
-                functionNumber,
-                environment.getProjectId()
-        );
+    gson = new Gson();
+    environment = new Environment();
+    logger =
+        new LoggingHelper(
+            TaggerController.class.getSimpleName(), functionNumber, environment.getProjectId());
+  }
+
+  @RequestMapping(value = "/tagging-dispatcher-handler", method = RequestMethod.POST)
+  public ResponseEntity taggingDispatcherHandler(@RequestBody PubSubEvent requestBody) {
+
+    String defaultTrackingId = "0000000000000-z";
+    TaggerRequest taggerRequest = null;
+
+    try {
+
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(defaultTrackingId, msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
+
+      String requestJsonString = requestBody.getMessage().dataToUtf8String();
+
+      // remove any escape characters (e.g. from Terraform
+      requestJsonString = requestJsonString.replace("\\", "");
+
+      logger.logInfoWithTracker(
+          defaultTrackingId, String.format("Received payload: %s", requestJsonString));
+
+      taggerRequest = gson.fromJson(requestJsonString, TaggerRequest.class);
+
+      Tagger tagger =
+          new Tagger(
+              environment.toConfig(),
+              new BigQueryServiceImpl(),
+              new DlpFindingsReaderImpl(),
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "tagger-flags");
+
+      tagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
+
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
+
+      String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
+  }
 
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
+  @RequestMapping(value = "/dlp-discovery-service-handler", method = RequestMethod.POST)
+  public ResponseEntity dlpDiscoveryServiceHandler(@RequestBody PubSubEvent requestBody) {
 
-        String defaultTrackingId = "0000000000000-z";
-        Operation taggerRequest = null;
+    String trackingId = "0000000000000-z";
 
-        try {
+    try {
 
-            if (requestBody == null || requestBody.getMessage() == null) {
-                String msg = "Bad Request: invalid message format";
-                logger.logSevereWithTracker(defaultTrackingId, msg);
-                throw new NonRetryableApplicationException("Request body or message is Null.");
-            }
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(trackingId , msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
 
-            taggerRequest = parseEvent(requestBody);
+      String requestJsonString = requestBody.getMessage().dataToUtf8String();
 
-            BigQueryService bigQueryService = new BigQueryServiceImpl();
+      // remove any escape characters (e.g. from Terraform
+      requestJsonString = requestJsonString.replace("\\", "");
 
-            // determine the Type of DLP FindingsReader based on env
-            FindingsReader findingsReader = FindingsReaderFactory.getNewReader(
-                    FindingsReaderFactory.findReader(
-                            environment.getIsAutoDlpMode(),
-                            environment.getPromoteMixedTypes()
-                    ),
-                    bigQueryService,
-                    environment.getProjectId(),
-                    environment.getDlpDataset(),
-                    environment.getIsAutoDlpMode() ? environment.getDlpTableAuto() : environment.getDlpTableStandard(),
-                    environment.getConfigViewDatasetDomainMap(),
-                    environment.getConfigViewProjectDomainMap(),
-                    environment.getConfigViewInfoTypePolicyTagsMap(),
-                    environment.getDefaultDomainName()
-            );
+      logger.logInfoWithTracker(
+              trackingId , String.format("Received payload: %s", requestJsonString));
 
-            Tagger tagger = new Tagger(
-                    environment.toConfig(),
-                    bigQueryService,
-                    findingsReader,
-                    new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                    "tagger-flags"
-            );
+      byte[] data = requestBody.getMessage().getData();
 
+      DataProfilePubSubMessage dataProfilePubSubMessage = DataProfilePubSubMessage.parseFrom(data);
 
-            if (taggerRequest instanceof TaggerTableSpecRequest) {
-                TaggerTableSpecRequest taggerTableSpecRequest = (TaggerTableSpecRequest) taggerRequest;
-                tagger.execute(taggerTableSpecRequest, requestBody.getMessage().getMessageId());
-            } else {
-                if (taggerRequest instanceof TaggerDlpJobRequest) {
-                    TaggerDlpJobRequest taggerDlpJobRequest = (TaggerDlpJobRequest) taggerRequest;
-                    tagger.execute(taggerDlpJobRequest, requestBody.getMessage().getMessageId());
-                }
-            }
+      logger.logInfoWithTracker(
+              trackingId ,
+          String.format("Parsed DataProfilePubSubMessage= '%s'", dataProfilePubSubMessage));
 
-            return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
-        } catch (Exception e) {
+      TableSpec targetTable =
+          TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
 
-            String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
-            return ControllerExceptionHelper.handleException(e, logger, trackingId);
-        }
+      String runId = TrackingHelper.generateOneTimeTaggingSuffix();
+      trackingId = TrackingHelper.generateTrackingId(runId, targetTable.toSqlString());
+
+      Tagger tagger =
+          new Tagger(
+              environment.toConfig(),
+                  new BigQueryServiceImpl(),
+                  new DlpFindingsReaderImpl(),
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "tagger-flags");
+
+      tagger.execute(runId, trackingId, requestBody.getMessage().getMessageId(), dataProfilePubSubMessage);
+
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
-
-    // The pubsub message could come from different sources with different formats
-    // 1. From DLP job notification in Standard Mode as a JSON message with the DLPJobName --> should be parsed as TaggerDlpJobRequest
-    // 2. From Tagging Dispatcher Service in Standard Mode as TaggerDlpJobRequest
-    // 3. From Tagging Dispatcher Service in AutoDlp Mode as TaggerTableSpecRequest
-    // 4. From Auto DLP job notification in AutoDlp Mode as "DataProfilePubSubMessage" proto --> should be parsed as TaggerTableSpecRequest
+  }
 
 
-    private Operation parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
-
-        String defaultTrackingId = "0000000000000-z";
-
-        // check if the message is sent from a Standard DLP inspection job, if so map it to TaggerDlpJobRequest
-        logger.logInfoWithTracker(defaultTrackingId,"Attempt: Will try to parse request as TaggerDlpJobRequest from Standard DLP Mode..");
-
-        if (event.getMessage().getAttributes() != null) {
-            String dlpJobName = event.getMessage().getAttributes().getOrDefault("DlpJobName", "");
-            if (!dlpJobName.isBlank()) {
-
-                logger.logInfoWithTracker(defaultTrackingId, String.format(
-                        "Parsed DlpJobName '%s'",
-                        dlpJobName
-                ));
-
-                String trackingId = TrackingHelper.extractTrackingIdFromJobName(dlpJobName);
-                String runId = TrackingHelper.parseRunIdAsPrefix(trackingId);
-
-                TaggerDlpJobRequest taggerDlpJobRequest = new TaggerDlpJobRequest(
-                        runId,
-                        trackingId,
-                        dlpJobName
-                );
-
-                logger.logInfoWithTracker(taggerDlpJobRequest.getTrackingId(),
-                        String.format("Final: Parsed Request from Standard DLP: %s", taggerDlpJobRequest.toString()));
-
-                // CASE 1: TaggerDlpJobRequest in Standard Mode from a DLP PubSub notification
-                return taggerDlpJobRequest;
-            }
-        }
-
-        try {
-            String requestJsonString = event.getMessage().dataToUtf8String();
-
-            // remove any escape characters (e.g. from Terraform
-            requestJsonString = requestJsonString.replace("\\", "");
-
-            logger.logInfoWithTracker(defaultTrackingId, String.format("Received payload: %s", requestJsonString));
-
-            TaggerDlpJobRequest taggerDlpJobRequest = gson.fromJson(requestJsonString, TaggerDlpJobRequest.class);
-
-            if (taggerDlpJobRequest.getDlpJobName() != null && !taggerDlpJobRequest.getDlpJobName().isEmpty()) {
-
-                logger.logInfoWithTracker(taggerDlpJobRequest.getTrackingId(),
-                        String.format("Final: parsed Request from Tagging Dispatcher in Standard Mode: %s", taggerDlpJobRequest));
-
-                // CASE 2: TaggerDlpJobRequest from the Tagging Dispatcher Service in Standard Mode
-                return taggerDlpJobRequest;
-            } else {
-
-                TaggerTableSpecRequest taggerTableRequest = gson.fromJson(requestJsonString, TaggerTableSpecRequest.class);
-
-                if (taggerTableRequest.getTargetTable() == null) {
-                    throw new NonRetryableApplicationException("Failed to parse Tagger request as a valid TaggerDlpJobRequest or TaggerTableSpecRequest");
-                }
-
-                logger.logInfoWithTracker(taggerTableRequest.getTrackingId(),
-                        String.format("Final: Parsed Request from Tagging Dispatcher in Auto DLP Mode: %s", taggerTableRequest));
-
-                // CASE 3: TaggerTableSpecRequest from the Tagging Dispatcher Service in Auto-DLP Mode
-                return taggerTableRequest;
-            }
-
-        } catch (Exception ex) {
-
-            // if not, try to parse it as a proto if it comes from Auto DLP and map it to TaggerTableSpecRequest
-            try {
-                byte[] data = event.getMessage().getData();
-
-                DataProfilePubSubMessage dataProfilePubSubMessage = DataProfilePubSubMessage.parseFrom(data);
-
-                logger.logInfoWithTracker(defaultTrackingId, String.format(
-                        "Parsed DataProfilePubSubMessage= '%s'",
-                        dataProfilePubSubMessage
-                ));
-
-                TableSpec targetTable = TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
-                String runId = TrackingHelper.generateOneTimeTaggingSuffix();
-                String trackingId = TrackingHelper.generateTrackingId(runId, targetTable.toSqlString());
-
-                TaggerTableSpecRequest taggerTableSpecRequestFromAutoDlp = new TaggerTableSpecRequest(
-                        runId,
-                        trackingId,
-                        targetTable
-                );
-
-                logger.logInfoWithTracker(taggerTableSpecRequestFromAutoDlp.getTrackingId(),
-                        String.format("Parsed Request from Auto DLP notifications : %s", taggerTableSpecRequestFromAutoDlp.toString()));
-
-                // CASE 4: TaggerTableSpecRequest from Auto DLP Notification
-                return taggerTableSpecRequestFromAutoDlp;
-
-            } catch (Exception ex2) {
-
-                throw new NonRetryableApplicationException(
-                        String.format("Couldn't parse PubSub event as Proto: %s : %s",
-                                ex2.getClass().getSimpleName(),
-                                ex2.getMessage()
-                        ));
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(TaggerController.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(TaggerController.class, args);
+  }
 }

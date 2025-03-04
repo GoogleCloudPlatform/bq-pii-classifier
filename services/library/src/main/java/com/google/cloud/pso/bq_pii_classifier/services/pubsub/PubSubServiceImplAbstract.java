@@ -28,22 +28,15 @@ import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.api.gax.retrying.RetrySettings;
 import com.google.cloud.bigquery.FieldValueList;
 import com.google.cloud.bigquery.TableResult;
-import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
-import com.google.cloud.pso.bq_pii_classifier.entities.JsonMessage;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pubsub.v1.Publisher;
-import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import org.threeten.bp.Duration;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -108,43 +101,23 @@ public abstract class PubSubServiceImplAbstract implements PubSubService {
                 .build();
     }
 
-    @Override
-    public PubSubPublishResults publishTableOperationRequests(String projectId, String topicId, List<JsonMessage> messages)
-            throws IOException, InterruptedException {
-
-        List<SuccessPubSubMessage> successMessages = new ArrayList<>();
-        List<FailedPubSubMessage> failedMessages = new ArrayList<>();
-
-        Publisher publisher = null;
-        try {
-            publisher = createPublisher(projectId, topicId);
-            for (final JsonMessage msg : messages) {
-                ByteString data = ByteString.copyFromUtf8(msg.toJsonString());
-                PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-
-                // Once published, returns a server-assigned message id (unique within the topic)
-                ApiFuture<String> future = publisher.publish(pubsubMessage);
-                try{
-                    // wait and retrieves results
-                    String messageId = future.get();
-                    successMessages.add(new SuccessPubSubMessage(msg, messageId));
-                }catch (Exception ex){
-                    failedMessages.add(new FailedPubSubMessage(msg, ex));
-                }
-            }
-
-            return new PubSubPublishResults(successMessages, failedMessages);
-
-        } finally {
-            if (publisher != null) {
-                // When finished with the publisher, shutdown to free up resources.
-                publisher.shutdown();
-                publisher.awaitTermination(1, TimeUnit.MINUTES);
-            }
-        }
+    public FlowControlSettings getFlowControlSettings() {
+        return flowControlSettings;
     }
 
-  public void publishBigQueryTableResults(
+    public BatchingSettings getBatchingSettings() {
+        return batchingSettings;
+    }
+
+    public RetrySettings getRetrySettings() {
+        return retrySettings;
+    }
+
+    public ExecutorProvider getExecutorProvider() {
+        return executorProvider;
+    }
+
+    public void publishBigQueryTableResults(
       TableResult bqTableResults,
       String pubSubProjectId,
       String pubSubTopicId,
@@ -154,7 +127,7 @@ public abstract class PubSubServiceImplAbstract implements PubSubService {
       throws IOException,
           ExecutionException,
           InterruptedException,
-          NonRetryableApplicationException {
+            NonRetryableApplicationException {
 
         long startTimeMilis = System.currentTimeMillis();
 
@@ -171,7 +144,7 @@ public abstract class PubSubServiceImplAbstract implements PubSubService {
         for (FieldValueList row: bqTableResults.iterateAll()) {
             bqRowsCounter.incrementAndGet();
 
-            PubsubMessage pubsubMessage = bigQueryRowToPubSubMessage(row, runId);
+            PubsubMessage pubsubMessage = bigQueryRowToPubSubMessage(row);
 
             ApiFuture<String> future = publisher.publish(pubsubMessage);
 
@@ -225,5 +198,5 @@ public abstract class PubSubServiceImplAbstract implements PubSubService {
                 String.format("Total duration in seconds : %s", (endTimeMilis-startTimeMilis)/1000));
     }
 
-    protected abstract PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row, String runId) throws NonRetryableApplicationException;
+    protected abstract PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row) throws NonRetryableApplicationException;
 }

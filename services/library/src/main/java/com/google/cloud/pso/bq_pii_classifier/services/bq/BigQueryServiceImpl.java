@@ -103,7 +103,7 @@ public class BigQueryServiceImpl implements BigQueryService {
     public List<TableFieldSchema> getTableSchemaFields(TableSpec tableSpec) throws IOException {
 
         return bqAPI.tables()
-                .get(tableSpec.getProject(), tableSpec.getDataset(), tableSpec.getTable())
+                .get(tableSpec.project(), tableSpec.dataset(), tableSpec.table())
                 .execute()
                 .getSchema()
                 .getFields();
@@ -136,7 +136,7 @@ public class BigQueryServiceImpl implements BigQueryService {
 
     public Map<String, String> getTableLabels(TableSpec tableSpec) throws IOException {
         return bqAPI.tables()
-                .get(tableSpec.getProject(), tableSpec.getDataset(), tableSpec.getTable())
+                .get(tableSpec.project(), tableSpec.dataset(), tableSpec.table())
                 .execute()
                 .getLabels();
     }
@@ -144,9 +144,9 @@ public class BigQueryServiceImpl implements BigQueryService {
     private void patchTable(TableSpec tableSpec, Table newTableModel) throws IOException {
 
         bqAPI.tables()
-                .patch(tableSpec.getProject(),
-                        tableSpec.getDataset(),
-                        tableSpec.getTable(),
+                .patch(tableSpec.project(),
+                        tableSpec.dataset(),
+                        tableSpec.table(),
                         newTableModel)
                 .execute();
     }
@@ -154,7 +154,7 @@ public class BigQueryServiceImpl implements BigQueryService {
     @Override
     public BigInteger getTableNumRows(TableSpec tableSpec) throws IOException {
         return bqAPI.tables()
-                .get(tableSpec.getProject(), tableSpec.getDataset(), tableSpec.getTable())
+                .get(tableSpec.project(), tableSpec.dataset(), tableSpec.table())
                 .execute()
                 .getNumRows();
     }

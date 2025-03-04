@@ -3,7 +3,6 @@ package com.google.cloud.pso.bq_pii_classifier.services.gcs;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.entities.ResourceLabelingAction;
 
-import java.io.IOException;
 import java.util.Map;
 
 public interface GcsService {

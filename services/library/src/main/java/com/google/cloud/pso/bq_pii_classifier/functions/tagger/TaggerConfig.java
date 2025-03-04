@@ -21,62 +21,17 @@ import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
 import java.util.Map;
 import java.util.Set;
 
-public class TaggerConfig {
-    private final String projectId;
-    private final Set<String> appOwnedTaxonomies;
-    private final Boolean isDryRunTags;
-    private final Boolean isDryRunLabels;
-    private final Map<String, InfoTypeInfo> infoTypeMap;
-    private final String existingLabelsRegex;
+public record TaggerConfig(String projectId,
+                           Set<String> appOwnedTaxonomies,
+                           Boolean isDryRunTags,
+                           Boolean isDryRunLabels,
+                           Map<String, InfoTypeInfo> infoTypeMap,
+                           String existingLabelsRegex,
+                           String dlpParent,
+                           Boolean promoteDlpOtherMatches,
+                           Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> infoTypePolicyTagMap,
+                           Map<String, String> projectDomainMap,
+                           Map<DatasetDomainMapKey, String> datasetDomainMap,
+                           String defaultDomainName
+                           ) {}
 
-    public TaggerConfig(String projectId,
-                        Set<String> appOwnedTaxonomies,
-                        Boolean isDryRunTags,
-                        Boolean isDryRunLabels,
-                        Map<String, InfoTypeInfo> infoTypeMap,
-                        String existingLabelsRegex
-                        ) {
-        this.projectId = projectId;
-        this.appOwnedTaxonomies = appOwnedTaxonomies;
-        this.isDryRunTags = isDryRunTags;
-        this.isDryRunLabels = isDryRunLabels;
-        this.infoTypeMap = infoTypeMap;
-        this.existingLabelsRegex = existingLabelsRegex;
-    }
-
-    public  Set<String> getAppOwnedTaxonomies() {
-        return appOwnedTaxonomies;
-    }
-
-    public Boolean isDryRunTags() {
-        return isDryRunTags;
-    }
-
-    public Boolean isDryRunLabels() {
-        return isDryRunLabels;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public Map<String, InfoTypeInfo> getInfoTypeMap() {
-        return infoTypeMap;
-    }
-
-    public String getExistingLabelsRegex() {
-        return existingLabelsRegex;
-    }
-
-    @Override
-    public String toString() {
-        return "TaggerConfig{" +
-                "projectId='" + projectId + '\'' +
-                ", appOwnedTaxonomies=" + appOwnedTaxonomies +
-                ", isDryRunTags=" + isDryRunTags +
-                ", isDryRunLabels=" + isDryRunLabels +
-                ", infoTypeMap=" + infoTypeMap +
-                ", existingLabelsRegex=" + existingLabelsRegex +
-                '}';
-    }
-}

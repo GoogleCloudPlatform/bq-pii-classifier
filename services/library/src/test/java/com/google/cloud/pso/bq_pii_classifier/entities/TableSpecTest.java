@@ -1,8 +1,6 @@
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
-import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
-import com.google.privacy.dlp.v2.Table;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

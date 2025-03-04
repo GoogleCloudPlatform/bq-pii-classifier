@@ -16,9 +16,6 @@
 
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
-import org.apache.commons.codec.digest.DigestUtils;
-
 import java.util.UUID;
 
 public class TrackingHelper {

@@ -24,15 +24,16 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
+
+
 cd ../services
 
 # make sure that the project is valid before submitting a build job
 mvn install
-mvn test
 
 gcloud builds submit \
 --project $PROJECT_ID \
 --region $COMPUTE_REGION \
 --config cloudbuild_deploy_all_services.yaml \
---substitutions _TAGGING_DISPATCHER_IMAGE=${TAGGING_DISPATCHER_IMAGE},_TAGGER_IMAGE=${TAGGER_IMAGE},_INSPECTION_DISPATCHER_IMAGE=${INSPECTION_DISPATCHER_IMAGE},_INSPECTOR_IMAGE=${INSPECTOR_IMAGE}
+--substitutions _TAGGING_DISPATCHER_IMAGE=${TAGGING_DISPATCHER_IMAGE},_TAGGER_IMAGE=${TAGGER_IMAGE},_TAGGING_DISPATCHER_GCS_IMAGE=${TAGGING_DISPATCHER_GCS_IMAGE},_TAGGER_GCS_IMAGE=${TAGGER_GCS_IMAGE}
 

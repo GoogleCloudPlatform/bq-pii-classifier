@@ -51,15 +51,15 @@ private static final long serialVersionUID = 0L;
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
+    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable
+    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.class, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder.class);
+            FileStoreDataProfile.class, FileStoreDataProfile.Builder.class);
   }
 
   public static final int NAME_FIELD_NUMBER = 1;
@@ -201,10 +201,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile)) {
+    if (!(obj instanceof FileStoreDataProfile)) {
       return super.equals(obj);
     }
-    com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile other = (com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile) obj;
+    FileStoreDataProfile other = (FileStoreDataProfile) obj;
 
     if (!getName()
         .equals(other.getName())) return false;
@@ -230,44 +230,44 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(byte[] data)
+  public static FileStoreDataProfile parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(java.io.InputStream input)
+  public static FileStoreDataProfile parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -275,26 +275,26 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseDelimitedFrom(java.io.InputStream input)
+  public static FileStoreDataProfile parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input);
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseDelimitedFrom(
+  public static FileStoreDataProfile parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile parseFrom(
+  public static FileStoreDataProfile parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -307,7 +307,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile prototype) {
+  public static Builder newBuilder(FileStoreDataProfile prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -332,18 +332,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessage.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile)
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfileOrBuilder {
+          FileStoreDataProfileOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.class, com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.Builder.class);
+              FileStoreDataProfile.class, FileStoreDataProfile.Builder.class);
     }
 
     // Construct using com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.newBuilder()
@@ -368,17 +368,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
+      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_FileStoreDataProfile_descriptor;
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile getDefaultInstanceForType() {
-      return com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.getDefaultInstance();
+    public FileStoreDataProfile getDefaultInstanceForType() {
+      return FileStoreDataProfile.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile build() {
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile result = buildPartial();
+    public FileStoreDataProfile build() {
+      FileStoreDataProfile result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -386,14 +386,14 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile buildPartial() {
-      com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile result = new com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile(this);
+    public FileStoreDataProfile buildPartial() {
+      FileStoreDataProfile result = new FileStoreDataProfile(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile result) {
+    private void buildPartial0(FileStoreDataProfile result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.name_ = name_;
@@ -405,16 +405,16 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile) {
-        return mergeFrom((com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile)other);
+      if (other instanceof FileStoreDataProfile) {
+        return mergeFrom((FileStoreDataProfile)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile other) {
-      if (other == com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile.getDefaultInstance()) return this;
+    public Builder mergeFrom(FileStoreDataProfile other) {
+      if (other == FileStoreDataProfile.getDefaultInstance()) return this;
       if (!other.getName().isEmpty()) {
         name_ = other.name_;
         bitField0_ |= 0x00000001;
@@ -666,12 +666,12 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile)
-  private static final com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile DEFAULT_INSTANCE;
+  private static final FileStoreDataProfile DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile();
+    DEFAULT_INSTANCE = new FileStoreDataProfile();
   }
 
-  public static com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile getDefaultInstance() {
+  public static FileStoreDataProfile getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
@@ -707,7 +707,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile getDefaultInstanceForType() {
+  public FileStoreDataProfile getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

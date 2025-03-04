@@ -70,9 +70,9 @@ public class TagHistoryLogEntry {
     public String toLogString() {
 
         return String.format("%s | %s | %s | %s | %s | %s | %s | %s",
-                tableSpec.getProject(),
-                tableSpec.getDataset(),
-                tableSpec.getTable(),
+                tableSpec.project(),
+                tableSpec.dataset(),
+                tableSpec.table(),
                 fieldName,
                 existingPolicyTagId,
                 newPolicyTagId,

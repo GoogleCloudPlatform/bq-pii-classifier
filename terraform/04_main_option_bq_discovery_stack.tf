@@ -5,9 +5,6 @@ locals {
 
 resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 
-  # deploy only if auto dlp mode is selected
-  count  = local.is_auto_dlp_mode? 1 : 0
-
   // Project-level config. Only data in that project could be scanned
   #    parent = "projects/<project id>/locations/${local.dlp_region}"
 
@@ -97,7 +94,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.pubsub-tagger.topic-id
+      topic             = module.pubsub-tagger-for-dlp.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "NEW_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
@@ -107,7 +104,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 
   actions {
     pub_sub_notification {
-      topic             = module.pubsub-tagger.topic-id
+      topic             = module.pubsub-tagger-for-dlp.topic-id
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event             = "CHANGED_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
@@ -123,9 +120,6 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
 // The Terraform service account needs certain folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles folder level
 module "data-folder-permissions-for-bq-discovery-stack" {
-
-  # deploy only if auto dlp mode is selected
-  count  = local.is_auto_dlp_mode? 1 : 0
 
   source = "./modules/data-folder-permissions-for-bq-discovery-stack"
 

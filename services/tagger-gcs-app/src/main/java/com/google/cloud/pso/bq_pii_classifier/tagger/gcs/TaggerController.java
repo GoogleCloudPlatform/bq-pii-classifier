@@ -15,16 +15,18 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.tagger.gcs;
 
-import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTagger;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequest;
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.gcs.DlpApiGcsFindingsReader;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
+import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -72,7 +74,7 @@ public class TaggerController {
       GcsTagger gcsTagger =
           new GcsTagger(
               environment.toConfig(),
-              new DlpApiGcsFindingsReader(),
+              new DlpFindingsReaderImpl(),
               new GcsServiceImpl(),
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "gcs-tagger-flags");

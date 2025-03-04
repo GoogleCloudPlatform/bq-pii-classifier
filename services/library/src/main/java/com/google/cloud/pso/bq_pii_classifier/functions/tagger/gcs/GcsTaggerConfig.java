@@ -17,8 +17,8 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+
 import java.util.Map;
-import java.util.Set;
 
 public class GcsTaggerConfig {
 

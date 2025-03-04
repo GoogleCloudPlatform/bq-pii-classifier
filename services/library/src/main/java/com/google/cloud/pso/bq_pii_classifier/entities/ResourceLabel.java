@@ -1,21 +1,6 @@
 package com.google.cloud.pso.bq_pii_classifier.entities;
 
-public class ResourceLabel {
-    private String key;
-    private String value;
-
-    public ResourceLabel(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getValue() {
-        return value;
-    }
+public record ResourceLabel(String key, String value) {
 
     @Override
     public String toString() {

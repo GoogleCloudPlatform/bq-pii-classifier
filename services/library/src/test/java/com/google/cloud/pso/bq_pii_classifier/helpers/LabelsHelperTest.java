@@ -1,6 +1,7 @@
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.ResourceLabelingAction;
+import com.google.cloud.pso.bq_pii_classifier.helpers.LabelsHelper;
 import org.junit.Test;
 
 import java.util.AbstractMap;
@@ -21,6 +22,7 @@ public class LabelsHelperTest {
         bucketLabels.put("not_dg_label", "vn");
 
         Map<String, String> newLabels = new HashMap<>();
+        newLabels.put("dg_1", "v1");
         newLabels.put("dg_1", "v1");
         newLabels.put("dg_2", "v2_new");
         newLabels.put("dg_3", "v3");

@@ -1,0 +1,54 @@
+[
+  {
+    "name": "run_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "tracking_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "project_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "dataset_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "table_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "fields",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "field_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "info_type",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "policy_tag",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "classification",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      }
+    ]
+  }
+]
