@@ -192,7 +192,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
         project = var.project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         v_run_summary = google_bigquery_table.view_run_summary.table_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        dispatcher_runs_bigquery = google_bigquery_table.dispatcher_runs_bq_table.table_id
       }
     )
   }
@@ -265,7 +265,7 @@ resource "google_bigquery_table" "view_gcs_run_summary_counts_gcs" {
         project = var.project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         v_run_summary = google_bigquery_table.view_run_summary.table_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        dispatcher_runs_gcs = google_bigquery_table.dispatcher_runs_gcs_table.table_id
       }
     )
   }
