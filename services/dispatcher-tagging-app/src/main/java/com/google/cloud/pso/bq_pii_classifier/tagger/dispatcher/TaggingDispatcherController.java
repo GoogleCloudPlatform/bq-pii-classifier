@@ -22,7 +22,7 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplForBigQueryDispatcher;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamerForBQDispatcher;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpResultsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
@@ -93,14 +93,10 @@ public class TaggingDispatcherController {
       Map<String, String> sqlParamsMap = new HashMap<>();
       sqlParamsMap.put("${project}", environment.getProjectId());
       sqlParamsMap.put("${dataset}", environment.getSolutionDataset());
-      sqlParamsMap.put("${config_view_infotypes_policytags_map}", environment.getConfigViewInfoTypePolicyTagsMap());
-      sqlParamsMap.put("${config_view_dataset_domain_map}", environment.getConfigViewDatasetDomainMap());
-      sqlParamsMap.put("${config_view_project_domain_map}", environment.getConfigViewProjectDomainMap());
       sqlParamsMap.put("${results_table}", environment.getDlpTableAuto());
       sqlParamsMap.put("${project_id_regex}", bigQueryDlpScope.projectsRegex());
       sqlParamsMap.put("${dataset_id_regex}", bigQueryDlpScope.datasetsRegex());
       sqlParamsMap.put("${table_id_regex}", bigQueryDlpScope.tablesRegex());
-      sqlParamsMap.put("${default_domain_name}", environment.getDefaultDomainName());
       sqlParamsMap.put("${dispatcher_runs_table}", environment.getDispatcherRunsTable());
       sqlParamsMap.put("${run_id}", runId);
 
@@ -115,7 +111,7 @@ public class TaggingDispatcherController {
       Dispatcher dispatcher =
           new Dispatcher(
               environment.toConfig(),
-              new PubSubServiceImplForBigQueryDispatcher(),
+              new BigQueryToPubSubStreamerForBQDispatcher(),
               dlpResultsScanner,
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "tagging-dispatcher-flags",

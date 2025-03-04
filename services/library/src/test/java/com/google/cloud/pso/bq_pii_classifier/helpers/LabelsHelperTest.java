@@ -1,6 +1,7 @@
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.ResourceLabelingAction;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.Tagger;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LabelsHelper;
 import org.junit.Test;
 
@@ -22,7 +23,6 @@ public class LabelsHelperTest {
         bucketLabels.put("not_dg_label", "vn");
 
         Map<String, String> newLabels = new HashMap<>();
-        newLabels.put("dg_1", "v1");
         newLabels.put("dg_1", "v1");
         newLabels.put("dg_2", "v2_new");
         newLabels.put("dg_3", "v3");
@@ -100,5 +100,30 @@ public class LabelsHelperTest {
 
         assertEquals(expectedLabelsWithActions, labelsWithAction);
         assertEquals(expectedLabels, finalLabels);
+    }
+
+    @Test
+    public void test_remove(){
+
+        Map<Map.Entry<String, String>, ResourceLabelingAction> inputLabelsWithActions = new HashMap<>();
+        inputLabelsWithActions.put(new AbstractMap.SimpleEntry<>("no_change", "v1"),
+                ResourceLabelingAction.NO_CHANGE);
+        inputLabelsWithActions.put(new AbstractMap.SimpleEntry<>("new_value", "v2_new"),
+                ResourceLabelingAction.NEW_VALUE);
+        inputLabelsWithActions.put(new AbstractMap.SimpleEntry<>("new_key", "v3"),
+                ResourceLabelingAction.NEW_KEY);
+        inputLabelsWithActions.put(new AbstractMap.SimpleEntry<>("to_remove", "vr"),
+                ResourceLabelingAction.DELETE);
+
+
+        Map<String, String> actual = LabelsHelper.removeToBeDeletedLabels(inputLabelsWithActions);
+
+        assertEquals(null, actual.get("to_remove"));
+        assertEquals("v1", actual.get("no_change"));
+        assertEquals("v2_new", actual.get("new_value"));
+        assertEquals("v3", actual.get("new_key"));
+        assertEquals(4, actual.size());
+
+
     }
 }

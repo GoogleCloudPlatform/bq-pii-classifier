@@ -35,19 +35,26 @@
         "mode": "NULLABLE"
       },
       {
-        "name": "info_type",
+        "name": "dlp_info_type_name",
         "type": "STRING",
         "mode": "NULLABLE"
       },
       {
-        "name": "policy_tag",
-        "type": "STRING",
-        "mode": "NULLABLE"
-      },
-      {
-        "name": "classification",
-        "type": "STRING",
-        "mode": "NULLABLE"
+        "name": "dlp_other_matches",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "info_type_name",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "info_type_prevalence",
+            "type": "INT64",
+            "mode": "NULLABLE"
+          }
+        ]
       }
     ]
   }

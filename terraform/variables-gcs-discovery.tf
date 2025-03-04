@@ -79,7 +79,7 @@ variable "gcs_tagging_scheduler_name" {
 }
 variable "gcs_tagging_scheduler_description" {
   type = string
-  default = "CRON job to trigger re-tagging of GCS buckets"
+  default = "CRON job to trigger (re)annotation process for Cloud Storage buckets based on DLP findings"
 }
 
 ##### Tagging Dispatcher Service ######

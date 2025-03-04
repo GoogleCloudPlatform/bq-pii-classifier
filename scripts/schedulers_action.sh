@@ -19,8 +19,8 @@
 # exit script when errors occur
 set -e
 
-SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project="${PROJECT_ID}")
-echo $SCHEDULERS
+SCHEDULERS=$(gcloud scheduler jobs list --format="value(ID)" --project="${PROJECT_ID}" --location="${COMPUTE_REGION}")
+echo "Will ${1} the following schedulers ${SCHEDULERS}"
 ## Splitting the string into array
 
 read -a ARRAY <<< ${SCHEDULERS}
@@ -28,5 +28,5 @@ read -a ARRAY <<< ${SCHEDULERS}
 for i in "${!ARRAY[@]}"
 do
     echo "$1 ${ARRAY[i]}.."
-    gcloud scheduler jobs "${1}" "${ARRAY[i]}"
+    gcloud scheduler jobs --project="${PROJECT_ID}"  "${1}" "${ARRAY[i]}" --location="${COMPUTE_REGION}"
 done

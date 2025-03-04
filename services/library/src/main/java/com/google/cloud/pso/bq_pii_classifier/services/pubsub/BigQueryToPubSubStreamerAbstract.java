@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class PubSubServiceImplAbstract implements PubSubService {
+public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubSubStreamer {
 
     private final FlowControlSettings flowControlSettings;
     private final BatchingSettings batchingSettings;
@@ -50,7 +50,7 @@ public abstract class PubSubServiceImplAbstract implements PubSubService {
 
     private final ExecutorProvider executorProvider;
 
-    public PubSubServiceImplAbstract(){
+    public BigQueryToPubSubStreamerAbstract(){
         // Configure how many messages the publisher client can hold in memory
         // and what to do when messages exceed the limit.
         flowControlSettings =

@@ -1,26 +1,38 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 
+import com.google.cloud.pso.bq_pii_classifier.DlpFieldFindings;
 import com.google.cloud.pso.bq_pii_classifier.entities.Operation;
 import com.google.cloud.pso.bq_pii_classifier.entities.TablePolicyTags;
+import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.common.base.Objects;
+
+import java.util.Map;
 
 public class TaggerRequest extends Operation {
 
-    public final TablePolicyTags tablePolicyTags;
+    private final TableSpec targetTable;
 
-    public TaggerRequest(String runId, String trackingId, TablePolicyTags tablePolicyTags) {
+    private final Map<String, DlpFieldFindings> fieldsFindings;
+
+    public TaggerRequest(String runId, String trackingId, TableSpec targetTable, Map<String, DlpFieldFindings> fieldsFindings) {
         super(runId, trackingId);
-        this.tablePolicyTags = tablePolicyTags;
+        this.targetTable = targetTable;
+        this.fieldsFindings = fieldsFindings;
     }
 
-    public TablePolicyTags getTablePolicyTags() {
-        return tablePolicyTags;
+    public TableSpec getTargetTable() {
+        return targetTable;
+    }
+
+    public Map<String, DlpFieldFindings> getFieldsFindings() {
+        return fieldsFindings;
     }
 
     @Override
     public String toString() {
         return "TaggerRequest{" +
-                "tablePolicyTags=" + tablePolicyTags +
+                "targetTable=" + targetTable +
+                ", fieldsFindings=" + fieldsFindings +
                 "} " + super.toString();
     }
 
@@ -29,11 +41,11 @@ public class TaggerRequest extends Operation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TaggerRequest that = (TaggerRequest) o;
-        return Objects.equal(tablePolicyTags, that.tablePolicyTags);
+        return Objects.equal(targetTable, that.targetTable) && Objects.equal(fieldsFindings, that.fieldsFindings);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(tablePolicyTags);
+        return Objects.hashCode(targetTable, fieldsFindings);
     }
 }

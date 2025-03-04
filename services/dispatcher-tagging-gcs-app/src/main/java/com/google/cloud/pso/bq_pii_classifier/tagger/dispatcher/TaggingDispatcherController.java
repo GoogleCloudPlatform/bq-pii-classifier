@@ -22,7 +22,7 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryServiceImpl;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubServiceImplForGcsDispatcher;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamerForGcsDispatcher;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpResultsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
@@ -104,7 +104,7 @@ public class TaggingDispatcherController {
             Dispatcher dispatcher =
                     new Dispatcher(
                             environment.toConfig(),
-                            new PubSubServiceImplForGcsDispatcher(),
+                            new BigQueryToPubSubStreamerForGcsDispatcher(),
                             dlpResultsScanner,
                             new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
                             "tagging-dispatcher-gcs-flags",

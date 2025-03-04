@@ -222,7 +222,7 @@ resource "google_cloud_scheduler_job" "scheduler_job" {
   project = var.project
   region = var.compute_region
   name             = var.tagging_scheduler_name
-  description      = "CRON job to trigger BQ PII Classifier Tagging for BigQuery"
+  description      = var.tagging_scheduler_description
   schedule         = var.tagging_cron_expression
 
   retry_config {

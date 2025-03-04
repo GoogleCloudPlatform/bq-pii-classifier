@@ -23,9 +23,9 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
-public interface PubSubService {
+public interface BigQueryToPubSubStreamer {
 
-  public void publishBigQueryTableResults(
+  void publishBigQueryTableResults(
       TableResult bqTableResults,
       String pubSubProjectId,
       String pubSubTopic,

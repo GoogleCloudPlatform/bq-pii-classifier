@@ -208,6 +208,11 @@ variable "tagging_cron_expression" {
   description = "Cron expression used by the Tagging Scheduler"
 }
 
+variable "tagging_scheduler_description" {
+  type = string
+  default = "CRON job to trigger (re)annotation process for BigQuery tables based on DLP findings"
+}
+
 variable "table_scan_limits_json_config" {
 
   type = object({

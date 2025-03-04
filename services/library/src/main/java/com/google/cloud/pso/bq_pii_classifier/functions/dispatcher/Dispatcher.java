@@ -18,7 +18,7 @@ package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
 import com.google.cloud.bigquery.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-import com.google.cloud.pso.bq_pii_classifier.services.pubsub.PubSubService;
+import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamer;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpResultsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
@@ -30,7 +30,7 @@ public class Dispatcher {
 
   private static final Integer functionNumber = 1;
   private final LoggingHelper logger;
-  private final  PubSubService pubSubService;
+  private final BigQueryToPubSubStreamer bigQueryToPubSubStreamer;
   private final DlpResultsScanner scanner;
   private final DispatcherConfig config;
   private final PersistentSet persistentSet;
@@ -39,14 +39,14 @@ public class Dispatcher {
 
   public Dispatcher(
           DispatcherConfig config,
-          PubSubService pubSubService,
+          BigQueryToPubSubStreamer bigQueryToPubSubStreamer,
           DlpResultsScanner scanner,
           PersistentSet persistentSet,
           String persistentSetObjectPrefix,
           String runId) {
 
     this.config = config;
-    this.pubSubService = pubSubService;
+    this.bigQueryToPubSubStreamer = bigQueryToPubSubStreamer;
     this.scanner = scanner;
     this.persistentSet = persistentSet;
     this.persistentSetObjectPrefix = persistentSetObjectPrefix;
@@ -94,7 +94,7 @@ public class Dispatcher {
     logger.logInfoWithTracker(runId,
             String.format("BigQuery query returned %s rows", dlpFindingsQueryResults.getTotalRows()));
 
-    pubSubService.publishBigQueryTableResults(dlpFindingsQueryResults,
+    bigQueryToPubSubStreamer.publishBigQueryTableResults(dlpFindingsQueryResults,
             config.projectId(),
             config.outputTopic(),
             runId,

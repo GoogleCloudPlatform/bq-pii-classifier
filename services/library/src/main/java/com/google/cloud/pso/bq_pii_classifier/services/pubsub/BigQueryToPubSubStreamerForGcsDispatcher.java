@@ -9,7 +9,7 @@ import com.google.pubsub.v1.PubsubMessage;
 
 import java.util.HashSet;
 
-public class PubSubServiceImplForGcsDispatcher extends PubSubServiceImplAbstract{
+public class BigQueryToPubSubStreamerForGcsDispatcher extends BigQueryToPubSubStreamerAbstract {
     public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row){
         String runId = row.get("run_id").getStringValue();
         String trackingId = row.get("tracking_id").getStringValue();
