@@ -7,13 +7,10 @@ module "gcs-discovery-stack" {
 
   source = "./stacks/gcs-discovery-stack"
 
-  # stack-specific parameters
   dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
   dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
   tagging_dispatcher_gcs_service_image = var.tagging_dispatcher_gcs_service_image
   tagger_gcs_service_image = var.tagger_gcs_service_image
-
-  # common parameters
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
   compute_region = var.compute_region
   data_region = var.data_region
@@ -54,11 +51,13 @@ module "gcs-discovery-stack" {
   gcs_existing_labels_regex = var.gcs_existing_labels_regex
   dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
   dispatcher_service_max_memory = var.dispatcher_service_max_memory
-  dispatcher_runs_table = google_bigquery_table.dispatcher_runs_gcs_table.table_id
   retain_dlp_tagger_pubsub_messages = var.retain_dlp_tagger_pubsub_messages
   sa_workflows_gcs = var.sa_workflows_gcs
   workflows_gcs_description = var.workflows_gcs_description
   workflows_gcs_name = var.workflows_gcs_name
+  bq_view_run_summary = google_bigquery_table.view_run_summary.table_id
+  logging_table_name = google_bigquery_table.logging_table.table_id
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)

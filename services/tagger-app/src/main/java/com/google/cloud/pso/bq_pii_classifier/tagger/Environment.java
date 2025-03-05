@@ -66,26 +66,6 @@ public class Environment {
         return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
     }
 
-    public String getDlpDataset(){
-        return Utils.getConfigFromEnv("DLP_DATASET", true);
-    }
-
-    public String getDlpTableAuto(){
-        return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
-    }
-
-    public String getConfigViewInfoTypePolicyTagsMap(){
-        return Utils.getConfigFromEnv("VIEW_INFOTYPE_POLICYTAGS_MAP", true);
-    }
-
-    public String getConfigViewDatasetDomainMap(){
-        return Utils.getConfigFromEnv("VIEW_DATASET_DOMAIN_MAP", true);
-    }
-
-    public String getConfigViewProjectDomainMap(){
-        return Utils.getConfigFromEnv("VIEW_PROJECT_DOMAIN_MAP", true);
-    }
-
     public Map<String, InfoTypeInfo> getInfoTypeMap(){
         return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
     }
@@ -105,7 +85,6 @@ public class Environment {
     public Boolean getPromoteDlpOtherMatches () {
         return Boolean.valueOf(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
     }
-
 
     public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap(){
         String json = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);

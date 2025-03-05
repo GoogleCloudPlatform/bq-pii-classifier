@@ -36,92 +36,11 @@ variable "bigquery_dataset_name" {
   default = "bq_pii_classifier"
 }
 
-variable "auto_dlp_results_table_name" {
-  type = string
-  description = "New table name to be created to hold DLP findings in the format 'table'"
-  default = "auto_dlp_results"
-}
-
-variable "sa_tagging_dispatcher" {
-  type = string
-  default = "tag-dispatcher"
-}
-
-variable "sa_tagging_dispatcher_tasks" {
-  type = string
-  default = "tag-dispatcher-tasks"
-}
-
-variable "sa_tagger" {
-  type = string
-  default = "tagger"
-}
-
-variable "sa_tagger_tasks" {
-  type = string
-  default = "tagger-tasks"
-}
-
-variable "sa_workflows_bq" {
-  type = string
-  default = "workflows-bq"
-}
-
-variable "workflows_bq_name" {
-  type = string
-  default = "bigquery_tables_re_annotation_trigger"
-}
-
-variable "workflows_bq_description" {
-  type = string
-  default = "Trigger (re)annotation process for BigQuery tables based on DLP findings"
-}
-
-variable "sa_bq_remote_func_get_policy_tags" {
-  type = string
-  default = "sa-func-get-policy-tags"
-}
-
 variable "log_sink_name" {
   type = string
   default = "sc_bigquery_log_sink"
 }
 
-variable "tagging_dispatcher_service_name" {
-  type = string
-  default = "s1a-tagging-dispatcher"
-}
-
-variable "tagger_service_name" {
-  type = string
-  default = "s3-tagger"
-}
-
-variable "bq_remote_func_get_policy_tags_name" {
-  type = string
-  default = "get_table_policy_tags"
-}
-
-
-variable "tagging_dispatcher_pubsub_topic" {
-  type = string
-  default = "tagging_dispatcher_topic"
-}
-
-variable "tagging_dispatcher_pubsub_sub" {
-  type = string
-  default = "tagging_dispatcher_push_sub"
-}
-
-variable "tagger_pubsub_topic" {
-  type = string
-  default = "tagger_topic"
-}
-
-variable "tagger_pubsub_sub" {
-  type = string
-  default = "tagger_push_sub"
-}
 
 
 # Images
@@ -129,15 +48,6 @@ variable "gar_docker_repo_name" {
   type = string
   default = "bq-pii-classifier"
 }
-
-variable "tagging_dispatcher_service_image" {
-  type = string
-}
-
-variable "tagger_service_image" {
-  type = string
-}
-
 
 # for each domain in scope, these policy tags will be created in a domain-specific taxonomy
 # and mapped in BQ configuration with the generated policy_tag_id. Each policy tag will be created
@@ -174,23 +84,6 @@ variable "custom_info_types_regex" {
   }))
 }
 
-variable "domain_mapping" {
-  type = list(object({
-    project = string,
-    domain = string,
-    datasets = list(object({
-      name = string,
-      domain = string
-    })) // leave empty if no dataset overrides is required for this project
-  }))
-  description = "Mapping between domains and GCP projects or BQ Datasets. Dataset-level mapping will overwrite project-level mapping for a given project."
-}
-
-variable "iam_mapping" {
-  type = map(map(list(string)))
-  description = "Dictionary of mappings between domains/classification and IAM members to grant required permissions to read sensitive BQ columns belonging to that domain/classification"
-}
-
 variable "terraform_service_account" {
   type = string
   description = "service account used by terraform to deploy to GCP"
@@ -208,13 +101,6 @@ variable "is_dry_run_labels" {
   description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 
-// Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.
-// Use [] NOT to restrict IAM access.
-variable "data_catalog_taxonomy_activated_policy_types" {
-  type = list(string)
-  default = ["FINE_GRAINED_ACCESS_CONTROL"]
-  description = "A lis of policy types for the created taxonomy(s)"
-}
 
 variable "gcs_flags_bucket_name" {
   type = string
@@ -278,11 +164,7 @@ variable "tagger_subscription_message_retention_duration" {
   # 24h
 }
 
-variable "taxonomy_name_suffix" {
-  type = string
-  default = ""
-  description = "Suffix added to taxonomy display name to make it unique within an org"
-}
+
 
 variable "terraform_data_deletion_protection" {
   type = bool
@@ -296,31 +178,17 @@ variable "retain_dlp_tagger_pubsub_messages" {
   description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
 }
 
-variable "datastore_database_name" {
-  type    = string
-  default = "(default)"
-}
 
 variable "supported_stacks" {
   type = set(string)
   default = ["BIGQUERY_DISCOVERY"]
   description = "Define which source systems would be scanned by Cloud DLP, using which methods (inspection vs discovery). Values are BIGQUERY_DISCOVERY, GCS_DISCOVERY. Only one stack is allowed per source system."
   validation {
-    condition     = length(setintersection(var.supported_stacks, ["BIGQUERY_DISCOVERY"])) == 1 && length(setsubtract(var.supported_stacks, ["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"])) == 0
+    condition = anytrue([
+    for item in var.supported_stacks: contains(["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"], item)
+    ])
     error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_DISCOVERY', and optionally 'GCS_DISCOVERY'."
   }
-}
-
-variable "default_domain_name" {
-  type = string
-  default = "default_domain"
-  description = "default domain to use when domain_mapping is empty. This is used in deployments where only one domain is required and/or as a fallback for projects and datasets without explicit domain mapping."
-}
-
-variable "bq_existing_labels_regex" {
-  type = string
-  default = "(?!)" // Negative lookahead with an empty pattern to never match labels
-  description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
 }
 
 variable "deploy_dlp_inspection_template_to_global_region" {
@@ -337,10 +205,4 @@ variable "dispatcher_service_max_cpu" {
 variable "dispatcher_service_max_memory" {
   type = string
   default = "16Gi"
-}
-
-variable "promote_dlp_other_matches" {
-  type = bool
-  default = false
-  description = "When set to true, the tagger service will include the 'other_matches' that DLP finds for a particular table to promote one policy tag per column"
 }

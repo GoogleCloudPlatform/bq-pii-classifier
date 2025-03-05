@@ -156,4 +156,3 @@ variable "gcs_existing_labels_regex" {
   default = "(?!)" // Negative lookahead with an empty pattern to never match labels
   description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
 }
-

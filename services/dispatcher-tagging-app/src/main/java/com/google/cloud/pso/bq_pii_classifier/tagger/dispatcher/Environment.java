@@ -44,18 +44,6 @@ public class Environment {
     public String getDlpTableAuto(){
         return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
     }
-    public String getDefaultDomainName(){
-        return Utils.getConfigFromEnv("DEFAULT_DOMAIN_NAME", true);
-    }
-    public String getConfigViewInfoTypePolicyTagsMap(){
-        return Utils.getConfigFromEnv("VIEW_INFOTYPE_POLICYTAGS_MAP", true);
-    }
-    public String getConfigViewDatasetDomainMap(){
-        return Utils.getConfigFromEnv("VIEW_DATASET_DOMAIN_MAP", true);
-    }
-    public String getConfigViewProjectDomainMap(){
-        return Utils.getConfigFromEnv("VIEW_PROJECT_DOMAIN_MAP", true);
-    }
     public String getDispatcherRunsTable () {return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);}
 
 }

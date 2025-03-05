@@ -199,7 +199,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "DISPATCHER_RUNS_TABLE",
-      value = var.dispatcher_runs_table,
+      value = google_bigquery_table.dispatcher_runs_gcs_table.id,
     }
   ]
 }

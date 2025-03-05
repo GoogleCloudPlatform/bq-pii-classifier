@@ -199,10 +199,6 @@ variable "dispatcher_service_max_memory" {
   type = string
 }
 
-variable "dispatcher_runs_table" {
-  type = string
-}
-
 variable "retain_dlp_tagger_pubsub_messages" {
   type = bool
 }
@@ -217,4 +213,16 @@ variable "workflows_gcs_name" {
 
 variable "workflows_gcs_description" {
   type = string
+}
+
+variable "logging_table_name" {
+  type = string
+}
+
+variable "bq_view_run_summary" {
+  type = string
+}
+
+variable "terraform_data_deletion_protection" {
+  type = bool
 }
