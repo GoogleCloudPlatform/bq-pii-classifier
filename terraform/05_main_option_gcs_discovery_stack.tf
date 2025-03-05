@@ -12,11 +12,9 @@ module "gcs-discovery-stack" {
   dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
   tagging_dispatcher_gcs_service_image = var.tagging_dispatcher_gcs_service_image
   tagger_gcs_service_image = var.tagger_gcs_service_image
-  gcs_tagging_scheduler_cron = var.gcs_tagging_scheduler_cron
 
   # common parameters
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
-  cloud_scheduler_account_email = local.cloud_scheduler_account_email
   compute_region = var.compute_region
   data_region = var.data_region
   dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
@@ -41,8 +39,6 @@ module "gcs-discovery-stack" {
   dlp_gcs_project_id_regex = var.dlp_gcs_project_id_regex
   dlp_gcs_reprofile_on_data_change = var.dlp_gcs_reprofile_on_data_change
   dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_reprofile_on_inspection_template_update
-  gcs_tagging_scheduler_description = var.gcs_tagging_scheduler_description
-  gcs_tagging_scheduler_name = var.gcs_tagging_scheduler_name
   sa_tagger_gcs = var.sa_tagger_gcs
   sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
   sa_tagging_dispatcher_gcs = var.sa_tagging_dispatcher_gcs
@@ -60,6 +56,9 @@ module "gcs-discovery-stack" {
   dispatcher_service_max_memory = var.dispatcher_service_max_memory
   dispatcher_runs_table = google_bigquery_table.dispatcher_runs_gcs_table.table_id
   retain_dlp_tagger_pubsub_messages = var.retain_dlp_tagger_pubsub_messages
+  sa_workflows_gcs = var.sa_workflows_gcs
+  workflows_gcs_description = var.workflows_gcs_description
+  workflows_gcs_name = var.workflows_gcs_name
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)

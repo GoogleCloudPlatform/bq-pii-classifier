@@ -58,10 +58,6 @@ variable "gcs_flags_bucket_name" {
   type = string
 }
 
-variable "cloud_scheduler_account_email" {
-  type = string
-}
-
 variable "is_dry_run_labels" {
   type = string
 }
@@ -89,10 +85,6 @@ variable "dlp_gcs_scan_org_id" {
 variable "dlp_gcs_scan_folder_id" {
   type        = number
   description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
-}
-
-variable "gcs_tagging_scheduler_cron" {
-  type = string
 }
 
 variable "tagging_dispatcher_gcs_service_image" {
@@ -139,13 +131,6 @@ variable "dlp_gcs_reprofile_on_data_change" {
 variable "dlp_gcs_create_configuration_in_paused_state" {
   type = bool
   description = "When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation"
-}
-
-variable "gcs_tagging_scheduler_name" {
-  type = string
-}
-variable "gcs_tagging_scheduler_description" {
-  type = string
 }
 
 ##### Tagging Dispatcher Service ######
@@ -220,4 +205,16 @@ variable "dispatcher_runs_table" {
 
 variable "retain_dlp_tagger_pubsub_messages" {
   type = bool
+}
+
+variable "sa_workflows_gcs" {
+  type = string
+}
+
+variable "workflows_gcs_name" {
+  type = string
+}
+
+variable "workflows_gcs_description" {
+  type = string
 }

@@ -62,24 +62,29 @@ variable "sa_tagger_tasks" {
   default = "tagger-tasks"
 }
 
+variable "sa_workflows_bq" {
+  type = string
+  default = "workflows-bq"
+}
+
+variable "workflows_bq_name" {
+  type = string
+  default = "bigquery_tables_re_annotation_trigger"
+}
+
+variable "workflows_bq_description" {
+  type = string
+  default = "Trigger (re)annotation process for BigQuery tables based on DLP findings"
+}
+
 variable "sa_bq_remote_func_get_policy_tags" {
   type = string
   default = "sa-func-get-policy-tags"
 }
 
-variable "tagger_role" {
-  type = string
-  default = "tagger_role"
-}
-
 variable "log_sink_name" {
   type = string
   default = "sc_bigquery_log_sink"
-}
-
-variable "tagging_scheduler_name" {
-  type = string
-  default = "tagging-scheduler"
 }
 
 variable "tagging_dispatcher_service_name" {
@@ -201,34 +206,6 @@ variable "is_dry_run_labels" {
   type = string
   default = "False"
   description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
-}
-
-variable "tagging_cron_expression" {
-  type = string
-  description = "Cron expression used by the Tagging Scheduler"
-}
-
-variable "tagging_scheduler_description" {
-  type = string
-  default = "CRON job to trigger (re)annotation process for BigQuery tables based on DLP findings"
-}
-
-variable "table_scan_limits_json_config" {
-
-  type = object({
-    limitType = string, // NUMBER_OF_ROWS or PERCENTAGE_OF_ROWS
-    limits = map(string)
-  })
-  description = "JSON config to specify table scan limits intervals"
-
-  default = {
-    limitType: "NUMBER_OF_ROWS",
-    limits: {
-      "10000":"100",
-      "100000":"1000",
-      "1000000":"10000"
-    }
-  }
 }
 
 // Use ["FINE_GRAINED_ACCESS_CONTROL"] to restrict IAM access on tagged columns.

@@ -179,7 +179,7 @@ module "pubsub-tagging-dispatcher" {
   subscription_name                       = var.tagging_dispatcher_pubsub_sub
   subscription_service_account            = google_service_account.sa_tagging_dispatcher_tasks.email
   topic                                   = var.tagging_dispatcher_pubsub_topic
-  topic_publishers_sa_emails              = [local.cloud_scheduler_account_email]
+  topic_publishers_sa_emails              = [google_service_account.sa_workflows_bq.email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -219,30 +219,6 @@ module "pubsub-tagger-for-dispatcher" {
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
-}
-
-resource "google_cloud_scheduler_job" "scheduler_job" {
-  project = var.project
-  region = var.compute_region
-  name             = var.tagging_scheduler_name
-  description      = var.tagging_scheduler_description
-  schedule         = var.tagging_cron_expression
-
-  retry_config {
-    retry_count = 0
-  }
-
-  pubsub_target {
-    # topic.id is the topic's full resource name.
-    topic_name = module.pubsub-tagging-dispatcher.topic-id
-    data       = base64encode(jsonencode({
-      projectsRegex = var.dlp_bq_project_id_regex
-      datasetsRegex = var.dlp_bq_dataset_regex
-      tablesRegex = var.dlp_bq_table_regex
-    }))
-  }
-
-  depends_on = [google_project_service.enable_appengine]
 }
 
 ### Data Catalog Policy Tags ####
@@ -579,4 +555,51 @@ module "data-folder-permissions-for-bq-discovery-stack" {
   sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
 
   dlp_config_org_id = var.dlp_bq_scan_org_id
+}
+
+####### Workflows
+
+
+resource "google_service_account" "sa_workflows_bq" {
+  project = var.project
+  account_id = var.sa_workflows_bq
+  display_name = "Runtime SA for Cloud Workflow for BigQuery Dispatcher"
+}
+
+resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
+  depends_on = [google_project_service.enable_workflows]
+
+  project  = var.project
+  name     = var.workflows_bq_name
+  description = var.workflows_bq_description
+  region = var.compute_region
+
+  service_account = google_service_account.sa_workflows_bq.email
+
+  deletion_protection = false
+
+  source_contents = <<-EOF
+- init:
+    assign:
+      - project: '${var.project}'
+      - topic: ${module.pubsub-tagging-dispatcher.topic-id}
+      - message:
+          projectsRegex: ${var.dlp_bq_project_id_regex}
+          datasetsRegex: ${var.dlp_bq_dataset_regex}
+          tablesRegex: ${var.dlp_bq_table_regex}
+      - base64Msg: '$${base64.encode(json.encode(message))}'
+- publish_message_to_topic:
+    call: googleapis.pubsub.v1.projects.topics.publish
+    args:
+      topic: '$${topic}'
+      body:
+        messages:
+          - data: '$${base64Msg}'
+    result: publish_result
+- return_result:
+    return:
+      message_id: '$${publish_result.messageIds[0]}'
+EOF
+
+
 }

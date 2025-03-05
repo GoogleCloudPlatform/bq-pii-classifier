@@ -11,9 +11,6 @@ variable "dlp_gcs_scan_folder_id" {
   description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
 }
 
-variable "gcs_tagging_scheduler_cron" {
-  type = string
-}
 
 variable "tagging_dispatcher_gcs_service_image" {
   type = string
@@ -73,15 +70,6 @@ variable "dlp_gcs_create_configuration_in_paused_state" {
   default = true
 }
 
-variable "gcs_tagging_scheduler_name" {
-  type = string
-  default = "gcs-tagging-scheduler"
-}
-variable "gcs_tagging_scheduler_description" {
-  type = string
-  default = "CRON job to trigger (re)annotation process for Cloud Storage buckets based on DLP findings"
-}
-
 ##### Tagging Dispatcher Service ######
 
 variable "sa_tagging_dispatcher_gcs" {
@@ -97,6 +85,21 @@ variable "sa_tagging_dispatcher_gcs_tasks" {
 variable "tagging_dispatcher_gcs_service_name" {
   type = string
   default = "s1a-tagging-dispatcher-gcs"
+}
+
+variable "sa_workflows_gcs" {
+  type = string
+  default = "workflows-gcs"
+}
+
+variable "workflows_gcs_name" {
+  type = string
+  default = "gcs_buckets_re_annotation_trigger"
+}
+
+variable "workflows_gcs_description" {
+  type = string
+  default = "Trigger (re)annotation process for Cloud Storage buckets based on DLP findings"
 }
 
 variable "tagging_dispatcher_gcs_pubsub_topic" {

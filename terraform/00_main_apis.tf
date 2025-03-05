@@ -5,15 +5,6 @@ resource "google_project_service" "enable_service_usage_api" {
   disable_on_destroy = false
 }
 
-# Enable Cloud Scheduler API
-resource "google_project_service" "enable_appengine" {
-  project = var.project
-  service = "appengine.googleapis.com"
-
-  disable_dependent_services = true
-  disable_on_destroy         = false
-}
-
 # Enable Cloud Build API
 resource "google_project_service" "enable_cloud_build" {
   project = var.project
@@ -43,4 +34,12 @@ resource "google_project_service" "batch_api" {
 resource "google_project_service" "datastore_api" {
   service            = "datastore.googleapis.com"
   disable_on_destroy = false                     # Prevent accidental disabling during Terraform destroy
+}
+
+resource "google_project_service" "enable_workflows" {
+  project = var.project
+  service = "workflows.googleapis.com"
+
+  disable_dependent_services = true
+  disable_on_destroy         = false
 }

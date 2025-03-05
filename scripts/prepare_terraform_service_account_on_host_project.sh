@@ -37,8 +37,8 @@ roles=(
   "roles/cloudfunctions.developer"
   "roles/dlp.admin"
   "roles/datacatalog.admin"
-  "roles/cloudscheduler.admin"
-  "roles/storage.admin"
+  "roles/storage.admin",
+  "roles/workflows.editor"
 )
 
 for role in "${roles[@]}"; do

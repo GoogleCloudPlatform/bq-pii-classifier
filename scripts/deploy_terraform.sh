@@ -22,9 +22,6 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-# resume the created schedule in order for terraform to update them
-./schedulers_action.sh "resume"
-
 cd ../terraform
 
 terraform init \
@@ -37,5 +34,3 @@ terraform apply -lock=false -var-file="${VARS}" -auto-approve
 
 # set the working dir as the scripts directory
 cd ../scripts
-# pause the created schedulers to fake on-demand schedulers
-./schedulers_action.sh "pause"

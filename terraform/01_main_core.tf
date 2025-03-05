@@ -32,8 +32,6 @@ locals {
 
   dlp_service_account_email = "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
 
-  cloud_scheduler_account_email = "service-${data.google_project.gcp_project.number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
-
   terraform_service_account_email = "${var.terraform_service_account}@${var.project}.iam.gserviceaccount.com"
 
   dlp_inspection_templates_ids_list = flatten([for obj in local.created_dlp_inspection_templates : obj["ids"]])

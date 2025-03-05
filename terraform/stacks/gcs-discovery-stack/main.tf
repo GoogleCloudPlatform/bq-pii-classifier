@@ -211,7 +211,7 @@ module "pubsub-tagging-dispatcher-gcs" {
   subscription_name                       = var.tagging_dispatcher_gcs_pubsub_sub
   subscription_service_account            = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
   topic                                   = var.tagging_dispatcher_gcs_pubsub_topic
-  topic_publishers_sa_emails              = [var.cloud_scheduler_account_email]
+  topic_publishers_sa_emails              = [google_service_account.sa_workflows.email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -317,26 +317,6 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
-resource "google_cloud_scheduler_job" "gcs_tagging_scheduler" {
-  project = var.project
-  region = var.compute_region
-  name             = var.gcs_tagging_scheduler_name
-  description      = var.gcs_tagging_scheduler_description
-  schedule         = var.gcs_tagging_scheduler_cron
-
-  retry_config {
-    retry_count = 0
-  }
-
-  pubsub_target {
-    topic_name = module.pubsub-tagging-dispatcher-gcs.topic-id
-    data       = base64encode(jsonencode({
-      projectsRegex = var.dlp_gcs_project_id_regex
-      bucketsRegex = var.dlp_gcs_bucket_name_regex
-    }))
-  }
-}
-
 ### Permissions on flags bucket
 
 resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_bucket_admin" {
@@ -382,4 +362,48 @@ resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
   project = var.project
   role = local.tagging_dispatcher_sa_roles[count.index]
   member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
+
+### Workflows
+
+resource "google_service_account" "sa_workflows" {
+  project = var.project
+  account_id = var.sa_workflows_gcs
+  display_name = "Runtime SA for Cloud Workflow for BigQuery Dispatcher"
+}
+
+resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
+
+  project  = var.project
+  name     = var.workflows_gcs_name
+  description = var.workflows_gcs_description
+  region = var.compute_region
+
+  service_account = google_service_account.sa_workflows.email
+
+  deletion_protection = false
+
+  source_contents = <<-EOF
+- init:
+    assign:
+      - project: '${var.project}'
+      - topic: ${module.pubsub-tagging-dispatcher-gcs.topic-id}
+      - message:
+          projectsRegex: ${var.dlp_gcs_project_id_regex}
+          bucketsRegex: ${var.dlp_gcs_bucket_name_regex}
+      - base64Msg: '$${base64.encode(json.encode(message))}'
+- publish_message_to_topic:
+    call: googleapis.pubsub.v1.projects.topics.publish
+    args:
+      topic: '$${topic}'
+      body:
+        messages:
+          - data: '$${base64Msg}'
+    result: publish_result
+- return_result:
+    return:
+      message_id: '$${publish_result.messageIds[0]}'
+EOF
+
+
 }
