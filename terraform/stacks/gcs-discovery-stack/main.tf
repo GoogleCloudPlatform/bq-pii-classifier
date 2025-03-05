@@ -5,9 +5,7 @@
 locals {
   dlp_region = var.data_region == "eu" ? "europe" : var.data_region
 
-  tagging_dispatcher_gcs_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_gcs_service_image}"
-
-  tagger_gcs_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_gcs_service_image}"
+  service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
 }
 
 resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
@@ -166,7 +164,8 @@ module "cloud-run-tagging-dispatcher-gcs" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
-  service_image                 = local.tagging_dispatcher_gcs_service_image_uri
+  service_image                 = local.service_image_uri
+  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_dispatcher.GcsDispatcherController"]
   service_name                  = var.tagging_dispatcher_gcs_service_name
   service_account_email         = google_service_account.sa_tagging_dispatcher_gcs.email
   invoker_service_account_email = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
@@ -199,7 +198,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "DISPATCHER_RUNS_TABLE",
-      value = google_bigquery_table.dispatcher_runs_gcs_table.id,
+      value = google_bigquery_table.dispatcher_runs_gcs_table.table_id,
     }
   ]
 }
@@ -241,7 +240,8 @@ module "cloud-run-tagger-gcs" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
-  service_image                 = local.tagger_gcs_service_image_uri
+  service_image                 = local.service_image_uri
+  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger.GcsTaggerController"]
   service_name                  = var.tagger_gcs_service_name
   service_account_email         = google_service_account.sa_tagger_gcs.email
   invoker_service_account_email = google_service_account.sa_tagger_gcs_tasks.email

@@ -71,9 +71,7 @@ variable "dlp_service_account_email" {
   type = string
 }
 
-variable "tagger_gcs_service_image" {
-  type = string
-}
+
 
 ### Stack specific variables - required by user
 
@@ -87,7 +85,7 @@ variable "dlp_gcs_scan_folder_id" {
   description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
 }
 
-variable "tagging_dispatcher_gcs_service_image" {
+variable "image_name" {
   type = string
 }
 

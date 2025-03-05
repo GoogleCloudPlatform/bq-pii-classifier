@@ -206,3 +206,8 @@ variable "dispatcher_service_max_memory" {
   type = string
   default = "16Gi"
 }
+
+variable "image_name" {
+  type = string
+  default = "services container image name"
+}

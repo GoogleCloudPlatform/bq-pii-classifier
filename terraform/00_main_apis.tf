@@ -19,7 +19,7 @@ resource "google_project_service" "enable_apis" {
   project = var.project
   service = local.apis_list[count.index]
 
-  disable_on_destroy = true
+  disable_on_destroy = false
 }
 
 

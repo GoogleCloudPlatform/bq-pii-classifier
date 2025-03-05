@@ -19,6 +19,8 @@ resource "google_cloud_run_service" "service" {
 
       containers {
         image = var.service_image
+        command = ["java"]
+        args =  var.container_entry_point_args
 
         resources {
           limits = {

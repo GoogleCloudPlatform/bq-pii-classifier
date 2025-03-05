@@ -9,8 +9,7 @@ module "gcs-discovery-stack" {
 
   dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
   dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
-  tagging_dispatcher_gcs_service_image = var.tagging_dispatcher_gcs_service_image
-  tagger_gcs_service_image = var.tagger_gcs_service_image
+  image_name = var.image_name
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
   compute_region = var.compute_region
   data_region = var.data_region

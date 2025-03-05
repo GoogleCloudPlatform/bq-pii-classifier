@@ -12,14 +12,6 @@ variable "dlp_gcs_scan_folder_id" {
 }
 
 
-variable "tagging_dispatcher_gcs_service_image" {
-  type = string
-}
-
-variable "tagger_gcs_service_image" {
-  type = string
-}
-
 ## ### Stack specific variables - Default value variables
 
 variable "dlp_gcs_project_id_regex" {

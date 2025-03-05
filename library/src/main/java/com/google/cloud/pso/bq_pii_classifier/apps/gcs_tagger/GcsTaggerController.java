@@ -1,0 +1,156 @@
+/*
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger;
+
+import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTagger;
+import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequest;
+import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
+import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
+import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
+import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
+import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
+import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
+import com.google.gson.Gson;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
+public class GcsTaggerController {
+
+  private final LoggingHelper logger;
+  private static final Integer functionNumber = 3;
+  private final Gson gson;
+  private final Environment environment;
+
+  public GcsTaggerController() {
+
+    gson = new Gson();
+    environment = new Environment();
+    logger =
+        new LoggingHelper(
+            GcsTaggerController.class.getSimpleName(), functionNumber, environment.getProjectId());
+  }
+
+  @RequestMapping(value = "/", method = RequestMethod.POST)
+  public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
+
+    String defaultTrackingId = "0000000000000-z";
+    GcsTaggerRequest taggerRequest = null;
+
+    try {
+
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(defaultTrackingId, msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
+
+      taggerRequest = parseEvent(requestBody);
+
+      GcsTagger gcsTagger =
+          new GcsTagger(
+              environment.toConfig(),
+              new DlpFindingsReaderImpl(),
+              new GcsServiceImpl(),
+              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+              "gcs-tagger-flags");
+
+      gcsTagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
+
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
+
+      String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
+    }
+  }
+
+  // The pubsub message could come from different sources with different formats
+  // 1. From GCS Tagging Dispatcher as GcsTaggerRequest serialized json
+  // 2. From GCS Auto DLP notification as "DataProfilePubSubMessage" proto
+
+  private GcsTaggerRequest parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
+
+    String defaultTrackingId = "0000000000000-z";
+
+    String requestJsonString = event.getMessage().dataToUtf8String();
+
+    try {
+      // try to parse as GcsTaggerRequest as sent from the Tagging Dispatcher Service
+      GcsTaggerRequest gcsTaggerRequest = gson.fromJson(requestJsonString, GcsTaggerRequest.class);
+
+      logger.logInfoWithTracker(
+          gcsTaggerRequest.getTrackingId(),
+          String.format("Parsed Request from GCS Tagging Dispatcher: '%s'", gcsTaggerRequest));
+
+      // CASE 1: GcsTaggerRequest from Tagging Dispatcher
+      return gcsTaggerRequest;
+
+    } catch (Exception ex) {
+
+      // if not, try to parse it as a proto if it comes from Auto DLP
+      try {
+        byte[] data = event.getMessage().getData();
+
+        DataProfilePubSubMessage dataProfilePubSubMessage =
+            DataProfilePubSubMessage.parseFrom(data);
+
+        logger.logInfoWithTracker(
+            defaultTrackingId,
+            String.format(
+                "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
+                dataProfilePubSubMessage.toString()));
+
+        if (dataProfilePubSubMessage.hasFileStoreProfile()) {
+
+          String fileStoreProfileName = dataProfilePubSubMessage.getFileStoreProfile().getName();
+          String fileStorePath = dataProfilePubSubMessage.getFileStoreProfile().getFileStorePath();
+          String runId = TrackingHelper.generateOneTimeTaggingSuffix();
+          String trackingId = TrackingHelper.generateTrackingId(runId, fileStorePath);
+
+          // CASE 2: GcsTaggerRequest computed from GCS Auto DLP PubSub message proto
+          return new GcsTaggerRequest(
+              runId, trackingId, new GcsDlpProfileSummary(fileStoreProfileName, fileStorePath));
+        } else {
+          throw new NonRetryableApplicationException(
+              "Auto DLP message doesn't contain a file store profile");
+        }
+
+      } catch (Exception ex2) {
+
+        throw new NonRetryableApplicationException(
+            String.format(
+                "Couldn't parse PubSub event as Proto: %s : %s",
+                ex2.getClass().getSimpleName(), ex2.getMessage()));
+      }
+    }
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(GcsTaggerController.class, args);
+  }
+}

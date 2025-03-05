@@ -25,8 +25,6 @@ jsonPayload.global_app_log = 'DISPATCHED_REQUESTS_LOG'
 SELECT
 run_id,
 tracker,
-inspector_starts,
-inspector_ends,
 tagger_starts,
 tagger_ends,
 FROM

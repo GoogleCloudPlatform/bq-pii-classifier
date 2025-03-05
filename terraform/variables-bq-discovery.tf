@@ -82,15 +82,6 @@ variable "tagger_pubsub_sub" {
   default = "tagger_push_sub"
 }
 
-
-variable "tagging_dispatcher_service_image" {
-  type = string
-}
-
-variable "tagger_service_image" {
-  type = string
-}
-
 variable "domain_mapping" {
   type = list(object({
     project = string,

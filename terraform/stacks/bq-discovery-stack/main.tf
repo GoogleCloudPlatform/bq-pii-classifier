@@ -4,9 +4,7 @@ locals {
 
   dlp_service_account_email = "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
   
-  tagging_dispatcher_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagging_dispatcher_service_image}"
-
-  tagger_service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.tagger_service_image}"
+  service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
 
   project_and_domains = distinct([
   for entry in var.domain_mapping : {
@@ -70,7 +68,8 @@ module "cloud-run-tagging-dispatcher" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
-  service_image                 = local.tagging_dispatcher_service_image_uri
+  service_image                 = local.service_image_uri
+  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.bq_dispatcher.BigQueryDispatcherController"]
   service_name                  = var.tagging_dispatcher_service_name
   service_account_email         = google_service_account.sa_tagging_dispatcher.email
   invoker_service_account_email = google_service_account.sa_tagging_dispatcher_tasks.email
@@ -110,14 +109,14 @@ module "cloud-run-tagger" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
   region                        = var.compute_region
-  service_image                 = local.tagger_service_image_uri
+  service_image                 = local.service_image_uri
+  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.bq_tagger.BigQueryTaggerController"]
   service_name                  = var.tagger_service_name
   service_account_email         = google_service_account.sa_tagger.email
   invoker_service_account_email = google_service_account.sa_tagger_tasks.email
   # no more than 80 requests at a time to handle BigQuery API rate limiting
   max_containers                = 1
   max_requests_per_container    = 80
-  # Tagger is using BigQuery BATCH queries that could take time to get started
   timeout_seconds               = var.tagger_service_timeout_seconds
   environment_variables         = [
     {

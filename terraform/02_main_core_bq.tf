@@ -85,7 +85,6 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         v_service_calls = google_bigquery_table.view_service_calls.table_id
         logging_table = google_bigquery_table.logging_table.table_id
-        inspection_templates_count = local.inspection_templates_count
       }
     )
   }

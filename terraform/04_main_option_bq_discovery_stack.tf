@@ -55,19 +55,18 @@ module "bq-discovery-stack" {
   source_data_regions = var.source_data_regions
   tagger_pubsub_sub = var.tagger_pubsub_sub
   tagger_pubsub_topic = var.tagger_pubsub_topic
-  tagger_service_image = var.tagger_service_image
   tagger_service_name = var.tagger_service_name
   tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
   tagger_subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
   tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
   tagging_dispatcher_pubsub_sub = var.tagging_dispatcher_pubsub_sub
   tagging_dispatcher_pubsub_topic = var.tagging_dispatcher_pubsub_topic
-  tagging_dispatcher_service_image = var.tagging_dispatcher_service_image
   tagging_dispatcher_service_name = var.tagging_dispatcher_service_name
   taxonomy_name_suffix = var.taxonomy_name_suffix
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
   workflows_bq_description = var.workflows_bq_description
   workflows_bq_name = var.workflows_bq_name
+  image_name = var.image_name
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER and ORG level (and not the host project)

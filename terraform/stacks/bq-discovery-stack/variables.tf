@@ -108,11 +108,7 @@ variable "gar_docker_repo_name" {
   type = string
 }
 
-variable "tagging_dispatcher_service_image" {
-  type = string
-}
-
-variable "tagger_service_image" {
+variable "image_name" {
   type = string
 }
 
