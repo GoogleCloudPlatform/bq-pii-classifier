@@ -16,10 +16,10 @@ SELECT DISTINCT
 run_id,
 tracker AS tracking_id,
 'SUCCESS' AS status,
-'Tagger completed the expected ${inspection_templates_count} call(s) successfully' AS details
+'Tagger completed successfully' AS details
 FROM
 `${project}.${dataset}.${v_service_calls}`
-WHERE tagger_ends = ${inspection_templates_count}
+WHERE tagger_ends >= 1
 )
 ,
 final AS

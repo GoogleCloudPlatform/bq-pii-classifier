@@ -142,7 +142,6 @@ resource "google_bigquery_table" "view_run_summary" {
         dataset = var.bigquery_dataset_name
         v_service_calls = google_bigquery_table.view_service_calls.table_id
         v_errors_non_retryable = google_bigquery_table.view_errors_non_retryable.table_id
-        inspection_templates_count = local.inspection_templates_count
       }
     )
   }
