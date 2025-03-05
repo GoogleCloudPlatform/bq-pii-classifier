@@ -70,7 +70,7 @@ module "data-folder-permissions-for-gcs-discovery-stack" {
   // deploy it only if the GCS_DISCOVERY is selected
   count = contains(var.supported_stacks, "GCS_DISCOVERY")? 1: 0
 
-  source = "./modules/data-folder-permissions-for-gcs-discovery-stack"
+  source = "./modules/org-and-folder-permissions-for-gcs-discovery-stack"
 
   dlp_config_org_id = var.dlp_gcs_scan_org_id
   dlp_config_folder_id = var.dlp_gcs_scan_folder_id

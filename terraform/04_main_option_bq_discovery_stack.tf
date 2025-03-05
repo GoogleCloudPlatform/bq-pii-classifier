@@ -191,7 +191,7 @@ module "pubsub-tagging-dispatcher" {
 module "pubsub-tagger-for-dlp" {
   source                                  = "./modules/pubsub"
   project                                 = var.project
-  subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/discovery-service-handler"
+  subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/dlp-discovery-service-handler"
   subscription_name                       = "${var.tagger_pubsub_sub}_for_dlp"
   subscription_service_account            = google_service_account.sa_tagger_tasks.email
   topic                                   = "${var.tagger_pubsub_topic}_for_dlp"
@@ -332,37 +332,12 @@ resource "google_service_account_iam_member" "sa_tagger_account_user_sa_tagger_t
 
 #### Tagger SA Permissions ###
 
-resource "google_project_iam_custom_role" "tagger-role" {
+// to "get" solution-owned taxonomies created in that project
+resource "google_project_iam_member" "sa_tagger_data_catalog_viewer" {
   project = var.project
-  role_id = var.tagger_role
-  title = var.tagger_role
-  description = "Used to grant permissions to sa_tagger"
-  permissions = [
-    "bigquery.tables.setCategory",
-    "datacatalog.taxonomies.get"]
-}
-
-resource "google_project_iam_member" "sa_tagger_role" {
-  project = var.project
-  role = google_project_iam_custom_role.tagger-role.name
+  role = "roles/datacatalog.viewer"
   member = "serviceAccount:${google_service_account.sa_tagger.email}"
 }
-
-// tagger needs to read data from views created inside the solution-managed dataset
-// e.g. dlp results view
-resource "google_bigquery_dataset_access" "sa_tagger_bq_dataset_reader" {
-  dataset_id    = google_bigquery_dataset.results_dataset.dataset_id
-  role          = "roles/bigquery.dataViewer"
-  user_by_email = google_service_account.sa_tagger.email
-}
-
-# to submit query jobs
-resource "google_project_iam_member" "sa_tagger_bq_job_user" {
-  project = var.project
-  role = "roles/bigquery.jobUser"
-  member = "serviceAccount:${google_service_account.sa_tagger.email}"
-}
-
 
 ############## DLP Service Account ################################################
 
@@ -585,12 +560,12 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
   status = var.dlp_bq_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
 }
 
-// This module assigns roles and permissions to service accounts used in this solution on FOLDER level (and not the host project)
+// This module assigns roles and permissions to service accounts used in this solution on FOLDER and ORG level (and not the host project)
 // The Terraform service account needs certain folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles folder level
 module "data-folder-permissions-for-bq-discovery-stack" {
 
-  source = "./modules/data-folder-permissions-for-bq-discovery-stack"
+  source = "./modules/org-and-folder-permissions-for-bq-discovery-stack"
 
   dlp_config_folder_id                    = var.dlp_bq_scan_folder_id
 
@@ -603,4 +578,5 @@ module "data-folder-permissions-for-bq-discovery-stack" {
   # default: sa-func-get-policy-tags@<host project id>.iam.gserviceaccount.com
   sa_bq_remote_func_get_policy_tags_email = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
 
+  dlp_config_org_id = var.dlp_bq_scan_org_id
 }

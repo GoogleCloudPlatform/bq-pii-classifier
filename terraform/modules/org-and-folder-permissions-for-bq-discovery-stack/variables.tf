@@ -17,3 +17,7 @@ variable "sa_tagger_email" {
 variable "sa_bq_remote_func_get_policy_tags_email" {
   type = string
 }
+
+variable "dlp_config_org_id" {
+  type = string
+}
