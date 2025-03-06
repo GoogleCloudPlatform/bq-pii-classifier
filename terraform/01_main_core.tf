@@ -99,9 +99,7 @@ module "dlp" {
   source                  = "./modules/dlp"
   project                 = var.project
   region                  = tolist(local.dlp_regions)[count.index]
-  # create inspection template in the same region as source data
   classification_taxonomy = var.classification_taxonomy
-
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
   custom_info_types_regex        = var.custom_info_types_regex
 

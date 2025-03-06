@@ -32,8 +32,10 @@ gcloud organizations add-iam-policy-binding "${1}" \
     --role="roles/dlp.jobTriggersEditor" \
     --condition="None"
 
-# To create custom roles and assign roles to users
-# Required to deploy terraform/modules/data-folder-permissions-for-gcs-stack. Omit otherwise.
+# Instead of granting built-in roles we create custom roles with the exact permissions required
+# by the service accounts used in the solution. For that we need to deploy custom roles on the org
+# and assign them to service accounts with Terraform
+# The following is required to deploy terraform/modules/data-folder-permissions-for-gcs-stack. Omit otherwise.
 gcloud organizations add-iam-policy-binding "${1}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="roles/iam.securityAdmin" \

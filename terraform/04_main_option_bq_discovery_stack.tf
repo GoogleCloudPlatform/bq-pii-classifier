@@ -67,6 +67,8 @@ module "bq-discovery-stack" {
   workflows_bq_description = var.workflows_bq_description
   workflows_bq_name = var.workflows_bq_name
   image_name = var.image_name
+
+  depends_on = [google_project_service.enable_apis]
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER and ORG level (and not the host project)
@@ -91,4 +93,6 @@ module "data-folder-permissions-for-bq-discovery-stack" {
   sa_bq_remote_func_get_policy_tags_email = module.bq-discovery-stack[0].sa_bq_remote_func_get_policy_tags_email
 
   dlp_config_org_id = var.dlp_bq_scan_org_id
+
+  depends_on = [module.bq-discovery-stack]
 }

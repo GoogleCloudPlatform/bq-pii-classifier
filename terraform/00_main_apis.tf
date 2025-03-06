@@ -1,15 +1,11 @@
 
 locals {
   apis_list = [
-    "serviceusage.googleapis.com",
-    "cloudbuild.googleapis.com",
+    "cloudbuild.googleapis.com", // to deploy cloud functions and cloud run
     "run.googleapis.com",
     "datastore.googleapis.com",
     "workflows.googleapis.com",
-    "bigquery.googleapis.com",
-    "storage.googleapis.com",
     "datacatalog.googleapis.com",
-    "logging.googleapis.com",
     "dlp.googleapis.com"
   ]
 }
@@ -20,6 +16,7 @@ resource "google_project_service" "enable_apis" {
   service = local.apis_list[count.index]
 
   disable_on_destroy = false
+  disable_dependent_services = true
 }
 
 

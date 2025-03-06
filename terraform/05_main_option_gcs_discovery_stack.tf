@@ -57,6 +57,8 @@ module "gcs-discovery-stack" {
   bq_view_run_summary = google_bigquery_table.view_run_summary.table_id
   logging_table_name = google_bigquery_table.logging_table.table_id
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
+
+  depends_on = [google_project_service.enable_apis]
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
@@ -80,4 +82,6 @@ module "data-folder-permissions-for-gcs-discovery-stack" {
   tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
   # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
   func_get_buckets_metadata_sa_email = module.gcs-discovery-stack[0].func_get_buckets_metadata_sa_email
+
+  depends_on = [module.gcs-discovery-stack]
 }
