@@ -59,7 +59,7 @@ variable "gcs_flags_bucket_name" {
 }
 
 variable "is_dry_run_labels" {
-  type = string
+  type = bool
 }
 
 variable "info_type_map" {

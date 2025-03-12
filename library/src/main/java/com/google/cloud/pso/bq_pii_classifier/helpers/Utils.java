@@ -161,4 +161,19 @@ public class Utils {
 
     return stripped;
   }
+
+  public static Boolean parseBooleanOrFail(String s) {
+    if (s == null) {
+      throw new IllegalArgumentException("Input string cannot be null.");
+    }
+
+    String lowerCaseS = s.toLowerCase();
+    if (lowerCaseS.equals("true")) {
+      return Boolean.TRUE;
+    } else if (lowerCaseS.equals("false")) {
+      return Boolean.FALSE;
+    } else {
+      throw new IllegalArgumentException("Invalid boolean string: '" + s + "'");
+    }
+  }
 }

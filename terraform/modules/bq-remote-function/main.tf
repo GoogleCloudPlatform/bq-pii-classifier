@@ -56,11 +56,22 @@ resource "google_project_iam_member" "sa_function_roles" {
 
 #####################################################
 
+data "google_project" "host_project" {
+  project_id = var.project
+}
+
 resource "google_storage_bucket" "resources_bucket" {
-  name                        = "${var.project}-cf-${var.function_name}-resources"
+  name                        = "${var.project}-cf-${var.function_name}-res"
   location                    = var.compute_region # same region as the cloud function
   force_destroy               = true
   uniform_bucket_level_access = true
+}
+
+// gcf-admin-robot sa needs access to the resource bucket
+resource "google_storage_bucket_iam_member" "resource_buckets_permissions" {
+  bucket = google_storage_bucket.resources_bucket.name
+  role = "roles/storage.objectAdmin"
+  member = "serviceAccount:service-${data.google_project.host_project.number}@gcf-admin-robot.iam.gserviceaccount.com"
 }
 
 # Generates an archive of the source code compressed as a .zip file.

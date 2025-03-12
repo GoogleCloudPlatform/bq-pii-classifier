@@ -37,7 +37,7 @@ public class Environment {
     }
 
     public Boolean getIsDryRunLabels(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
+        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
     }
 
     public String getGcsFlagsBucket(){

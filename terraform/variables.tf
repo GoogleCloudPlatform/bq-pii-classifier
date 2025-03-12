@@ -74,6 +74,7 @@ variable "custom_info_types_dictionaries" {
     likelihood = string
     dictionary =list(string)
   }))
+  default = []
 }
 
 variable "custom_info_types_regex" {
@@ -82,22 +83,18 @@ variable "custom_info_types_regex" {
     likelihood = string
     regex = string
   }))
+  default = []
 }
 
-variable "terraform_service_account" {
+variable "terraform_service_account_email" {
   type = string
-  description = "service account used by terraform to deploy to GCP"
+  description = "The service account email to be used by terraform to deploy to GCP"
 }
 
-variable "is_dry_run_tags" {
-  type = string
-  default = "False"
-  description = "Applying Policy Tags in the Tagger function (False) or just logging actions (True)"
-}
 
 variable "is_dry_run_labels" {
-  type = string
-  default = "False"
+  type = bool
+  default = false
   description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 
@@ -209,5 +206,5 @@ variable "dispatcher_service_max_memory" {
 
 variable "image_name" {
   type = string
-  default = "services container image name"
+  default = "bq-pii-classifier-services:latest"
 }

@@ -103,6 +103,8 @@ module "cloud-run-tagging-dispatcher" {
       value = google_bigquery_table.dispatcher_runs_bq_table.table_id,
     }
   ]
+
+  depends_on = [google_project_iam_member.sa_dispatcher_roles_binding]
 }
 
 module "cloud-run-tagger" {
@@ -172,6 +174,8 @@ module "cloud-run-tagger" {
       value = var.promote_dlp_other_matches
     }
   ]
+
+  depends_on = [google_project_iam_member.sa_tagger_roles_binding]
 }
 
 module "pubsub-tagging-dispatcher" {
@@ -283,21 +287,30 @@ resource "google_service_account_iam_member" "sa_tagging_dispatcher_account_user
 
 #### Dispatcher SA Permissions ###
 
-# Grant sa_dispatcher access to submit query jobs
-resource "google_project_iam_member" "sa_tagging_dispatcher_bq_job_user" {
+locals {
+  tagging_dispatcher_sa_roles = [
+    "roles/bigquery.jobUser", #  to submit query jobs
+    "roles/bigquery.dataEditor",
+  ]
+
+  tagger_sa_roles = [
+    "roles/artifactregistry.reader", # to read container image for the service
+    "roles/datacatalog.viewer", # to "get" solution-owned taxonomies created in that project
+    "roles/bigquery.dataEditor", # to read data from dlp results table and views created inside the solution-managed dataset and writing to dispatcher_runs
+  ]
+
+  dlp_sa_roles = [
+    "roles/datacatalog.categoryFineGrainedReader", # read BigQuery columns tagged by solution-managed taxonomies
+    "roles/bigquery.dataEditor" # write results to BigQuery table inside of the solution dataset
+  ]
+}
+
+resource "google_project_iam_member" "sa_dispatcher_roles_binding" {
+  count = length(local.tagging_dispatcher_sa_roles)
   project = var.project
-  role = "roles/bigquery.jobUser"
+  role = local.tagging_dispatcher_sa_roles[count.index]
   member = "serviceAccount:${google_service_account.sa_tagging_dispatcher.email}"
 }
-
-// tagging dispatcher needs to read data from dlp results table and views created inside the solution-managed dataset and writing to dispatcher_runs
-// e.g. listing tables to be tagged
-resource "google_bigquery_dataset_access" "sa_tagging_dispatcher_bq_dataset_editor" {
-  dataset_id    =  var.bigquery_dataset_name
-  role          = "roles/bigquery.dataEditor"
-  user_by_email = google_service_account.sa_tagging_dispatcher.email
-}
-
 
 
 #### Tagger Tasks SA Permissions ###
@@ -310,29 +323,21 @@ resource "google_service_account_iam_member" "sa_tagger_account_user_sa_tagger_t
 
 #### Tagger SA Permissions ###
 
-// to "get" solution-owned taxonomies created in that project
-resource "google_project_iam_member" "sa_tagger_data_catalog_viewer" {
+resource "google_project_iam_member" "sa_tagger_roles_binding" {
+  count = length(local.tagger_sa_roles)
   project = var.project
-  role = "roles/datacatalog.viewer"
+  role = local.tagger_sa_roles[count.index]
   member = "serviceAccount:${google_service_account.sa_tagger.email}"
 }
 
 ############## DLP Service Account ################################################
 
-# DLP SA must read BigQuery columns tagged by solution-managed taxonomies
-resource "google_project_iam_member" "dlp_sa_binding" {
+resource "google_project_iam_member" "sa_dlp_roles_binding" {
+  count = length(local.dlp_sa_roles)
   project = var.project
-  role = "roles/datacatalog.categoryFineGrainedReader"
+  role = local.dlp_sa_roles[count.index]
   member = "serviceAccount:${local.dlp_service_account_email}"
 }
-
-# DLP SA must write results to BigQuery table inside of the solution dataset
-resource "google_bigquery_dataset_iam_member" "dlp_access_bq_dataset" {
-  dataset_id =var.bigquery_dataset_name
-  role = "roles/bigquery.dataEditor"
-  member = "serviceAccount:${local.dlp_service_account_email}"
-}
-
 
 ## Data Catalog Taxonomies Permissions ##
 
@@ -557,27 +562,28 @@ resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
   deletion_protection = false
 
   source_contents = <<-EOF
-- init:
-    assign:
-      - project: '${var.project}'
-      - topic: ${module.pubsub-tagging-dispatcher.topic-id}
-      - message:
-          projectsRegex: ${var.dlp_bq_project_id_regex}
-          datasetsRegex: ${var.dlp_bq_dataset_regex}
-          tablesRegex: ${var.dlp_bq_table_regex}
-      - base64Msg: '$${base64.encode(json.encode(message))}'
-- publish_message_to_topic:
-    call: googleapis.pubsub.v1.projects.topics.publish
-    args:
-      topic: '$${topic}'
-      body:
-        messages:
-          - data: '$${base64Msg}'
-    result: publish_result
-- return_result:
-    return:
-      message_id: '$${publish_result.messageIds[0]}'
+main:
+  params: [input]
+  steps:
+    - init:
+        assign:
+          - project: '${var.project}'
+          - topic: '${module.pubsub-tagging-dispatcher.topic-id}'
+          - message:
+              projectsRegex: $${default(map.get(input, "projectsRegex"), "${var.dlp_bq_project_id_regex}")}
+              datasetsRegex: $${default(map.get(input, "datasetsRegex"), "${var.dlp_bq_dataset_regex}")}
+              tablesRegex: $${default(map.get(input, "tablesRegex"), "${var.dlp_bq_table_regex}")}
+          - base64Msg: '$${base64.encode(json.encode(message))}'
+    - publish_message_to_topic:
+        call: googleapis.pubsub.v1.projects.topics.publish
+        args:
+          topic: '$${topic}'
+          body:
+            messages:
+              - data: '$${base64Msg}'
+        result: publish_result
+    - return_result:
+        return:
+          message_id: '$${publish_result.messageIds[0]}'
 EOF
-
-
 }

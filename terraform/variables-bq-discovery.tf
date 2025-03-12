@@ -91,11 +91,13 @@ variable "domain_mapping" {
       domain = string
     })) // leave empty if no dataset overrides is required for this project
   }))
+  default = []
   description = "Mapping between domains and GCP projects or BQ Datasets. Dataset-level mapping will overwrite project-level mapping for a given project."
 }
 
 variable "iam_mapping" {
   type = map(map(list(string)))
+  default = {}
   description = "Dictionary of mappings between domains/classification and IAM members to grant required permissions to read sensitive BQ columns belonging to that domain/classification"
 }
 
@@ -103,7 +105,7 @@ variable "iam_mapping" {
 // Use [] NOT to restrict IAM access.
 variable "data_catalog_taxonomy_activated_policy_types" {
   type = list(string)
-  default = ["FINE_GRAINED_ACCESS_CONTROL"]
+  default = []
   description = "A lis of policy types for the created taxonomy(s)"
 }
 
@@ -116,6 +118,12 @@ variable "taxonomy_name_suffix" {
 variable "datastore_database_name" {
   type    = string
   default = "(default)"
+}
+
+variable "is_dry_run_tags" {
+  type = bool
+  default = false
+  description = "Applying Policy Tags in the Tagger function (False) or just logging actions (True)"
 }
 
 variable "default_domain_name" {
@@ -138,10 +146,12 @@ variable "promote_dlp_other_matches" {
 
 variable "dlp_bq_scan_org_id" {
   type = string
+  default = 0
 }
 
 variable "dlp_bq_scan_folder_id" {
   type = string
+  default = 0
 }
 
 variable "dlp_bq_create_configuration_in_paused_state" {

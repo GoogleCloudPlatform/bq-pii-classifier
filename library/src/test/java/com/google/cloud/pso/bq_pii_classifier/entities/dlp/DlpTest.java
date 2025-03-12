@@ -26,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 public class DlpTest {
 
-    public DlpTest(){}
 
     @Test
     public void testParseFromByteArray() throws InvalidProtocolBufferException {

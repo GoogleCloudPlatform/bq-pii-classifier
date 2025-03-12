@@ -25,8 +25,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 public class UtilsTest {
-    public UtilsTest() {
-    }
 
     @Test
     public void extractTaxonomyIdFromPolicyTagId() {
@@ -95,5 +93,32 @@ public class UtilsTest {
         assertEquals("", Utils.stripLeadingAndTrailingSlashes("/"));
         assertEquals("", Utils.stripLeadingAndTrailingSlashes("//"));
 
+    }
+
+    @Test
+    public void testParseBoolean (){
+        assertEquals(false, Utils.parseBooleanOrFail("FALSE"));
+        assertEquals(false, Utils.parseBooleanOrFail("False"));
+        assertEquals(false, Utils.parseBooleanOrFail("false"));
+
+        assertEquals(true, Utils.parseBooleanOrFail("TRUE"));
+        assertEquals(true, Utils.parseBooleanOrFail("True"));
+        assertEquals(true, Utils.parseBooleanOrFail("true"));
+
+        try{
+            Utils.parseBooleanOrFail(null);
+            // shouldn't reach this
+            assertEquals(1,0);
+        }catch (Exception ex){
+            assertEquals(1,1);
+        }
+
+        try{
+            Utils.parseBooleanOrFail("not boolean");
+            // shouldn't reach this
+            assertEquals(1,0);
+        }catch (Exception ex){
+            assertEquals(1,1);
+        }
     }
 }

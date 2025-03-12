@@ -20,7 +20,7 @@ set -e
 
 echo "Preparing org ${1} .."
 
-# To create DLP discovery service configurations on org and folder level
+# To create DLP discovery service configurations on org level
 # Required to deploy terraform/stacks/gcs-auto-dlp
 gcloud organizations add-iam-policy-binding "${1}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
@@ -35,7 +35,9 @@ gcloud organizations add-iam-policy-binding "${1}" \
 # Instead of granting built-in roles we create custom roles with the exact permissions required
 # by the service accounts used in the solution. For that we need to deploy custom roles on the org
 # and assign them to service accounts with Terraform
-# The following is required to deploy terraform/modules/data-folder-permissions-for-gcs-stack. Omit otherwise.
+# The following is required to deploy terraform/modules/data-folder-permissions-for-gcs-discovery-stack and
+# terraform/modules/data-folder-permissions-for-bq-discovery-stack
+# Omit otherwise.
 gcloud organizations add-iam-policy-binding "${1}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="roles/iam.securityAdmin" \

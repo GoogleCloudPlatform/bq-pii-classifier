@@ -1,9 +1,10 @@
 
 locals {
   apis_list = [
-    "cloudbuild.googleapis.com", // to deploy cloud functions and cloud run
     "run.googleapis.com",
+    "cloudfunctions.googleapis.com",
     "datastore.googleapis.com",
+    "firestore.googleapis.com",
     "workflows.googleapis.com",
     "datacatalog.googleapis.com",
     "dlp.googleapis.com"

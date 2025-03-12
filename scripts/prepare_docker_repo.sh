@@ -2,7 +2,7 @@
 
 #
 # /*
-#  * Copyright 2023 Google LLC
+#  * Copyright 2025 Google LLC
 #  *
 #  * Licensed under the Apache License, Version 2.0 (the "License");
 #  * you may not use this file except in compliance with the License.
@@ -18,16 +18,10 @@
 #  */
 #
 
-# exit script when errors occur
 set -e
 
-# set the working dir as the scripts directory
-cd "$(dirname "$0")"
-
-cd ../library
-
-gcloud builds submit \
---project $PROJECT_ID \
---region $COMPUTE_REGION \
---config cloudbuild_deploy_docker.yaml \
---substitutions _IMAGE_NAME=${IMAGE_NAME},_COMPUTE_REGION=${COMPUTE_REGION}
+gcloud artifacts repositories create "${DOCKER_REPO_NAME}" \
+--repository-format=docker \
+--project="${PROJECT_ID}" \
+--location="${COMPUTE_REGION}" \
+--description="BQ PII Classifier Docker Repository"

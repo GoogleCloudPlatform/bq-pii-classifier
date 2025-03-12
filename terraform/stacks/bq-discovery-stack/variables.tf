@@ -150,12 +150,12 @@ variable "iam_mapping" {
 }
 
 variable "is_dry_run_tags" {
-  type = string
+  type = bool
   description = "Applying Policy Tags in the Tagger function (False) or just logging actions (True)"
 }
 
 variable "is_dry_run_labels" {
-  type = string
+  type = bool
   description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 

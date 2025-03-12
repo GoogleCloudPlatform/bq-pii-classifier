@@ -4,11 +4,13 @@
 variable "dlp_gcs_scan_org_id" {
   type        = number
   description = "GCP organization ID that will host the DLP discovery service configuration"
+  default = 0
 }
 
 variable "dlp_gcs_scan_folder_id" {
   type        = number
   description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
+  default = 0
 }
 
 

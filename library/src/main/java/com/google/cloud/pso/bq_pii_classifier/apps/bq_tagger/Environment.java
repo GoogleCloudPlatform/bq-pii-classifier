@@ -55,11 +55,11 @@ public class Environment {
     }
 
     public Boolean getIsDryRunTags(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
+        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
     }
 
     public Boolean getIsDryRunLabels(){
-        return Boolean.valueOf(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
+        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
     }
 
     public String getGcsFlagsBucket(){
@@ -83,7 +83,7 @@ public class Environment {
     }
 
     public Boolean getPromoteDlpOtherMatches () {
-        return Boolean.valueOf(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
+        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
     }
 
     public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap(){

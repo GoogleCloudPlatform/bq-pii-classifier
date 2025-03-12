@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 
 public class TableSpecTest {
 
-    public TableSpecTest(){}
     @Test
     public void fromFullResource() {
 

@@ -201,6 +201,8 @@ module "cloud-run-tagging-dispatcher-gcs" {
       value = google_bigquery_table.dispatcher_runs_gcs_table.table_id,
     }
   ]
+
+  depends_on = [google_project_iam_member.sa_tagging_dispatcher_roles_binding]
 }
 
 module "pubsub-tagging-dispatcher-gcs" {
@@ -283,6 +285,8 @@ module "cloud-run-tagger-gcs" {
       value = var.gcs_existing_labels_regex,
     }
   ]
+
+  depends_on = [google_project_iam_member.sa_tagger_roles_binding]
 }
 
 module "pubsub-tagger-gcs-for-dlp" {
@@ -353,7 +357,12 @@ locals {
     "roles/bigquery.jobUser", # to run the query that reads DLP findings
     "roles/bigquery.dataEditor", # to insert dispatched tracking Ids to table dispatcher_runs
     "roles/batch.agentReporter", # to run Cloud Batch jobs
-    "roles/logging.logWriter" # to run Cloud Batch jobs
+    "roles/logging.logWriter", # to run Cloud Batch jobs,
+    "roles/artifactregistry.reader" # to read container image for the service
+  ]
+
+  tagger_sa_roles = [
+    "roles/artifactregistry.reader" # to read container image for the service
   ]
 }
 
@@ -362,6 +371,13 @@ resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
   project = var.project
   role = local.tagging_dispatcher_sa_roles[count.index]
   member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
+
+resource "google_project_iam_member" "sa_tagger_roles_binding" {
+  count = length(local.tagger_sa_roles)
+  project = var.project
+  role = local.tagger_sa_roles[count.index]
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
 }
 
 ### Workflows
@@ -384,25 +400,28 @@ resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
   deletion_protection = false
 
   source_contents = <<-EOF
-- init:
-    assign:
-      - project: '${var.project}'
-      - topic: ${module.pubsub-tagging-dispatcher-gcs.topic-id}
-      - message:
-          projectsRegex: ${var.dlp_gcs_project_id_regex}
-          bucketsRegex: ${var.dlp_gcs_bucket_name_regex}
-      - base64Msg: '$${base64.encode(json.encode(message))}'
-- publish_message_to_topic:
-    call: googleapis.pubsub.v1.projects.topics.publish
-    args:
-      topic: '$${topic}'
-      body:
-        messages:
-          - data: '$${base64Msg}'
-    result: publish_result
-- return_result:
-    return:
-      message_id: '$${publish_result.messageIds[0]}'
+main:
+  params: [input]
+  steps:
+    - init:
+        assign:
+          - project: '${var.project}'
+          - topic: '${module.pubsub-tagging-dispatcher-gcs.topic-id}'
+          - message:
+              projectsRegex: $${default(map.get(input, "projectsRegex"), "${var.dlp_gcs_project_id_regex}")}
+              bucketsRegex: $${default(map.get(input, "bucketsRegex"), "${var.dlp_gcs_bucket_name_regex}")}
+          - base64Msg: '$${base64.encode(json.encode(message))}'
+    - publish_message_to_topic:
+        call: googleapis.pubsub.v1.projects.topics.publish
+        args:
+          topic: '$${topic}'
+          body:
+            messages:
+              - data: '$${base64Msg}'
+        result: publish_result
+    - return_result:
+        return:
+          message_id: '$${publish_result.messageIds[0]}'
 EOF
 
 

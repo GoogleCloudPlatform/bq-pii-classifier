@@ -34,7 +34,7 @@ All Cloud Run services are writing structured logs that are exported by a log si
 
 ### Environment Preparation
 
-Follow the steps in this [document](common-terraform-1-prepare.md) and then continue here.
+Follow the steps in this [document](terraform-1-prepare.md) and then continue here.
 
 ### Build Cloud Run Services Images
 
@@ -54,7 +54,7 @@ on the Terraform side.
 
 #### Configure common variables
 
-Follow the steps in this [document](common-terraform-2-variables.md) and then continue here.
+Follow the steps in this [document](terraform-2-variables.md) and then continue here.
 
 #### Configure discovery-service mode
 
@@ -118,7 +118,7 @@ in your `.tfvars` file you can find the default values in [variables.tf](../terr
 
 ### Terraform Deployment
 
-Follow the steps in this [document](common-terraform-3-apply.md) and then continue here.
+Follow the steps in this [document](terraform-4-apply.md) and then continue here.
 
 
 ### Configure Discovery Service on GCP

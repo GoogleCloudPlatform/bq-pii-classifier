@@ -4,12 +4,13 @@ steps:
     id: deploy_services
     env:
       - 'IMAGE_NAME=${_IMAGE_NAME}'
+      - 'COMPUTE_REGION=${_COMPUTE_REGION}'
     script:
 
       set -e
 
       echo "IMAGE_NAME = ${IMAGE_NAME}"
-      
+
       mvn install jib:build -Dimage="${IMAGE_NAME}"
 
 

@@ -1,9 +1,11 @@
 
+###################### Common Variables ################################################
+
 # Terraform service account name used to deploy this Terraform module
-terraform_service_account = "bq-pii-classifier-terraform"
+terraform_service_account_email = "bq-pii-classifier-terraform@<PROJECT ID>.iam.gserviceaccount.com"
 
 # Which DLP discovery configurations to deploy: "BIGQUERY_DISCOVERY" and/or "GCS_DISCOVERY"
-supported_stacks = ["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"]
+supported_stacks = ["GCS_DISCOVERY"]
 
 # container image name that contains the services code (i.e. tagging dispatcher & tagger)
 # this is built and deployed outside of TF in an earlier step
@@ -23,9 +25,6 @@ source_data_regions    = ["", ""]
 
 # BigQuery dataset to include solution's resources
 bigquery_dataset_name = "bq_pii_classifier"
-
-# Set to [FINE_GRAINED_ACCESS_CONTROL] to enforce access control via policy tags. Set to [] otherwise.
-data_catalog_taxonomy_activated_policy_types = []
 
 # Example. Set to `[]` of not needed and remove from `classification_taxonomy`. Each custom info type must have a corresponding entry in `classification_taxonomy`
 custom_info_types_dictionaries = []
@@ -48,12 +47,12 @@ custom_info_types_regex = []
 # Info Types to be scanned and their hierarchy and metadata
 classification_taxonomy = [
 
-   { info_type = "STREET_ADDRESS",
-     info_type_category = "Standard",
-     policy_tag = "street_address",
-     classification = "Location",
-     labels = [{ key = "contains_location_data", value = "yes"}]},
-   { info_type = "EMAIL_ADDRESS",
+  { info_type = "STREET_ADDRESS",
+    info_type_category = "Standard",
+    policy_tag = "street_address",
+    classification = "Location",
+    labels = [{ key = "contains_location_data", value = "yes"}]},
+  { info_type = "EMAIL_ADDRESS",
     info_type_category = "Standard",
     policy_tag = "email_address",
     classification = "PII",
@@ -72,33 +71,20 @@ classification_taxonomy = [
   },
 ]
 
-# To segregate access of columns tagged as PII that belongs to multiple functional areas. You can use one or more domains.
-domain_mapping = []
-#  {
-#    project = "p1",
-#    domain = "marketing",
-#    datasets = [] // leave empty if no dataset overrides is required for this project
-#  },
-
-
-# Defining who should have access to columns tagged as PII in each functional area (i.e. domains) and PII group (i.e. classification)
-# For each domain defined in `domain_mapping`, there should be a key in this map. E.g. "domain_1"
-# For each `classification` defined in `classification_taxonomy` there should be a value for that key. E.g. "P1", "P2", etc
-iam_mapping = {}
-
 # Names and tags for container images use by Cloud Run
 gar_docker_repo_name = "docker-repo"
 
 # change to true in a prod env or where DLP costs are high to retain the scan results
 terraform_data_deletion_protection = true
 
-# To attach policy tags to columns. is_dry_run_tags = False will attach policy tags
-is_dry_run_tags = "False"
-
 # To attach resource labels to BigQuery tables and GCS buckets. is_dry_run_labels = False means to attach labels
-is_dry_run_labels = "False"
+is_dry_run_labels = false
 
-## GCS discovery variables
+# dlp inspection templates are deployed to all source_data_regions []. Set this to true to add the `global` region
+# to be used to scan resources in all regions (if you're org policy allows global data residency)
+deploy_dlp_inspection_template_to_global_region = true
+
+###################### GCS Stack Variables ################################################
 
 # org id to deploy the dlp discovery config to
 dlp_gcs_scan_org_id = 0
@@ -112,38 +98,10 @@ dlp_gcs_project_id_regex = "^project_xyz$"
 # regex for bucket names to be scanned. Remove to use default that scans all
 dlp_gcs_bucket_name_regex = "^bucket_xyz$"
 
-# Set to false to create the config in paused state (e.g. for manual verification, etc)
+# Set to true to create the config in paused state (e.g. for manual verification, etc)
 dlp_gcs_create_configuration_in_paused_state = false
 
 # Used to identify and delete existing GCS resource labels previously created by the solution when new DLP findings doesn't include that label
 # remove to use default value that doesn't delete any existing labels
 gcs_existing_labels_regex = "^contains_"
-
-# dlp inspection templates are deployed to all source_data_regions []. Set this to true to add the `global` region
-# to be used to scan resources in all regions (if you're org policy allows global data residency)
-deploy_dlp_inspection_template_to_global_region = true
-
-## BQ discovery variables
-
-# org id to deploy the dlp discovery config to
-dlp_bq_scan_org_id = 0
-
-# folder id to be scanned by the org-level config
-dlp_bq_scan_folder_id = 0
-
-# regex for project names to be scanned. Remove to use default that scans all
-dlp_bq_project_id_regex = "^project_xyz$"
-
-# regex for dataset names to be scanned. Remove to use default that scans all
-dlp_bq_dataset_regex = "^dataset_xyz$"
-
-# regex for table names to be scanned. Remove to use default that scans all
-dlp_bq_table_regex = "^table_xyz$"
-
-# Set to false to create the config in paused state (e.g. for manual verification, etc)
-dlp_bq_create_configuration_in_paused_state = false
-
-# Used to identify and delete existing BQ resource labels previously created by the solution when new DLP findings doesn't include that label
-# remove to use default value that doesn't delete any existing labels
-bq_existing_labels_regex = "^contains_"
 

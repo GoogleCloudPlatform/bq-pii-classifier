@@ -16,15 +16,15 @@
 # limitations under the License.
 #
 
-for project in "$@"
-do
+apis=(
+  "serviceusage.googleapis.com"
+  "cloudresourcemanager.googleapis.com"
+  "iam.googleapis.com"
+  "artifactregistry.googleapis.com"
+  "cloudbuild.googleapis.com"
+)
 
-echo "Preparing data project ${project} .."
-
-# This allow terraform to grant required iam roles to service accounts used by the solution (e.g. read bq data)
-# Granting the IAM roles happen in Terraform or the scripts/prepare_data_projects_for_standard_mode.sh and scripts/prepare_data_projects_for_auto_dlp_mode.sh
-gcloud projects add-iam-policy-binding "${project}" \
-    --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
-    --role="roles/iam.securityAdmin"
-
+for api in "${apis[@]}"; do
+  echo "Enabling ${api} .."
+  gcloud services enable "${api}" --project="${PROJECT_ID}"
 done

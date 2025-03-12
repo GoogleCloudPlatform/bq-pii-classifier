@@ -8,9 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 public class InfoTypeInfoTest {
 
-    public InfoTypeInfoTest() {
-    }
-
     @Test
     public void fromFullResource() {
 

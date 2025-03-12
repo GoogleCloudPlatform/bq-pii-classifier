@@ -17,6 +17,7 @@
 #
 
 gcloud iam service-accounts create "${TF_SA}" \
+    --project="${PROJECT_ID}" \
     --description="Used by Terraform to deploy GCP resources" \
     --display-name="Terraform Service Account"
 
@@ -37,8 +38,9 @@ roles=(
   "roles/cloudfunctions.developer"
   "roles/dlp.admin"
   "roles/datacatalog.admin"
-  "roles/storage.admin",
+  "roles/storage.admin"
   "roles/workflows.editor"
+  "roles/artifactregistry.reader"
 )
 
 for role in "${roles[@]}"; do
@@ -47,3 +49,17 @@ for role in "${roles[@]}"; do
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="$role"
 done
+
+# grant impersonation rights to the current user on the TF service account to be able to run Terraform locally
+
+export CURRENT_USER=$(gcloud config list account --format "value(core.account)")
+
+gcloud iam service-accounts add-iam-policy-binding "${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
+    --project="${PROJECT_ID}" \
+    --member="user:${CURRENT_USER}" \
+    --role="roles/iam.serviceAccountTokenCreator"
+
+gcloud iam service-accounts add-iam-policy-binding "${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
+    --project="${PROJECT_ID}" \
+    --member="user:${CURRENT_USER}" \
+    --role="roles/iam.serviceAccountUser"

@@ -104,15 +104,13 @@ public class BigQueryDispatcherController {
 
       DlpFindingsScanner dlpFindingsScanner =
           new UniversalDlpFindingsScannerImpl(
-              "sql/v_bq_auto_dlp_dispatcher.tpl",
-              sqlParamsMap,
-              bigQueryService);
+              "sql/v_bq_auto_dlp_dispatcher.tpl", sqlParamsMap, bigQueryService);
 
       Dispatcher dispatcher =
           new Dispatcher(
               environment.toConfig(),
               new BigQueryToPubSubStreamerForBQDispatcher(),
-                  dlpFindingsScanner,
+              dlpFindingsScanner,
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "tagging-dispatcher-flags",
               runId);
