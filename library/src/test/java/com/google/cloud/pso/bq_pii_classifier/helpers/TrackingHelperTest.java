@@ -1,9 +1,7 @@
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
-import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class TrackingHelperTest {
     @Test
