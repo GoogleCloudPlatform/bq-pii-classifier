@@ -16,11 +16,14 @@
 package com.google.cloud.pso.bq_pii_classifier.apps.bq_tagger;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.DatasetDomainMapKey;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.InfoTypePolicyTagMapKey;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.InfoTypePolicyTagMapValue;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -29,7 +32,13 @@ import java.util.*;
 
 public class Environment {
 
-    public TaggerConfig toConfig (){
+    private final GcsService gcsService;
+
+    public Environment() {
+        gcsService = new GcsServiceImpl();
+    }
+
+    public TaggerConfig toConfig () throws NonRetryableApplicationException {
         return new TaggerConfig(
                 getProjectId(),
                 new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
@@ -66,8 +75,12 @@ public class Environment {
         return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
     }
 
-    public Map<String, InfoTypeInfo> getInfoTypeMap(){
-        return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
+    public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
+
+        String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
+        String json = gcsService.getFileContent(filePath);
+
+        return InfoTypeInfo.fromJsonMap(json);
     }
 
     public String getDefaultDomainName(){
@@ -86,8 +99,10 @@ public class Environment {
         return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
     }
 
-    public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap(){
-        String json = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);
+    public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap() throws NonRetryableApplicationException {
+
+        String filePath = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);
+        String json = gcsService.getFileContent(filePath);
 
         Gson gson = new Gson();
         Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();

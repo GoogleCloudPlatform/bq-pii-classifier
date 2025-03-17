@@ -64,6 +64,7 @@ data google_project "gcp_project" {
   project_id = var.project
 }
 
+
 module "cloud-run-tagging-dispatcher" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
@@ -107,6 +108,14 @@ module "cloud-run-tagging-dispatcher" {
   depends_on = [google_project_iam_member.sa_dispatcher_roles_binding]
 }
 
+### configs that are XXL to fit into a cloud run variable
+resource "google_storage_bucket_object" "info_type_policy_tag_map_file" {
+  name   = "INFO_TYPE_POLICY_TAG_MAP.json"
+  bucket = var.resources_bucket_name
+  content_type = "application/json"
+  content = jsonencode(local.created_policy_tags)
+}
+
 module "cloud-run-tagger" {
   source                        = "../../modules/cloud-run"
   project                       = var.project
@@ -143,7 +152,7 @@ module "cloud-run-tagger" {
     },
     {
       name  = "INFO_TYPE_MAP",
-      value = jsonencode(var.info_types_map),
+      value = var.info_type_map_file_path,
     },
     {
       name  = "DEFAULT_DOMAIN_NAME",
@@ -155,7 +164,7 @@ module "cloud-run-tagger" {
     },
     {
       name  = "INFO_TYPE_POLICY_TAG_MAP",
-      value = jsonencode(local.created_policy_tags)
+      value = "gs://${var.resources_bucket_name}/${google_storage_bucket_object.info_type_policy_tag_map_file.name}"
     },
     {
       name  = "PROJECT_DOMAIN_MAP",
@@ -414,6 +423,8 @@ module "bq-remote-func-get-table-policy-tags" {
   cloud_functions_sa_extra_roles = ["roles/datastore.user"]
 }
 
+### GCS buckets access
+
 resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagging_dispatcher" {
   bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
@@ -423,6 +434,12 @@ resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagg
 resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagger" {
   bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagger.email}"
+}
+
+resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
+  bucket = var.resources_bucket_name
+  role = "roles/storage.objectViewer"
   member = "serviceAccount:${google_service_account.sa_tagger.email}"
 }
 

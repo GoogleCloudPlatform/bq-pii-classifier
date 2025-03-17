@@ -67,6 +67,8 @@ module "bq-discovery-stack" {
   workflows_bq_description = var.workflows_bq_description
   workflows_bq_name = var.workflows_bq_name
   image_name = var.image_name
+  resources_bucket_name = google_storage_bucket.gcs_solution_resources.name
+  info_type_map_file_path= "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 
   # tags
   dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
@@ -75,6 +77,7 @@ module "bq-discovery-stack" {
   dlp_bq_apply_tags = var.dlp_bq_apply_tags
 
   depends_on = [google_project_service.enable_apis]
+
 }
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER and ORG level (and not the host project)

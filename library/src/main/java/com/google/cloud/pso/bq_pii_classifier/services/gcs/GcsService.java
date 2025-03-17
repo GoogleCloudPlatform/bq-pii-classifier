@@ -19,4 +19,12 @@ public interface GcsService {
                                                                                Map<String, String> newLabels,
                                                                                String existingLabelsRegex,
                                                                                boolean isDryRun) throws NonRetryableApplicationException;
+
+    /**
+     * Retrieves the content of a file stored in Google Cloud Storage.
+     * @param gcsFilePath The GCS path of the file to read, in the format gs://bucket-name/file-path.
+     * @return The content of the file as a String.
+     * @throws NonRetryableApplicationException If there is an error reading the file.
+     */
+    String getFileContent(String gcsFilePath) throws NonRetryableApplicationException;
 }

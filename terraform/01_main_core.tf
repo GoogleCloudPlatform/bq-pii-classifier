@@ -133,6 +133,31 @@ resource "google_tags_tag_value" "dlp_low_sensitivity_value" {
 }
 
 
+#### Resources
+
+### bucket to store xxl configurations that can't fit in env variables in Cloud Run
+resource "google_storage_bucket" "gcs_solution_resources" {
+  project  = var.project
+  name     = "${var.project}-resources"
+  # This bucket is used by the services so let's create in the same compute region
+  location = var.compute_region
+
+  force_destroy = true
+
+  uniform_bucket_level_access = true
+
+  depends_on = [google_project_service.enable_apis]
+}
+
+### configs that are XXL to fit into a cloud run variable
+resource "google_storage_bucket_object" "info_type_map_file" {
+  name   = "INFO_TYPE_MAP.json"
+  bucket = google_storage_bucket.gcs_solution_resources.name
+  content_type = "application/json"
+  content = jsonencode(local.info_types_map)
+}
+
+
 
 
 

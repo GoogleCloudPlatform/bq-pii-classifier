@@ -339,3 +339,11 @@ variable "dlp_tag_low_sensitivity_id" {
 variable "dlp_bq_apply_tags" {
   type = bool
 }
+
+variable "info_type_map_file_path" {
+  type = string
+}
+
+variable "resources_bucket_name" {
+  type = string
+}

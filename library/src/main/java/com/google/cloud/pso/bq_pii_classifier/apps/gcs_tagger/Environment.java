@@ -16,14 +16,23 @@
 package com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
+import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 
 import java.util.Map;
 
 public class Environment {
 
-    public GcsTaggerConfig toConfig (){
+    private final GcsService gcsService;
+
+    public Environment() {
+        gcsService = new GcsServiceImpl();
+    }
+
+    public GcsTaggerConfig toConfig () throws NonRetryableApplicationException {
         return new GcsTaggerConfig(
                 getProjectId(),
                 getIsDryRunLabels(),
@@ -44,8 +53,11 @@ public class Environment {
         return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
     }
 
-    public Map<String, InfoTypeInfo> getInfoTypeMap(){
-        return InfoTypeInfo.fromJsonMap(Utils.getConfigFromEnv("INFO_TYPE_MAP", true));
+    public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
+        String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
+        String json = gcsService.getFileContent(filePath);
+
+        return InfoTypeInfo.fromJsonMap(json);
     }
 
     public String getExistingLabelsRegex(){

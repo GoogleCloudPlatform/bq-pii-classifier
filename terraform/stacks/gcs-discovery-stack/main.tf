@@ -321,7 +321,7 @@ module "cloud-run-tagger-gcs" {
     },
     {
       name  = "INFO_TYPE_MAP",
-      value = jsonencode(var.info_type_map),
+      value = var.info_type_map_file_path,
     },
     {
       name  = "EXISTING_LABELS_REGEX",
@@ -375,6 +375,14 @@ resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_buc
 resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
   bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+}
+
+### Permissions on resources bucket
+
+resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
+  bucket = var.resources_bucket_name
+  role = "roles/storage.objectViewer"
   member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
 }
 

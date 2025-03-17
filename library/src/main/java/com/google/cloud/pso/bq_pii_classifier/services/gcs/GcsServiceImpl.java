@@ -52,4 +52,27 @@ public class GcsServiceImpl implements GcsService {
 
     return finalLabelsWithActions;
   }
+  @Override
+  public String getFileContent(String gcsFilePath) throws NonRetryableApplicationException {
+
+    if (gcsFilePath == null || gcsFilePath.isEmpty()) {
+      throw new NonRetryableApplicationException("GCS File Path cannot be null or empty.");
+    }
+
+    if (!gcsFilePath.startsWith("gs://")) {
+      throw new NonRetryableApplicationException(String.format("Invalid GCS File Path: %s. It should start with gs://", gcsFilePath));
+    }
+
+    String[] parts = gcsFilePath.substring(5).split("/", 2);
+
+    if (parts.length != 2) {
+      throw new NonRetryableApplicationException(String.format("Invalid GCS File Path: %s. It should be in the format gs://<bucket>/<path>", gcsFilePath));
+    }
+
+    String bucketName = parts[0];
+    String objectName = parts[1];
+
+    return new String(storage.readAllBytes(bucketName, objectName));
+  }
+
 }
