@@ -21,6 +21,7 @@ import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequ
 import com.google.cloud.pso.bq_pii_classifier.helpers.ControllerExceptionHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
+import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
@@ -65,7 +66,7 @@ public class GcsTaggerController {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(defaultTrackingId, msg);
+        logger.logSevereWithTracker(defaultTrackingId, defaultTrackingId, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -105,6 +106,9 @@ public class GcsTaggerController {
 
       logger.logInfoWithTracker(
           gcsTaggerRequest.getTrackingId(),
+          Utils.generateBucketEntityId(
+              gcsTaggerRequest.getGcsDlpProfileSummary().getProjectId(),
+              gcsTaggerRequest.getGcsDlpProfileSummary().getBucketName()),
           String.format("Parsed Request from GCS Tagging Dispatcher: '%s'", gcsTaggerRequest));
 
       // CASE 1: GcsTaggerRequest from Tagging Dispatcher
@@ -120,6 +124,7 @@ public class GcsTaggerController {
             DataProfilePubSubMessage.parseFrom(data);
 
         logger.logInfoWithTracker(
+            defaultTrackingId,
             defaultTrackingId,
             String.format(
                 "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",

@@ -85,9 +85,11 @@ public class Tagger {
   public void execute(TaggerRequest request, String pubSubMessageId)
           throws IOException, InterruptedException, NonRetryableApplicationException {
 
-    logger.logFunctionStart(request.getTrackingId());
+    TableSpec targetTable = request.getTargetTable();
+
+    logger.logFunctionStart(request.getTrackingId(), targetTable.toSqlString());
     logger.logInfoWithTracker(
-            request.getTrackingId(), String.format("Request : %s", request.toString()));
+            request.getTrackingId(), targetTable.toSqlString(), String.format("Request : %s", request.toString()));
 
     /**
      * Check if we already processed this pubSubMessageId before to avoid duplicate processing in
@@ -105,8 +107,6 @@ public class Tagger {
       throw new NonRetryableApplicationException(msg);
     }
 
-    TableSpec targetTable = request.getTargetTable();
-
     // 1. compute final info type per column based on dlp fields findings
     Map<String, String> fieldsFinalFindings = new HashMap<>();
     for(Map.Entry<String, DlpFieldFindings> e: request.getFieldsFindings().entrySet()){
@@ -123,7 +123,10 @@ public class Tagger {
       }
     }
 
-    logger.logInfoWithTracker(request.getRunId(), String.format("Table fields final findings: %s", fieldsFinalFindings));
+    logger.logInfoWithTracker(
+            request.getTrackingId(),
+            targetTable.toSqlString(),
+            String.format("Table fields final findings: %s", fieldsFinalFindings));
 
     String datasetLocation = bqService.getDatasetLocation(targetTable.project(), targetTable.dataset());
     TableColumnsInfoTypes tableColumnsInfoTypes= new TableColumnsInfoTypes(request.getTargetTable(), fieldsFinalFindings);
@@ -138,8 +141,10 @@ public class Tagger {
     );
 
     // if some fields had info types detected but no policy tags could be mapped
-    if(lookupPolicyTagsResults.y().columnsInfoType().size()>0){
-      logger.logWarnWithTracker(request.getTrackingId(), String.format(
+    if(!lookupPolicyTagsResults.y().columnsInfoType().isEmpty()){
+      logger.logWarnWithTracker(request.getTrackingId(),
+              targetTable.toSqlString(),
+              String.format(
               "The following table fields have assigned info types by DLP but no policy tags could be found for them: %s ",
               lookupPolicyTagsResults.y().columnsInfoType().toString()
       ));
@@ -148,12 +153,15 @@ public class Tagger {
     // 2. map final info types to TablePolicyTags
     Map<String, PolicyTagInfo> fieldsPolicyTagsInfo = lookupPolicyTagsResults.x();
 
-    logger.logInfoWithTracker(request.getRunId(), String.format("Table fields mapped policy tags: %s", fieldsPolicyTagsInfo));
+    logger.logInfoWithTracker(
+            request.getTrackingId(),
+            targetTable.toSqlString(),
+            String.format("Table fields mapped policy tags: %s", fieldsPolicyTagsInfo.toString()));
 
     TablePolicyTags tablePolicyTags = new TablePolicyTags(request.getTargetTable(),fieldsPolicyTagsInfo);
 
     // if we have DLP findings for this table or dlpJob
-    if (tablePolicyTags.fieldsPolicyTags() != null && tablePolicyTags.fieldsPolicyTags().size() > 0) {
+    if (tablePolicyTags.fieldsPolicyTags() != null && !tablePolicyTags.fieldsPolicyTags().isEmpty()) {
 
       Map<String, PolicyTagInfo> computedFieldsToPolicyTagsMap = tablePolicyTags.fieldsPolicyTags();
       TableSpec targetTableSpec = tablePolicyTags.tableSpec();
@@ -166,7 +174,9 @@ public class Tagger {
                 generateTableLabelsFromDlpFindings(tablePolicyTags, config.infoTypeMap());
 
 
-        logger.logInfoWithTracker(request.getTrackingId(), String.format(
+        logger.logInfoWithTracker(request.getTrackingId(),
+                targetTableSpec.toSqlString(),
+                String.format(
                 "Computed table labels for dlp info types: %s",
                 tableLabelsFromDlpFindings
         ));
@@ -174,7 +184,9 @@ public class Tagger {
         // get existing table labels
         Map<String, String> existingTableLabels = bqService.getTableLabels(targetTableSpec);
 
-        logger.logInfoWithTracker(request.getTrackingId(), String.format(
+        logger.logInfoWithTracker(request.getTrackingId(),
+                targetTableSpec.toSqlString(),
+                String.format(
                 "Existing table labels: %s",
                 existingTableLabels
         ));
@@ -187,7 +199,9 @@ public class Tagger {
         Map<String, String> tableLabelsToSet =
                 LabelsHelper.removeToBeDeletedLabels(labelsWithActions);
 
-        logger.logInfoWithTracker(request.getTrackingId(), String.format(
+        logger.logInfoWithTracker(request.getTrackingId(),
+                targetTableSpec.toSqlString(),
+                String.format(
                 "Final labels to be set : %s",
                 tableLabelsToSet
         ));
@@ -219,6 +233,7 @@ public class Tagger {
 
         logger.logInfoWithTracker(
                 request.getTrackingId(),
+                targetTableSpec.toSqlString(),
                 String.format(
                         "Labels Summary: table = %s, is_dry_run_labels = %s, new labels = %s, changed values = %s, no change = %s, deleted = %s .",
                         targetTableSpec.toSqlString(),
@@ -244,6 +259,7 @@ public class Tagger {
         // if the table doesn't exist anymore on BigQuery
         logger.logWarnWithTracker(
                 request.getTrackingId(),
+                targetTableSpec.toSqlString(),
                 String.format(
                         "Table %s doesn't exist anymore in BigQuery and no tagging could be applied",
                         targetTableSpec.toSqlString()));
@@ -253,6 +269,7 @@ public class Tagger {
       // if we don't have DLP findings for this table or dlpJob
       logger.logInfoWithTracker(
               request.getTrackingId(),
+              targetTable.toSqlString(),
               String.format(
                       "No DLP InfoTypes or mapped policy tags are found for table '%s'",
                       targetTable.toSqlString()));
@@ -264,10 +281,11 @@ public class Tagger {
     // This is an extra measure to avoid unnecessary BigQuery cost due to config issues.
     logger.logInfoWithTracker(
             request.getTrackingId(),
+            targetTable.toSqlString(),
             String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
     persistentSet.add(flagFileName);
 
-    logger.logFunctionEnd(request.getTrackingId());
+    logger.logFunctionEnd(request.getTrackingId(), targetTable.toSqlString());
   }
 
   private TableFieldSchema updateFieldPolicyTags(
@@ -463,18 +481,18 @@ public class Tagger {
       String msg =
               String.format(
                       "Policy tags and resource labels applied to table %s.", tableSpec.toSqlString());
-      logger.logInfoWithTracker(trackingId, msg);
+      logger.logInfoWithTracker(trackingId, tableSpec.toSqlString(), msg);
     } else {
       if (!isDryRunTags && isDryRunLabels) {
         bqService.patchTableSchema(tableSpec, updatedFields);
         String msg = String.format("Policy tags applied to table %s.", tableSpec.toSqlString());
-        logger.logInfoWithTracker(trackingId, msg);
+        logger.logInfoWithTracker(trackingId, tableSpec.toSqlString(), msg);
       }
       if (isDryRunTags && !isDryRunLabels) {
         // bqService.patchTableLabels(tableSpec, tableLabels);
         bqService.overWriteTableLabels(tableSpec, tableLabels);
         String msg = String.format("Resource labels applied to table %s.", tableSpec.toSqlString());
-        logger.logInfoWithTracker(trackingId, msg);
+        logger.logInfoWithTracker(trackingId, tableSpec.toSqlString(), msg);
       }
       if (isDryRunTags && isDryRunLabels) {
         String msg =
@@ -482,7 +500,7 @@ public class Tagger {
                         "No policy tags or resource labels will be applied to table %s."
                                 + " Both isDryRunTags and isDryRunLabels are set to True",
                         tableSpec.toSqlString());
-        logger.logInfoWithTracker(trackingId, msg);
+        logger.logInfoWithTracker(trackingId, tableSpec.toSqlString(), msg);
       }
     }
 

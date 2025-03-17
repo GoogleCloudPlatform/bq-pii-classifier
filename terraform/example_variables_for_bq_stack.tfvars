@@ -14,6 +14,9 @@ image_name = "bq-pii-classifier-services:latest"
 # host project to deploy the solution
 project = ""
 
+# org id to deploy the dlp discovery config to
+org_id = 0
+
 # GCP region to deploy the solution's compute resources (e.g. Cloud Run)
 compute_region = ""
 
@@ -105,9 +108,6 @@ iam_mapping = {}
 
 # To attach policy tags to columns. is_dry_run_tags = False will attach policy tags
 is_dry_run_tags = false
-
-# org id to deploy the dlp discovery config to
-dlp_bq_scan_org_id = 0
 
 # folder id to be scanned by the org-level config
 dlp_bq_scan_folder_id = 0

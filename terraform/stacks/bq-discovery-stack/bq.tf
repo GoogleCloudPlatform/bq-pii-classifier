@@ -140,21 +140,3 @@ resource "google_bigquery_table" "dispatcher_runs_bq_table" {
 
   deletion_protection = var.terraform_data_deletion_protection
 }
-
-resource "google_bigquery_table" "view_tracking_id_map" {
-  dataset_id = var.bigquery_dataset_name
-  table_id = "v_tracking_id_to_table_map"
-
-  deletion_protection = var.terraform_data_deletion_protection
-
-  view {
-    use_legacy_sql = false
-    query = templatefile("stacks/bq-discovery-stack/views/v_tracking_id_to_table_map.tpl",
-      {
-        project = var.project
-        dataset = var.bigquery_dataset_name
-        logging_table = var.logging_table_name
-      }
-    )
-  }
-}

@@ -135,7 +135,7 @@ public class ControllerExceptionHelper {
         ThrowableInfo exInfo = causedByRetryableException(ex);
 
         if(exInfo.isRetryable()){
-            logger.logRetryableExceptions(trackingId, ex, exInfo.notes());
+            logger.logRetryableExceptions(trackingId, trackingId, ex, exInfo.notes());
             return new ResponseEntity(ex.getMessage(), HttpStatus.TOO_MANY_REQUESTS);
 
         }else{
@@ -152,12 +152,12 @@ public class ControllerExceptionHelper {
                         bigQueryException.isRetryable(),
                         bigQueryException.toString()
                         );
-                logger.logDebugWithTracker(trackingId, msg);
+                logger.logDebugWithTracker(trackingId, trackingId, msg);
             }
 
             // if not, log and ACK so that it's not retried
             ex.printStackTrace();
-            logger.logNonRetryableExceptions(trackingId, ex);
+            logger.logNonRetryableExceptions(trackingId, trackingId, ex);
             return new ResponseEntity(ex.getMessage(), HttpStatus.OK);
         }
     }

@@ -67,6 +67,11 @@
       },
       {
         "mode": "NULLABLE",
+        "name": "global_entity_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
         "name": "global_msg",
         "type": "STRING"
       },

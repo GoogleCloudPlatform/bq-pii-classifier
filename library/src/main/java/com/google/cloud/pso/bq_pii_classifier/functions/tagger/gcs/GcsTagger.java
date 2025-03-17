@@ -18,6 +18,7 @@ package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
+import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReader;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
@@ -52,8 +53,7 @@ public class GcsTagger {
     this.persistentSet = persistentSet;
     this.persistentSetObjectPrefix = persistentSetObjectPrefix;
 
-    logger =
-        new LoggingHelper(GcsTagger.class.getSimpleName(), functionNumber, config.projectId());
+    logger = new LoggingHelper(GcsTagger.class.getSimpleName(), functionNumber, config.projectId());
   }
 
   /**
@@ -65,9 +65,16 @@ public class GcsTagger {
   public Map<String, InfoTypeInfo> execute(GcsTaggerRequest request, String pubSubMessageId)
       throws NonRetryableApplicationException, IOException {
 
-    logger.logFunctionStart(request.getTrackingId());
+    String bucketResourceName =
+        Utils.generateBucketEntityId(
+            request.getGcsDlpProfileSummary().getProjectId(),
+            request.getGcsDlpProfileSummary().getBucketName());
+
+    logger.logFunctionStart(request.getTrackingId(), bucketResourceName);
     logger.logInfoWithTracker(
-        request.getTrackingId(), String.format("Request : %s", request.toString()));
+        request.getTrackingId(),
+        bucketResourceName,
+        String.format("Request : %s", request.toString()));
 
     /**
      * Check if we already processed this pubSubMessageId before to avoid submitting BQ queries in
@@ -97,15 +104,18 @@ public class GcsTagger {
     }
 
     logger.logInfoWithTracker(
-            request.getTrackingId(),
-            String.format("Computed profile summary: %s ", profileSummary.toString()));
+        request.getTrackingId(),
+        bucketResourceName,
+        String.format("Computed profile summary: %s ", profileSummary.toString()));
 
     Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata =
         filterInfoTypesMetadataMap(profileSummary.getInfoTypes(), config.infoTypeMap());
 
     logger.logInfoWithTracker(
-            request.getTrackingId(),
-            String.format("detected info types with metadata: %s", detectedInfoTypesWithMetadata.toString()));
+        request.getTrackingId(),
+        bucketResourceName,
+        String.format(
+            "detected info types with metadata: %s", detectedInfoTypesWithMetadata.toString()));
 
     // construct a map of label key, label value based on all labels configured for all detected
     // info types
@@ -150,6 +160,7 @@ public class GcsTagger {
 
     logger.logInfoWithTracker(
         request.getTrackingId(),
+        bucketResourceName,
         String.format(
             "Labels Summary: bucket = %s, is_dry_run_labels = %s, new labels = %s, changed values = %s, no change = %s, deleted = %s .",
             profileSummary.getBucketPath(),
@@ -165,10 +176,11 @@ public class GcsTagger {
     // This is an extra measure to avoid unnecessary cost due to config issues.
     logger.logInfoWithTracker(
         request.getTrackingId(),
+        bucketResourceName,
         String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
     persistentSet.add(flagFileName);
 
-    logger.logFunctionEnd(request.getTrackingId());
+    logger.logFunctionEnd(request.getTrackingId(), bucketResourceName);
 
     return detectedInfoTypesWithMetadata;
   }
@@ -203,8 +215,7 @@ public class GcsTagger {
       // Terraform)
       // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
       for (ResourceLabel infoTypeLabel : infoTypeMetadataMap.get(infoType).labels()) {
-        bucketLabels.put(
-            infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
+        bucketLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
       }
     }
     return bucketLabels;

@@ -45,24 +45,24 @@ public class LoggingHelper {
         logger = LoggerFactory.getLogger(loggerName);
     }
 
-    public void logDebugWithTracker(String tracker, String msg) {
-        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.DEBUG);
+    public void logDebugWithTracker(String tracker, String entityId, String msg) {
+        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, entityId, msg, Level.DEBUG);
     }
 
-    public void logInfoWithTracker(String tracker, String msg) {
-        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.INFO);
+    public void logInfoWithTracker(String tracker,  String entityId, String msg) {
+        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, entityId, msg, Level.INFO);
     }
 
-    public void logWarnWithTracker(String tracker, String msg) {
-        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.WARN);
+    public void logWarnWithTracker(String tracker,  String entityId, String msg) {
+        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, entityId, msg, Level.WARN);
     }
 
-    public void logSevereWithTracker(String tracker, String msg) {
-        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, msg, Level.ERROR);
+    public void logSevereWithTracker(String tracker, String entityId, String msg) {
+        logWithTracker(ApplicationLog.DEFAULT_LOG, tracker, entityId, msg, Level.ERROR);
     }
 
-    private void logWithTracker(ApplicationLog log, String tracker, String msg, Level level) {
-        logWithTracker(log, tracker, msg, level, new Object[]{});
+    private void logWithTracker(ApplicationLog log, String tracker, String entityId, String msg, Level level) {
+        logWithTracker(log, tracker, entityId, msg, level, new Object[]{});
     }
 
     public void logTagHistory(TagHistoryLogEntry l, String tracker){
@@ -81,6 +81,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.TAG_HISTORY_LOG,
                 tracker,
+                l.tableSpec().toSqlString(),
                 l.toLogString(),
                 l.logLevel(),
                 attributes
@@ -108,6 +109,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.LABEL_HISTORY_LOG,
                 tracker,
+                tableSpec.toSqlString(),
                 String.format("Labels: table  %s, isDryRunLabels = %s, action = %s ,KV (%s, %s)",
                         tableSpec.toSqlString(),
                         isDryRun,
@@ -140,6 +142,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.GCS_LABEL_HISTORY_LOG,
                 tracker,
+                Utils.generateBucketEntityId(bucketProject, bucketName),
                 String.format("Labels: bucket  %s, isDryRunLabels = %s, action = %s ,KV (%s, %s)",
                         bucketName,
                         isDryRun,
@@ -152,13 +155,6 @@ public class LoggingHelper {
 
     }
 
-    // used by Tagging Dispatcher
-    public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId) {
-        logSuccessDispatcherTrackingId(trackingId,
-                dispatchedTrackingId,
-                new TableSpec("NA","NA","NA")
-        );
-    }
 
     public void logSuccessDispatcherTrackingId(String trackingId, String dispatchedTrackingId, TableSpec tableSpec) {
 
@@ -173,6 +169,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.DISPATCHED_REQUESTS_LOG,
                 trackingId,
+                tableSpec.toSqlString(),
                 String.format("Dispatched request with trackindId `%s`", dispatchedTrackingId),
                 Level.INFO,
                 attributes
@@ -180,68 +177,7 @@ public class LoggingHelper {
     }
 
     // To log failed processing of projects, datasets or tables
-    public void logFailedDispatcherEntityId(String trackingId, String entityId, Exception ex) {
-
-        Object [] attributes = new Object[]{
-                kv("failed_dispatcher_entity_id", entityId),
-                kv("failed_dispatcher_ex_name", ex.getClass().getName()),
-                kv("failed_dispatcher_ex_msg", ex.getMessage())
-        };
-
-        logWithTracker(
-                ApplicationLog.FAILED_DISPATCHED_REQUESTS_LOG,
-                trackingId,
-                String.format("Failed to process entity `%s`.Exception: %s. Msg: %s",
-                        entityId,
-                        ex.getClass().getName(),
-                        ex.getMessage()
-                        ),
-                Level.ERROR,
-                attributes
-        );
-    }
-
-    public void logSuccessGcsDispatcherTrackingId(String runId, String dispatchedTrackingId, String bucketName, String bucketProject) {
-
-        Object [] attributes = new Object[]{
-                kv("dispatched_tracking_id", dispatchedTrackingId),
-                kv("dispatched_bucket_name", bucketName),
-                kv("dispatched_bucket_project", bucketProject),
-        };
-
-        logWithTracker(
-                ApplicationLog.GCS_DISPATCHED_REQUESTS_LOG,
-                runId,
-                String.format("Dispatched request for bucket '%s' with trackingId `%s`", bucketName, dispatchedTrackingId),
-                Level.INFO,
-                attributes
-        );
-    }
-
-    // To log failed processing of projects, datasets or tables
-    public void logFailedGcsDispatcherEntityId(String trackingId, Throwable throwable) {
-
-        Object [] attributes = new Object[]{
-//                kv("failed_dispatcher_entity_id", bucketName),
-//                kv("failed_dispatcher_entity_project_id", bucketProject),
-                kv("failed_dispatcher_ex_name", throwable.getClass().getName()),
-                kv("failed_dispatcher_ex_msg", throwable.getMessage())
-        };
-
-        logWithTracker(
-                ApplicationLog.GCS_FAILED_DISPATCHED_REQUESTS_LOG,
-                trackingId,
-                String.format("Failed to publish a batch to PubSub.Exception: %s. Msg: %s",
-                        throwable.getClass().getName(),
-                        throwable.getMessage()
-                ),
-                Level.ERROR,
-                attributes
-        );
-    }
-
-    // To log failed processing of projects, datasets or tables
-    public void logNonRetryableExceptions(String trackingId, Exception ex) {
+    public void logNonRetryableExceptions(String trackingId, String entityId, Exception ex) {
 
         Object [] attributes = new Object[]{
                 kv("non_retryable_ex_tracking_id", trackingId),
@@ -252,6 +188,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.NON_RETRYABLE_EXCEPTIONS_LOG,
                 trackingId,
+                entityId,
                 String.format("Caught a Non-Retryable exception while processing tracker `%s`. Exception: %s. Msg: %s", trackingId, ex.getClass().getName(), ex.getMessage()),
                 Level.ERROR,
                 attributes
@@ -260,7 +197,7 @@ public class LoggingHelper {
     }
 
     // To log failed processing of projects, datasets or tables
-    public void logRetryableExceptions(String trackingId, Exception ex, String reason) {
+    public void logRetryableExceptions(String trackingId, String entityId, Exception ex, String reason) {
 
         Object [] attributes = new Object[]{
                 kv("retryable_ex_tracking_id", trackingId),
@@ -272,6 +209,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.RETRYABLE_EXCEPTIONS_LOG,
                 trackingId,
+                entityId,
                 String.format("Caught a Retryable exception while processing tracker `%s`. Exception: %s. Msg: %s. Classification Reason: %s.",
                         trackingId,
                         ex.getClass().getName(),
@@ -284,15 +222,15 @@ public class LoggingHelper {
         ex.printStackTrace();
     }
 
-    public void logFunctionStart(String trackingId) {
-        logFunctionLifeCycleEvent(trackingId, FunctionLifeCycleEvent.START);
+    public void logFunctionStart(String trackingId, String entityId) {
+        logFunctionLifeCycleEvent(trackingId, entityId, FunctionLifeCycleEvent.START);
     }
 
-    public void logFunctionEnd(String trackingId) {
-        logFunctionLifeCycleEvent(trackingId, FunctionLifeCycleEvent.END);
+    public void logFunctionEnd(String trackingId, String entityId) {
+        logFunctionLifeCycleEvent(trackingId, entityId, FunctionLifeCycleEvent.END);
     }
 
-    private void logFunctionLifeCycleEvent(String trackingId, FunctionLifeCycleEvent event) {
+    private void logFunctionLifeCycleEvent(String trackingId, String entityId, FunctionLifeCycleEvent event) {
 
         Object [] attributes = new Object[]{
                 kv("function_lifecycle_event", event),
@@ -302,6 +240,7 @@ public class LoggingHelper {
         logWithTracker(
                 ApplicationLog.TRACKER_LOG,
                 trackingId,
+                entityId,
                 String.format("%s | %s | %s",
                         loggerName,
                         functionNumber,
@@ -312,7 +251,7 @@ public class LoggingHelper {
 
     }
 
-    private void logWithTracker(ApplicationLog log, String tracker, String msg, Level level, Object [] extraAttributes) {
+    private void logWithTracker(ApplicationLog log, String tracker, String entityId, String msg, Level level, Object [] extraAttributes) {
 
         // Enable JSON logging with Logback and SLF4J by enabling the Logstash JSON Encoder in your logback.xml configuration.
 
@@ -338,6 +277,7 @@ public class LoggingHelper {
                 kv("global_app_log", log),
                 kv("global_tracker", tracker),
                 kv("global_run_id", runId),
+                kv("global_entity_id", entityId),
                 kv("global_msg", msg),
                 kv("severity", level.toString()),
 

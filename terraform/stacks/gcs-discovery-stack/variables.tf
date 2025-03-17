@@ -224,3 +224,20 @@ variable "bq_view_run_summary" {
 variable "terraform_data_deletion_protection" {
   type = bool
 }
+
+## Tags
+variable "dlp_tag_high_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_tag_moderate_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_tag_low_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_gcs_apply_tags" {
+  type = bool
+}

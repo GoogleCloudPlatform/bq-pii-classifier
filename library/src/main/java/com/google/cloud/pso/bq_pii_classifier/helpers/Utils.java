@@ -176,4 +176,10 @@ public class Utils {
       throw new IllegalArgumentException("Invalid boolean string: '" + s + "'");
     }
   }
+
+  public static String generateBucketEntityId(String project, String bucketName){
+    return String.format("projects/%s/buckets/%s",
+            project == null? "NA": project,
+            bucketName == null? "NA": bucketName);
+  }
 }

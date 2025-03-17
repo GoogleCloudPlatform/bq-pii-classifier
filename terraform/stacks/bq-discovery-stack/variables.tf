@@ -322,3 +322,20 @@ variable "info_types_map" {
 variable "dlp_inspection_templates_ids_list" {
   type = list(string)
 }
+
+## Tags
+variable "dlp_tag_high_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_tag_moderate_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_tag_low_sensitivity_id" {
+  type = string
+}
+
+variable "dlp_bq_apply_tags" {
+  type = bool
+}

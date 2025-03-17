@@ -1,3 +1,5 @@
+.vscode/*
+
 terraform/*_deployment_verification.tfvars
 
 no-git

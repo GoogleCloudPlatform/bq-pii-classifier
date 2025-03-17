@@ -28,6 +28,7 @@ However, you must define the below variables:
 
 ```terraform
 project = "<GCP project ID to deploy solution to>"
+dlp_bq_scan_org_id = 0 # < organization id on which this dlp configuration will reside >
 compute_region = "<GCP region to deploy compute resources e.g. cloud run, iam, etc>"
 data_region = "<GCP region where application-owned data will be deployed e.g. dlp results table, gcs buckets, etc. >"
 source_data_regions  = ["<List of GCP regions where the source data resides. Policy tags and DLP inspection templates will be deployed there.>"]

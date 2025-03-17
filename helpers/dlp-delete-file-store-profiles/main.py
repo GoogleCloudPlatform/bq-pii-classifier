@@ -20,7 +20,7 @@ def delete_all_data_profiles(parent, *regions):
             for profile in profiles:
                 print(f"Deleting profile {profile.name} ..")
                 # for rate limiting
-                time.sleep(0.5)
+                time.sleep(1)
                 client.delete_file_store_data_profile(request=dlp_v2.DeleteFileStoreDataProfileRequest(
                     name=profile.name,
                 ))

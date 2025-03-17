@@ -144,11 +144,6 @@ variable "promote_dlp_other_matches" {
   description = "When set to true, the tagger service will include the 'other_matches' that DLP finds for a particular table to promote one policy tag per column"
 }
 
-variable "dlp_bq_scan_org_id" {
-  type = string
-  default = 0
-}
-
 variable "dlp_bq_scan_folder_id" {
   type = string
   default = 0
@@ -212,4 +207,10 @@ variable "dlp_bq_reprofile_on_table_data_update_types" {
   type = list(string)
   description = "The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP"
   default = ["TABLE_MODIFIED_TIMESTAMP"]
+}
+
+variable "dlp_bq_apply_tags" {
+  type = bool
+  description = "When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to BigQuery tables"
+  default = false
 }

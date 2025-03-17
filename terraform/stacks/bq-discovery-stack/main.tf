@@ -537,6 +537,49 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
     }
   }
 
+  dynamic actions {
+    // conditionally set the tagging actions based based on boolean variable var.dlp_gcs_apply_tags
+    for_each = var.dlp_bq_apply_tags ? [1]: []
+    content {
+      tag_resources {
+        tag_conditions {
+          tag {
+            namespaced_value = var.dlp_tag_high_sensitivity_id
+          }
+          sensitivity_score {
+            score = "SENSITIVITY_HIGH"
+          }
+        }
+        tag_conditions {
+          tag {
+            namespaced_value = var.dlp_tag_moderate_sensitivity_id
+          }
+          sensitivity_score {
+            score = "SENSITIVITY_MODERATE"
+          }
+        }
+        tag_conditions {
+          tag {
+            namespaced_value = var.dlp_tag_low_sensitivity_id
+          }
+          sensitivity_score {
+            score = "SENSITIVITY_LOW"
+          }
+        }
+        # When to attach a tags to resources
+        profile_generations_to_tag = ["PROFILE_GENERATION_NEW", "PROFILE_GENERATION_UPDATE"]
+
+        # Whether applying a tag to a resource should lower the risk of the profile for that resource.
+        # For example, in conjunction with an IAM deny policy, you can deny all principals a permission if
+        # a tag value is present, mitigating the risk of the resource.
+        # This also lowers the data risk of resources at the lower levels of the resource hierarchy.
+        # For example, reducing the data risk of a table data profile also reduces the data risk of the constituent
+        # column data profiles.
+        lower_data_risk_to_low     = true
+      }
+    }
+  }
+
   // PAUSED | RUNNING
   status = var.dlp_bq_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
 }

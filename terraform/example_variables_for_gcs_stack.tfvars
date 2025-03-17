@@ -14,6 +14,9 @@ image_name = "bq-pii-classifier-services:latest"
 # host project to deploy the solution
 project = ""
 
+# org id to deploy the dlp discovery config to
+org_id = 0
+
 # GCP region to deploy the solution's compute resources (e.g. Cloud Run)
 compute_region = ""
 
@@ -85,9 +88,6 @@ is_dry_run_labels = false
 deploy_dlp_inspection_template_to_global_region = true
 
 ###################### GCS Stack Variables ################################################
-
-# org id to deploy the dlp discovery config to
-dlp_gcs_scan_org_id = 0
 
 # folder id to be scanned by the org-level config
 dlp_gcs_scan_folder_id = 0

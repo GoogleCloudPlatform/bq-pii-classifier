@@ -5,10 +5,6 @@ Set the following variables to control which BigQuery tables will be scanned
 by DLP.
 
 ```terraform
-
-# organization id on which this dlp configuration will reside
-dlp_bq_scan_org_id = 0
-
 # folder id to be scanned by the org-level config
 dlp_bq_scan_folder_id = 0
 
@@ -159,6 +155,22 @@ and this variable controls which approach the solution uses at runtime.
 
 ```
 promote_dlp_other_matches = false
+```
+
+### Configure tags
+
+Set the following variable to `true` to let DLP discovery service attach sensitivity levels tags to BigQuery tables
+
+```terraform
+dlp_bq_apply_tags = true
+```
+
+In needed, the default names for the sensitivity tag key and values could be overridden via:
+```terraform
+dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level"
+dlp_tag_high_sensitivity_value_name = "high"
+dlp_tag_moderate_sensitivity_value_name = "moderate"
+dlp_tag_low_sensitivity_value_name = "low"
 ```
 
 ### Run Terraform

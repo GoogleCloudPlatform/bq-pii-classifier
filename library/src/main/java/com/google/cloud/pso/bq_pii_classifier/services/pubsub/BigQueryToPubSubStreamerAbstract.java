@@ -155,7 +155,7 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
                     failedPublishes.incrementAndGet();
                     //System.err.println("Error publishing message: " + throwable.getMessage());
                     // Handle error, e.g., log or store in an error table
-                    logger.logWarnWithTracker(runId, "Failed to publish PubSub message: "+ throwable.getMessage());
+                    logger.logWarnWithTracker(runId, runId, "Failed to publish PubSub message: "+ throwable.getMessage());
                 }
 
                 @Override
@@ -164,6 +164,7 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
                     if(successfulPublishes.get() % successMessagesIntervalForLogging == 0){
                         long elapsedSeconds = (System.currentTimeMillis() - startTimeMilis) / 1000;
                         logger.logInfoWithTracker(runId,
+                                runId,
                                 String.format("PubSub successful messages count so far: %s after %s seconds ( %s mins)",
                                         successfulPublishes.get(),
                                         elapsedSeconds,
@@ -186,15 +187,19 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
         long endTimeMilis = System.currentTimeMillis();
 
         logger.logInfoWithTracker(runId,
+                runId,
                 String.format("Total profiles fetched and processed from BigQuery : %s", bqRowsCounter.get()));
 
         logger.logInfoWithTracker(runId,
+                runId,
                 String.format("Total PubSub successful messages : %s", successfulPublishes.get()));
 
         logger.logInfoWithTracker(runId,
+                runId,
                 String.format("Total PubSub failed messages : %s", failedPublishes.get()));
 
         logger.logInfoWithTracker(runId,
+                runId,
                 String.format("Total duration in seconds : %s", (endTimeMilis-startTimeMilis)/1000));
     }
 

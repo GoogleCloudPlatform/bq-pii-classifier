@@ -5,9 +5,6 @@ Set the following variables to control which GCS Buckets will be scanned
 by DLP.
 
 ```terraform
-# org id to deploy the dlp discovery config to
-dlp_gcs_scan_org_id = 0
-
 # folder id to be scanned by the org-level config
 dlp_gcs_scan_folder_id = 0
 
@@ -38,6 +35,22 @@ gcs_existing_labels_regex = "^contains_"
 ```
 
 Recommended to omit this variable in early runs to avoid overwriting any existing labels by mistake.
+
+### Configure tags
+
+Set the following variable to `true` to let DLP discovery service attach sensitivity levels tags to buckets
+
+```terraform
+dlp_gcs_apply_tags = true
+```
+
+In needed, the default names for the sensitivity tag key and values could be overridden via: 
+```terraform
+dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level"
+dlp_tag_high_sensitivity_value_name = "high"
+dlp_tag_moderate_sensitivity_value_name = "moderate"
+dlp_tag_low_sensitivity_value_name = "low"
+```
 
 ### Run Terraform
 

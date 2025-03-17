@@ -7,7 +7,7 @@ module "gcs-discovery-stack" {
 
   source = "./stacks/gcs-discovery-stack"
 
-  dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
+  dlp_gcs_scan_org_id = var.org_id
   dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
   image_name = var.image_name
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
@@ -58,8 +58,15 @@ module "gcs-discovery-stack" {
   logging_table_name = google_bigquery_table.logging_table.table_id
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
 
+  # tags
+  dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
+  dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
+  dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+  dlp_gcs_apply_tags = var.dlp_gcs_apply_tags
+
   depends_on = [google_project_service.enable_apis]
 }
+
 
 // This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
 // The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
@@ -71,7 +78,7 @@ module "data-folder-permissions-for-gcs-discovery-stack" {
 
   source = "./modules/org-and-folder-permissions-for-gcs-discovery-stack"
 
-  dlp_config_org_id = var.dlp_gcs_scan_org_id
+  dlp_config_org_id = var.org_id
   dlp_config_folder_id = var.dlp_gcs_scan_folder_id
 
   # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"

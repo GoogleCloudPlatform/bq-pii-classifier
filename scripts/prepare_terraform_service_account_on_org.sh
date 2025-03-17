@@ -21,7 +21,6 @@ set -e
 echo "Preparing org ${1} .."
 
 # To create DLP discovery service configurations on org level
-# Required to deploy terraform/stacks/gcs-auto-dlp
 gcloud organizations add-iam-policy-binding "${1}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="roles/dlp.jobsEditor" \
@@ -30,6 +29,12 @@ gcloud organizations add-iam-policy-binding "${1}" \
 gcloud organizations add-iam-policy-binding "${1}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="roles/dlp.jobTriggersEditor" \
+    --condition="None"
+
+# To create resource manager tags on org-level (later used by DLP to tag resources)
+gcloud organizations add-iam-policy-binding "${1}" \
+    --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="roles/resourcemanager.tagAdmin" \
     --condition="None"
 
 # Instead of granting built-in roles we create custom roles with the exact permissions required

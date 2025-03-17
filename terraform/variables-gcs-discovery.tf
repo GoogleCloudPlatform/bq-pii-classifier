@@ -1,12 +1,6 @@
 
 ### Stack specific variables - required
 
-variable "dlp_gcs_scan_org_id" {
-  type        = number
-  description = "GCP organization ID that will host the DLP discovery service configuration"
-  default = 0
-}
-
 variable "dlp_gcs_scan_folder_id" {
   type        = number
   description = "GCP folder ID that will be scanned by DLP discovery service for GCS"
@@ -62,6 +56,12 @@ variable "dlp_gcs_create_configuration_in_paused_state" {
   type = bool
   description = "When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation"
   default = true
+}
+
+variable "dlp_gcs_apply_tags" {
+  type = bool
+  description = "When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to buckets"
+  default = false
 }
 
 ##### Tagging Dispatcher Service ######
@@ -150,3 +150,5 @@ variable "gcs_existing_labels_regex" {
   default = "(?!)" // Negative lookahead with an empty pattern to never match labels
   description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
 }
+
+

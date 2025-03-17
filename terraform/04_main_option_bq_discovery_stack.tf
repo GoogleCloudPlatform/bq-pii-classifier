@@ -31,7 +31,7 @@ module "bq-discovery-stack" {
   dlp_bq_reprofile_on_table_data_update_types = var.dlp_bq_reprofile_on_table_data_update_types
   dlp_bq_reprofile_on_table_schema_update_frequency = var.dlp_bq_reprofile_on_table_schema_update_frequency
   dlp_bq_scan_folder_id = var.dlp_bq_scan_folder_id
-  dlp_bq_scan_org_id = var.dlp_bq_scan_org_id
+  dlp_bq_scan_org_id = var.org_id
   dlp_bq_table_regex = var.dlp_bq_table_regex
   dlp_bq_table_types = var.dlp_bq_table_types
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
@@ -68,6 +68,12 @@ module "bq-discovery-stack" {
   workflows_bq_name = var.workflows_bq_name
   image_name = var.image_name
 
+  # tags
+  dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
+  dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
+  dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+  dlp_bq_apply_tags = var.dlp_bq_apply_tags
+
   depends_on = [google_project_service.enable_apis]
 }
 
@@ -92,7 +98,7 @@ module "data-folder-permissions-for-bq-discovery-stack" {
   # default: sa-func-get-policy-tags@<host project id>.iam.gserviceaccount.com
   sa_bq_remote_func_get_policy_tags_email = module.bq-discovery-stack[0].sa_bq_remote_func_get_policy_tags_email
 
-  dlp_config_org_id = var.dlp_bq_scan_org_id
+  dlp_config_org_id = var.org_id
 
   depends_on = [module.bq-discovery-stack]
 }

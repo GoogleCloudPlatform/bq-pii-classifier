@@ -56,6 +56,13 @@ resource "google_folder_iam_member" "iam_member_dlp_sa_gcs_viewer" {
   member = "serviceAccount:${var.dlp_service_sa_email}"
 }
 
+// to add and remove tags to resources
+resource "google_folder_iam_member" "iam_member_dlp_sa_tag_user" {
+  folder = "folders/${var.dlp_config_folder_id}"
+  role   = "roles/resourcemanager.tagUser"
+  member = "serviceAccount:${var.dlp_service_sa_email}"
+}
+
 ### Tagger Permissions
 
 # The Tagger service must be able to get and set buckets metadata (i.e. to add labels) on the folder containing data buckets
