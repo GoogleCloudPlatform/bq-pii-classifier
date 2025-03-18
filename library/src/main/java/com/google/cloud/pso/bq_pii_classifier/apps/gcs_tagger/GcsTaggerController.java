@@ -66,7 +66,7 @@ public class GcsTaggerController {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(defaultTrackingId, defaultTrackingId, msg);
+        logger.logSevereWithTracker(defaultTrackingId, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -132,7 +132,7 @@ public class GcsTaggerController {
 
           logger.logInfoWithTracker(
                   trackingId,
-                  trackingId,
+                  null,
                   String.format(
                           "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
                           dataProfilePubSubMessage.toString()));

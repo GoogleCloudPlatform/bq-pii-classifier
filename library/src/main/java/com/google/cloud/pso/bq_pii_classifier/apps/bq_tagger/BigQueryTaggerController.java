@@ -65,7 +65,7 @@ public class BigQueryTaggerController {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(defaultTrackingId, defaultTrackingId, msg);
+        logger.logSevereWithTracker(defaultTrackingId, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -76,7 +76,7 @@ public class BigQueryTaggerController {
 
       logger.logInfoWithTracker(
           defaultTrackingId,
-          defaultTrackingId,
+          null,
           String.format("Received payload: %s", requestJsonString));
 
       taggerRequest = gson.fromJson(requestJsonString, TaggerRequest.class);
@@ -113,7 +113,7 @@ public class BigQueryTaggerController {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(trackingId, trackingId, msg);
+        logger.logSevereWithTracker(trackingId, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -123,7 +123,7 @@ public class BigQueryTaggerController {
       requestJsonString = requestJsonString.replace("\\", "");
 
       logger.logInfoWithTracker(
-          trackingId, trackingId, String.format("Received payload: %s", requestJsonString));
+          trackingId, null, String.format("Received payload: %s", requestJsonString));
 
       byte[] data = requestBody.getMessage().getData();
 

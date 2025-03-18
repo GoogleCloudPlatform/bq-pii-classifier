@@ -71,7 +71,7 @@ public class GcsDispatcherController {
 
             if (requestBody == null || requestBody.getMessage() == null) {
                 String msg = "Bad Request: invalid message format";
-                logger.logSevereWithTracker(runId, runId, msg);
+                logger.logSevereWithTracker(runId, null, msg);
                 throw new NonRetryableApplicationException("Request body or message is Null.");
             }
 
@@ -80,11 +80,11 @@ public class GcsDispatcherController {
             // remove any escape characters (e.g. from Terraform
             requestJsonString = requestJsonString.replace("\\", "");
 
-            logger.logInfoWithTracker(runId, runId, String.format("Received payload: %s", requestJsonString));
+            logger.logInfoWithTracker(runId, null, String.format("Received payload: %s", requestJsonString));
 
             GcsDlpScope gcsDlpScope = gson.fromJson(requestJsonString, GcsDlpScope.class);
 
-            logger.logInfoWithTracker(runId, runId, String.format("Parsed JSON input %s ", gcsDlpScope.toString()));
+            logger.logInfoWithTracker(runId, null, String.format("Parsed JSON input %s ", gcsDlpScope.toString()));
 
             BigQueryService bigQueryService = new BigQueryServiceImpl();
 
@@ -113,7 +113,7 @@ public class GcsDispatcherController {
             dispatcher.execute(requestBody.getMessage().getMessageId());
 
         } catch (Exception e) {
-            logger.logNonRetryableExceptions(runId, runId, e);
+            logger.logNonRetryableExceptions(runId, null, e);
             state = String.format("ERROR '%s'", e.getMessage());
         }
 

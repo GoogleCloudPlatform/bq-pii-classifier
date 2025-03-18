@@ -148,7 +148,7 @@ per column for the ones that have multiple info types detected by DLP.
   The solution will include the `other_matches` that DLP detects for a particular column to promote one policy tag per column. 
   If a main info type is detected, then it will be used. Else, if only one "other matches" is found, it will be used. Otherwise, If more than one Info Type is detected in "other matches", "MIXED" policy tag will be applied to that column.
 * In case of `false`:   
-  The solution will only rely on the main info type detected by DLP, or none if DLP is doesn't report one.
+  The solution will only rely on the main info type detected by DLP, or none if DLP doesn't report one.
 
 
 Internally, this "promotion" logic is defined by this function: [computeFinalInfo Type](../library/src/main/java/com/google/cloud/pso/bq_pii_classifier/functions/tagger/Tagger.java) 

@@ -72,7 +72,7 @@ public class BigQueryDispatcherController {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(runId, runId, msg);
+        logger.logSevereWithTracker(runId, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -81,12 +81,12 @@ public class BigQueryDispatcherController {
       // remove any escape characters (e.g. from Terraform
       requestJsonString = requestJsonString.replace("\\", "");
 
-      logger.logInfoWithTracker(runId, runId, String.format("Received payload: %s", requestJsonString));
+      logger.logInfoWithTracker(runId, null, String.format("Received payload: %s", requestJsonString));
 
       BigQueryDlpScope bigQueryDlpScope = gson.fromJson(requestJsonString, BigQueryDlpScope.class);
 
       logger.logInfoWithTracker(
-          runId, runId, String.format("Parsed JSON input %s ", bigQueryDlpScope.toString()));
+          runId, null, String.format("Parsed JSON input %s ", bigQueryDlpScope.toString()));
 
       BigQueryService bigQueryService = new BigQueryServiceImpl();
 
@@ -100,7 +100,7 @@ public class BigQueryDispatcherController {
       sqlParamsMap.put("${dispatcher_runs_table}", environment.getDispatcherRunsTable());
       sqlParamsMap.put("${run_id}", runId);
 
-      logger.logInfoWithTracker(runId, runId, String.format("Sql parameters map %s", sqlParamsMap));
+      logger.logInfoWithTracker(runId, null, String.format("Sql parameters map %s", sqlParamsMap));
 
       DlpFindingsScanner dlpFindingsScanner =
           new UniversalDlpFindingsScannerImpl(
@@ -118,7 +118,7 @@ public class BigQueryDispatcherController {
       dispatcher.execute(requestBody.getMessage().getMessageId());
 
     } catch (Exception e) {
-      logger.logNonRetryableExceptions(runId, runId, e);
+      logger.logNonRetryableExceptions(runId, null, e);
       state = String.format("ERROR '%s'", e.getMessage());
     }
 

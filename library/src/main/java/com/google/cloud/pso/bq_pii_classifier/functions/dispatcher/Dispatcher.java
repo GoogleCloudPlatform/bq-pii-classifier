@@ -77,24 +77,24 @@ public class Dispatcher {
                               + "going to be re-processed and ignored instead.",
                       pubSubMessageId);
 
-      logger.logWarnWithTracker(runId, runId, msg);
+      logger.logWarnWithTracker(runId, null, msg);
       return;
 
     } else {
       logger.logInfoWithTracker(
               runId,
-              runId,
+              null,
               String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
       persistentSet.add(flagFileName);
     }
 
-    logger.logInfoWithTracker(runId, runId, "Executing the BigQuery query..");
+    logger.logInfoWithTracker(runId, null, "Executing the BigQuery query..");
 
     TableResult dlpFindingsQueryResults = scanner.getDlpProfilesFromBigQuery(runId);
 
     logger.logInfoWithTracker(
             runId,
-            runId,
+            null,
             String.format("BigQuery query returned %s rows", dlpFindingsQueryResults.getTotalRows()));
 
     bigQueryToPubSubStreamer.publishBigQueryTableResults(dlpFindingsQueryResults,
@@ -104,6 +104,6 @@ public class Dispatcher {
             logger,
             1000);
 
-    logger.logFunctionEnd(runId, runId);
+    logger.logFunctionEnd(runId, null);
   }
 }
