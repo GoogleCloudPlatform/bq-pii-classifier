@@ -140,12 +140,13 @@ Omit this variable, or set to `iam_mapping = {}`, to skip adding IAM members to 
 
 #### Configure what to do with Mixed PII
 
-The `promote_dlp_other_matches` setting will determine how the solution picks only one Info Type and policy tag
-for columns that have multiple Info Types detected by DLP.
+The `promote_dlp_other_matches` setting will determine how the solution picks only one info type and policy tag
+per column for the ones that have multiple info types detected by DLP.
 
 
 * In case of `true`:    
-  The solution will include the `other_matches` that DLP detects for a particular table to promote one policy tag per column. If more than one Info Type is detected (main info type + other matches), "MIXED" policy tag will be applied to that column
+  The solution will include the `other_matches` that DLP detects for a particular column to promote one policy tag per column. 
+  If a main info type is detected, then it will be used. Else, if only one "other matches" is found, it will be used. Otherwise, If more than one Info Type is detected in "other matches", "MIXED" policy tag will be applied to that column.
 * In case of `false`:   
   The solution will only rely on the main info type detected by DLP, or none if DLP is doesn't report one.
 

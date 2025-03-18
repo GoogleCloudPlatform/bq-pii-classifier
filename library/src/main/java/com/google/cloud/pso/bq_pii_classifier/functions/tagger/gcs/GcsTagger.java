@@ -65,6 +65,9 @@ public class GcsTagger {
   public Map<String, InfoTypeInfo> execute(GcsTaggerRequest request, String pubSubMessageId)
       throws NonRetryableApplicationException, IOException {
 
+    // at this point the dlp summary profile might be missing some fields (e.g. project id, info types) if it's coming
+    // from dlp discovery service (vs a complete profile coming from the tagging dispatcher). Meaning, entity_id in
+    // log messages via bucketResourceName might be missing the project field until we fetch the full profile
     String bucketResourceName =
         Utils.generateBucketEntityId(
             request.getGcsDlpProfileSummary().getProjectId(),
@@ -102,6 +105,12 @@ public class GcsTagger {
           findingsReader.getGcsDlpProfileSummary(
               request.getGcsDlpProfileSummary().getFileStoreProfileName());
     }
+
+    // overwrite the bucket resource name after fetching the full profile
+    bucketResourceName =
+            Utils.generateBucketEntityId(
+                    profileSummary.getProjectId(),
+                    profileSummary.getBucketName());
 
     logger.logInfoWithTracker(
         request.getTrackingId(),

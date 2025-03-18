@@ -59,6 +59,8 @@ public class Tagger {
 
     logger = new LoggingHelper(Tagger.class.getSimpleName(), functionNumber, config.projectId());
   }
+
+  // entry point for DLP Discovery Service Handler to fetch fields Findings
   public void execute(
           String runId,
           String trackingId,
@@ -71,7 +73,6 @@ public class Tagger {
 
     Map<String, DlpFieldFindings> fieldsFindings =
             findingsReader.getBigQueryDlpProfileSummary(
-                    config.dlpParent(),
                     dataProfilePubSubMessage.getProfile().getName());
 
     execute(new TaggerRequest(
@@ -592,10 +593,11 @@ public class Tagger {
                                             List<DlpOtherInfoTypeMatch> otherDlpInfoTypes,
                                             boolean promoteDlpOtherMatches){
     if (promoteDlpOtherMatches){
+      // if dlp found a main info type then use it
       if (mainDlpInfoType != null && !mainDlpInfoType.isEmpty()) {
         return mainDlpInfoType;
       } else {
-        // if dlp doesn't detect a main dlp with high confidence then consider other info types it found
+        // if dlp doesn't detect a main info type with high confidence then consider other info types if found
         if (otherDlpInfoTypes != null && otherDlpInfoTypes.size() == 1) {
           return otherDlpInfoTypes.get(0).infoTypeName();
         } else {

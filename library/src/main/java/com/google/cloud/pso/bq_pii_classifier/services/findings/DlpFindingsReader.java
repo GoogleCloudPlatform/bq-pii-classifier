@@ -11,6 +11,6 @@ public interface DlpFindingsReader {
 
     GcsDlpProfileSummary getGcsDlpProfileSummary(String fileStoreDataProfileName) throws IOException, NonRetryableApplicationException;
 
-    Map<String, DlpFieldFindings> getBigQueryDlpProfileSummary(String dlpParent, String tableProfileName) throws IOException;
+    Map<String, DlpFieldFindings> getBigQueryDlpProfileSummary(String tableProfileName) throws IOException;
 
 }

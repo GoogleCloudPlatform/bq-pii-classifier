@@ -46,7 +46,6 @@ public class Environment {
                 getIsDryRunLabels(),
                 getInfoTypeMap(),
                 getExistingLabelsRegex(),
-                getDlpParent(),
                 getPromoteDlpOtherMatches(),
                 getInfoTypePolicyTagMap(),
                 getProjectDomainMap(),
@@ -89,10 +88,6 @@ public class Environment {
 
     public String getExistingLabelsRegex(){
         return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
-    }
-
-    public String getDlpParent(){
-        return Utils.getConfigFromEnv("DLP_PARENT", true);
     }
 
     public Boolean getPromoteDlpOtherMatches () {

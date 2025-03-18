@@ -175,10 +175,6 @@ module "cloud-run-tagger" {
       value = jsonencode(local.datasets_and_domains_filtered)
     },
     {
-      name  = "DLP_PARENT",
-      value = google_data_loss_prevention_discovery_config.dlp_bq_org_folder.parent
-    },
-    {
       name = "PROMOTE_DLP_OTHER_MATCHES"
       value = var.promote_dlp_other_matches
     }

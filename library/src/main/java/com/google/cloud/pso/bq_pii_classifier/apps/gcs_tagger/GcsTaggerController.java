@@ -123,19 +123,19 @@ public class GcsTaggerController {
         DataProfilePubSubMessage dataProfilePubSubMessage =
             DataProfilePubSubMessage.parseFrom(data);
 
-        logger.logInfoWithTracker(
-            defaultTrackingId,
-            defaultTrackingId,
-            String.format(
-                "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
-                dataProfilePubSubMessage.toString()));
-
         if (dataProfilePubSubMessage.hasFileStoreProfile()) {
 
           String fileStoreProfileName = dataProfilePubSubMessage.getFileStoreProfile().getName();
           String fileStorePath = dataProfilePubSubMessage.getFileStoreProfile().getFileStorePath();
           String runId = TrackingHelper.generateOneTimeTaggingSuffix();
           String trackingId = TrackingHelper.generateTrackingId(runId, fileStorePath);
+
+          logger.logInfoWithTracker(
+                  trackingId,
+                  trackingId,
+                  String.format(
+                          "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
+                          dataProfilePubSubMessage.toString()));
 
           // CASE 2: GcsTaggerRequest computed from GCS Auto DLP PubSub message proto
           return new GcsTaggerRequest(

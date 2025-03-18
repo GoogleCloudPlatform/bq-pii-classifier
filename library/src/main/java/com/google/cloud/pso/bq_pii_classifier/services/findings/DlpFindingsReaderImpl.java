@@ -3,6 +3,7 @@ package com.google.cloud.pso.bq_pii_classifier.services.findings;
 import com.google.cloud.dlp.v2.DlpServiceClient;
 import com.google.cloud.pso.bq_pii_classifier.entities.DlpFieldFindings;
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
+import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.privacy.dlp.v2.ColumnDataProfile;
 import com.google.privacy.dlp.v2.FileStoreDataProfile;
 import com.google.privacy.dlp.v2.ListColumnDataProfilesRequest;
@@ -33,12 +34,14 @@ public class DlpFindingsReaderImpl implements DlpFindingsReader {
     }
 
     @Override
-    public Map<String, DlpFieldFindings> getBigQueryDlpProfileSummary(String dlpParent, String tableProfileName)
+    public Map<String, DlpFieldFindings> getBigQueryDlpProfileSummary(String tableProfileName)
             throws IOException {
 
         Map<String, DlpFieldFindings> fieldsFindings = new HashMap<>();
 
         try (DlpServiceClient dlpServiceClient = DlpServiceClient.create()) {
+
+            String dlpParent = Utils.extractDlpParentFromProfile(tableProfileName);
 
             ListColumnDataProfilesRequest request =
                     ListColumnDataProfilesRequest.newBuilder()
@@ -46,7 +49,12 @@ public class DlpFindingsReaderImpl implements DlpFindingsReader {
                             .setFilter(String.format("table_data_profile_name = %s", tableProfileName))
                             .build();
 
-            for (ColumnDataProfile p : dlpServiceClient.listColumnDataProfiles(request).iterateAll()) {
+            DlpServiceClient.ListColumnDataProfilesPagedResponse response = dlpServiceClient
+                    .listColumnDataProfiles(request);
+
+            Iterable<ColumnDataProfile> columnProfiles = response.iterateAll();
+
+            for (ColumnDataProfile p : columnProfiles) {
                 String infoType = p.getColumnInfoType().getInfoType().getName();
                 List<DlpOtherInfoTypeMatch> otherInfoTypes =
                         p.getOtherMatchesList().stream()

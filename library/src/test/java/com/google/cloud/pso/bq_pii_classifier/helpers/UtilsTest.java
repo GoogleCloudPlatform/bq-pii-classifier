@@ -121,4 +121,12 @@ public class UtilsTest {
             assertEquals(1,1);
         }
     }
+
+    @Test
+    public void testExtractParentFromDlpProfile(){
+        assertEquals("organizations/123/locations/europe",
+                Utils.extractDlpParentFromProfile(
+                        "organizations/123/locations/europe/tableDataProfiles/456"));
+    }
+
 }
