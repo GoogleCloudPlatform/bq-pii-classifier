@@ -22,18 +22,28 @@ public class TrackingHelper {
 
     private static final String taggingRunSuffix = "-T";
     private static final String oneTimeTaggingSuffix = "-A";
-    private static final Integer suffixLength = 2;
+    private static final String gcsSuffix = "-GS";
+    private static final String bigQuerySuffix = "-BQ";
+    private static final Integer suffixLength = 5;
 
-    public static String generateTaggingRunId(){
-        return generateRunId(taggingRunSuffix);
+    public static String generateTaggingRunIdForBigQuery(){
+        return generateRunId(taggingRunSuffix, bigQuerySuffix);
     }
 
-    public static String generateOneTimeTaggingSuffix(){
-        return generateRunId(oneTimeTaggingSuffix);
+    public static String generateOneTimeTaggingSuffixForBigQuery(){
+        return generateRunId(oneTimeTaggingSuffix, bigQuerySuffix);
     }
 
-    private static String generateRunId(String suffix){
-        return String.format("%s%s", System.currentTimeMillis(), suffix);
+    public static String generateTaggingRunIdForGcs(){
+        return generateRunId(taggingRunSuffix, gcsSuffix);
+    }
+
+    public static String generateOneTimeTaggingSuffixForGcs(){
+        return generateRunId(oneTimeTaggingSuffix, gcsSuffix);
+    }
+
+    private static String generateRunId(String type, String system){
+        return String.format("%s%s%s", System.currentTimeMillis(), type, system);
     }
 
     public static String parseRunIdAsPrefix(String str){
@@ -41,22 +51,12 @@ public class TrackingHelper {
         return str.substring(0, (13 + suffixLength));
     }
 
-    public static String generateTrackingId (String runId, String table){
+    public static String generateTrackingId (String runId){
 
         // using UUIDs only resulted in unexpected collisions in some runs.
         // adding table name hash for extra "randomness"
 
         return String.format("%s-%s", runId, UUID.randomUUID());
-    }
-
-    /**
-     *
-     * @param jobName Dlp Job name in format projects/locations/dlpJobs/i-<tracking-number>_templateNumber
-     * @return tracking-number part
-     */
-    public static String extractTrackingIdFromJobName(String jobName){
-        String [] splits = jobName.split("/");
-        return  splits[splits.length-1].split("_")[0].substring(2);
     }
 
 }

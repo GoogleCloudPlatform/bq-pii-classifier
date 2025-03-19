@@ -65,7 +65,7 @@ public class BigQueryDispatcherController {
   @RequestMapping(value = "/", method = RequestMethod.POST)
   public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
 
-    String runId = TrackingHelper.generateTaggingRunId();
+    String runId = TrackingHelper.generateTaggingRunIdForBigQuery();
     String state = "";
 
     try {

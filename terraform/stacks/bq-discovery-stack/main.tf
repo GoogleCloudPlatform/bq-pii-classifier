@@ -511,11 +511,24 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
     }
   }
 
-  // Target to cover all "other" unmatched resources. Target is disabled, meaning, for all other matches than specified, do not profile.
+  // Target to cover all "other" unmatched resources. For all other matches than specified, do not profile.
   targets {
     big_query_target {
       filter {
         other_tables {}
+      }
+      cadence {
+        // Governs when to update data profiles when a schema is modified
+        schema_modified_cadence {
+          frequency = "UPDATE_FREQUENCY_NEVER"
+        }
+        // Governs when to update profile when a table is modified (i.e. rows are added/updated/deleted)
+        table_modified_cadence {
+          frequency = "UPDATE_FREQUENCY_NEVER"
+        }
+        inspect_template_modified_cadence {
+          frequency = "UPDATE_FREQUENCY_NEVER"
+        }
       }
     }
   }

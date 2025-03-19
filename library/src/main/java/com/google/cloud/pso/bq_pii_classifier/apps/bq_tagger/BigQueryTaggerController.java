@@ -132,8 +132,8 @@ public class BigQueryTaggerController {
       TableSpec targetTable =
               TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
 
-      String runId = TrackingHelper.generateOneTimeTaggingSuffix();
-      trackingId = TrackingHelper.generateTrackingId(runId, targetTable.toSqlString());
+      String runId = TrackingHelper.generateOneTimeTaggingSuffixForBigQuery();
+      trackingId = TrackingHelper.generateTrackingId(runId);
 
       logger.logInfoWithTracker(
           trackingId,

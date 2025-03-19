@@ -127,8 +127,8 @@ public class GcsTaggerController {
 
           String fileStoreProfileName = dataProfilePubSubMessage.getFileStoreProfile().getName();
           String fileStorePath = dataProfilePubSubMessage.getFileStoreProfile().getFileStorePath();
-          String runId = TrackingHelper.generateOneTimeTaggingSuffix();
-          String trackingId = TrackingHelper.generateTrackingId(runId, fileStorePath);
+          String runId = TrackingHelper.generateOneTimeTaggingSuffixForGcs();
+          String trackingId = TrackingHelper.generateTrackingId(runId);
 
           logger.logInfoWithTracker(
                   trackingId,

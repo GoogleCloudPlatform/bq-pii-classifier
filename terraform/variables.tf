@@ -157,11 +157,8 @@ variable "tagger_subscription_message_retention_duration" {
   # It also sets how long should we keep trying to process one run
   # min value must be at least equal to the ack_deadline_seconds
   # Tagger should have a relatively long retention to handle runs with large number of tables.
-  default = "86400s"
-  # 24h
+  default = "604800s" # 7 days (max)
 }
-
-
 
 variable "terraform_data_deletion_protection" {
   type = bool
@@ -184,7 +181,7 @@ variable "supported_stacks" {
     condition = anytrue([
     for item in var.supported_stacks: contains(["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"], item)
     ])
-    error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_DISCOVERY', and optionally 'GCS_DISCOVERY'."
+    error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_DISCOVERY' or 'GCS_DISCOVERY'."
   }
 }
 
