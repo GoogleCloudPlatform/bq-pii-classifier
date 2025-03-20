@@ -517,19 +517,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
       filter {
         other_tables {}
       }
-      cadence {
-        // Governs when to update data profiles when a schema is modified
-        schema_modified_cadence {
-          frequency = "UPDATE_FREQUENCY_NEVER"
-        }
-        // Governs when to update profile when a table is modified (i.e. rows are added/updated/deleted)
-        table_modified_cadence {
-          frequency = "UPDATE_FREQUENCY_NEVER"
-        }
-        inspect_template_modified_cadence {
-          frequency = "UPDATE_FREQUENCY_NEVER"
-        }
-      }
+      disabled {}
     }
   }
 

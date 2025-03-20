@@ -100,10 +100,10 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
   // Target to cover all "other" unmatched resources. Target is disabled, meaning, for all other matches than specified, do not profile.
   targets {
     cloud_storage_target {
-      disabled {}
       filter {
         others {}
       }
+      disabled {}
     }
 
   }
