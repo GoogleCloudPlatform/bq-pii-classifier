@@ -27,7 +27,7 @@
     <properties>
         <java.version>17</java.version>
         <spring.boot.version>3.4.1</spring.boot.version>
-        <spring.cloud.version>2023.0.3</spring.cloud.version>
+        <spring.cloud.version>2024.0.1</spring.cloud.version>
         <google.cloud.bom.version>26.43.0</google.cloud.bom.version>
         <!-- The base image to be used by spring framework to run the services. It must match the target Java version. -->
         <maven.jib.base_image>eclipse-temurin:17</maven.jib.base_image>
