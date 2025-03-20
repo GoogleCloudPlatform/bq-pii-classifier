@@ -146,7 +146,7 @@ public class Tagger {
       logger.logWarnWithTracker(request.getTrackingId(),
               targetTable.toSqlString(),
               String.format(
-              "The following table fields have assigned info types by DLP but no policy tags could be found for them: %s ",
+              "The following table fields have assigned info types by DLP but no policy tags could be found for them. Make sure a corresponding policy tag taxonomy is deployed in the same region as the table. Info types and policy tags:  %s ",
               lookupPolicyTagsResults.y().columnsInfoType().toString()
       ));
     }
