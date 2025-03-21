@@ -37,11 +37,20 @@ ORDER BY tracker;
 ### Helpful in investigating issues
  
 
-Monitor failed runs (per table)
-
+Tracking log messages for a particular entity (e.g. table or bucket).
 ```roomsql
-SELECT  * FROM `bq_pii_classifier.v_broken_steps` 
-WHERE run_id = RUN_ID;
+SELECT 
+    jsonPayload.global_run_id,
+    jsonPayload.global_tracker,
+    jsonPayload.global_entity_id,
+    jsonPayload.global_app_log,
+    resource.labels.service_name,
+    jsonPayload.global_logger_name,
+    jsonPayload.global_msg
+FROM `bq_pii_classifier.run_googleapis_com_stdout` l
+WHERE jsonPayload.global_entity_id LIKE '%buckets/BUCKET_NAME'
+AND jsonPayload.global_run_id = TAGGING_DISPATCHER_RUN_ID
+ORDER BY timestamp ASC
 ```
 
 List Non-Retryable errors. Table trackers with Non-Retryable errors implies that these tables will not be tagged in this run. 
