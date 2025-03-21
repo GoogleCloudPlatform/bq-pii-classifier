@@ -22,6 +22,7 @@ from google.cloud import storage
 from google.cloud import monitoring_v3
 import time
 from google.cloud import resourcemanager_v3
+import traceback
 
 
 def list_projects_in_folder(folder_id: str, resource_manager_client=resourcemanager_v3.ProjectsClient()):
@@ -188,11 +189,11 @@ def process_calls(calls: []):
                                 "buckets_metadata": buckets_metadata,
                                 "errors": []})
             except Exception as e:
-
+                formatted_error = traceback.format_exc()
                 replies.append({"level": "project",
                                 "entity_id": entity_id,
                                 "buckets_metadata": [],
-                                "errors": [f"{e}"]})
+                                "errors": [f"Error while processing project '{entity_id}': {formatted_error}"]})
 
         elif level == "folder":
             folder_buckets_metadata = []
@@ -230,10 +231,11 @@ def process_calls(calls: []):
                                 "errors": folder_errors})
 
             except Exception as e:
+                formatted_error = traceback.format_exc()
                 replies.append({"level": "folder",
                                 "entity_id": entity_id,
                                 "buckets_metadata": [],
-                                "errors": [f"{e}"]})
+                                "errors": [f"Errors while processing folder '{entity_id}': {formatted_error}"]})
 
         else:  # if level not in ['folder','project']
             raise Exception("'level' only supports ['folder','project']")
@@ -270,6 +272,8 @@ def process_request(request):
         return return_json, 200
 
     except Exception as e:
-        logging.error(f"Error while processing request {str(e)}")
-        return jsonify({"errorMessage": str(e)}), 400
+        formatted_error = traceback.format_exc()
+        error_message = f"Error while processing request: {str(formatted_error)}"
+        logging.error(formatted_error)
+        return jsonify({"errorMessage": error_message}), 400
 
