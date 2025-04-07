@@ -24,7 +24,7 @@ public class DlpFindingsReaderImpl implements DlpFindingsReader {
             FileStoreDataProfile dataProfile =
                     dlpServiceClient.getFileStoreDataProfile(fileStoreDataProfileName);
 
-            if (dataProfile.getFileStoreIsEmpty()) {
+            if (dataProfile == null) {
                 throw new NonRetryableApplicationException(
                         String.format("No file store data profile found for '%s'", fileStoreDataProfileName));
             }
