@@ -144,73 +144,43 @@ variable "promote_dlp_other_matches" {
   description = "When set to true, the tagger service will include the 'other_matches' that DLP finds for a particular table to promote one policy tag per column"
 }
 
-variable "dlp_bq_scan_folder_id" {
-  type = string
-  default = 0
-}
+variable "dlp_bq_discovery_configurations" {
+  type = list(object({
 
-variable "dlp_bq_create_configuration_in_paused_state" {
-  type = bool
-  description = "When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation"
-  default = true
-}
+    # GCP folder to scan
+    folder_id                                         = number
 
-variable "dlp_bq_project_id_regex" {
-  type        = string
-  description = "Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects"
-  default     = ".*"
-}
+    # Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects
+    project_id_regex                                  = optional(string, ".*")
 
-variable "dlp_bq_dataset_regex" {
-  type        = string
-  description = "Regex to test the dataset name against during the DLP scan for BigQuery. if unset, this property matches all datasets"
-  default     = ".*"
-}
+    # Regex to test the dataset name against during the DLP scan for BigQuery. if unset, this property matches all datasets
+    dataset_regex                                     = optional(string, ".*")
 
-variable "dlp_bq_table_regex" {
-  type        = string
-  description = "Regex to test the table name against during the DLP scan for BigQuery.  if unset, this property matches all tables"
-  default     = ".*"
-}
+    # Regex to test the table name against during the DLP scan for BigQuery.  if unset, this property matches all tables
+    table_regex                                       = optional(string, ".*")
 
-variable "dlp_bq_table_types" {
-  type = list(string)
-  description = "Restrict dlp discovery service for BigQuery to specific table types"
-  default = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
-}
+    # When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to BigQuery tables
+    apply_tags                                        = optional(bool, false)
 
-variable "dlp_bq_reprofile_on_table_schema_update_frequency" {
-  type = string
-  description = "How frequently data profiles can be updated when a table schema is modified (i.e. columns). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
-  default = "UPDATE_FREQUENCY_NEVER"
-}
+    # dlp_bq_create_configuration_in_paused_state
+    create_configuration_in_paused_state              = optional(bool, true)
 
-variable "dlp_bq_reprofile_on_table_data_update_frequency" {
-  type = string
-  description = "How frequently data profiles can be updated when a table data is modified (i.e. rows). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
-  default = "UPDATE_FREQUENCY_NEVER"
-}
+    # Restrict dlp discovery service for BigQuery to specific table types
+    table_types = optional(list(string), ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"])
 
-variable "dlp_bq_reprofile_on_inspection_template_update_frequency" {
-  type = string
-  description = "How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
-  default = "UPDATE_FREQUENCY_NEVER"
-}
+    # How frequently data profiles can be updated when a table schema is modified (i.e. columns). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
+    reprofile_frequency_on_table_schema_update        = optional(string, "UPDATE_FREQUENCY_NEVER")
 
-variable "dlp_bq_reprofile_on_schema_update_types" {
-  type = list(string)
-  description = "The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS"
-  default = ["SCHEMA_NEW_COLUMNS"]
-}
+    # How frequently data profiles can be updated when a table data is modified (i.e. rows). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
+    reprofile_frequency_on_table_data_update          = optional(string, "UPDATE_FREQUENCY_NEVER")
 
-variable "dlp_bq_reprofile_on_table_data_update_types" {
-  type = list(string)
-  description = "The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP"
-  default = ["TABLE_MODIFIED_TIMESTAMP"]
-}
+    # How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
+    reprofile_frequency_on_inspection_template_update = optional(string, "UPDATE_FREQUENCY_NEVER")
 
-variable "dlp_bq_apply_tags" {
-  type = bool
-  description = "When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to BigQuery tables"
-  default = false
+    # The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
+    reprofile_types_on_schema_update = optional(list(string), ["SCHEMA_NEW_COLUMNS"])
+
+    # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP
+    reprofile_types_on_table_data_update = optional(list(string), ["TABLE_MODIFIED_TIMESTAMP"])
+  }))
 }

@@ -2,13 +2,13 @@
 
 module "gcs-discovery-stack" {
 
-  // deploy it only if the GCS_DISCOVERY is selected
-  count = contains(var.supported_stacks, "GCS_DISCOVERY")? 1: 0
+  // deploy the stack one time if the configurations list is not empty
+  count = length(var.dlp_gcs_discovery_configurations) == 0 ? 0: 1
 
   source = "./stacks/gcs-discovery-stack"
 
   dlp_gcs_scan_org_id = var.org_id
-  dlp_gcs_scan_folder_id = var.dlp_gcs_scan_folder_id
+  dlp_gcs_discovery_configurations = var.dlp_gcs_discovery_configurations
   image_name = var.image_name
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
   compute_region = var.compute_region
@@ -28,13 +28,6 @@ module "gcs-discovery-stack" {
   dlp_service_account_email                          = local.dlp_service_account_email
   source_data_regions                                = var.source_data_regions
   dlp_gcs_bq_results_table_name = var.dlp_gcs_bq_results_table_name
-  dlp_gcs_bucket_name_regex = var.dlp_gcs_bucket_name_regex
-  dlp_gcs_create_configuration_in_paused_state = var.dlp_gcs_create_configuration_in_paused_state
-  dlp_gcs_included_bucket_attributes = var.dlp_gcs_included_bucket_attributes
-  dlp_gcs_included_object_attributes = var.dlp_gcs_included_object_attributes
-  dlp_gcs_project_id_regex = var.dlp_gcs_project_id_regex
-  dlp_gcs_reprofile_on_data_change = var.dlp_gcs_reprofile_on_data_change
-  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_reprofile_on_inspection_template_update
   sa_tagger_gcs = var.sa_tagger_gcs
   sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
   sa_tagging_dispatcher_gcs = var.sa_tagging_dispatcher_gcs
@@ -64,34 +57,49 @@ module "gcs-discovery-stack" {
   dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
-  dlp_gcs_apply_tags = var.dlp_gcs_apply_tags
 
   depends_on = [google_project_service.enable_apis]
-
 }
 
-
-// This module assigns roles and permissions to service accounts used in this solution on FOLDER AND ORG levels (and not the host project)
+// This module creates granular custom roles and assigns roles and permissions to service accounts used in this solution on ORG levels (and not the host project)
 // The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
-module "data-folder-permissions-for-gcs-discovery-stack" {
+module "gcs-discovery-stack-org-permissions" {
+  source = "./modules/gcs-discovery-stack-org-permissions"
 
-  // deploy it only if the GCS_DISCOVERY is selected
-  count = contains(var.supported_stacks, "GCS_DISCOVERY")? 1: 0
+  // deploy the stack one time if the configurations list is not empty
+  count = length(var.dlp_gcs_discovery_configurations) == 0 ? 0: 1
 
-  source = "./modules/org-and-folder-permissions-for-gcs-discovery-stack"
-
-  dlp_config_org_id = var.org_id
-  dlp_config_folder_id = var.dlp_gcs_scan_folder_id
-
-  # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
-  dlp_service_sa_email = local.dlp_service_account_email
-  # <var.sa_tagging_dispatcher_gcs>@<host project name>.iam.gserviceaccount.com. Default: tag-dispatcher-gcs@<host project name>.iam.gserviceaccount.com
-  dispatcher_sa_email = module.gcs-discovery-stack[0].dispatcher_sa_email
-  # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
+  org_id          = var.org_id
   tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
-  # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
-  func_get_buckets_metadata_sa_email = module.gcs-discovery-stack[0].func_get_buckets_metadata_sa_email
 
   depends_on = [module.gcs-discovery-stack]
 }
+
+// This module assigns roles and permissions to service accounts used in this solution on data FOLDER levels (and not the host project)
+// The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
+module "gcs-discovery-stack-folder-permissions" {
+
+  source = "./modules/gcs-discovery-stack-folder-permissions"
+
+  // deploy once per folder
+  count = length(var.dlp_gcs_discovery_configurations)
+
+  dlp_config_folder_id = var.dlp_gcs_discovery_configurations[count.index].folder_id
+
+  # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
+  tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
+  # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
+  dlp_service_sa_email = local.dlp_service_account_email
+  # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com
+  func_get_buckets_metadata_sa_email = module.gcs-discovery-stack[0].func_get_buckets_metadata_sa_email
+
+  get_buckets_metadata_func_custom_role_id = module.gcs-discovery-stack-org-permissions[0].get_buckets_metadata_func_custom_role_id
+  tagger_custom_role_id = module.gcs-discovery-stack-org-permissions[0].tagger_custom_role_id
+
+  depends_on = [module.gcs-discovery-stack-org-permissions]
+}
+
+
+

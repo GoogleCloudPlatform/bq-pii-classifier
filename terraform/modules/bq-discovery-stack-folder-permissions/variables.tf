@@ -6,10 +6,6 @@ variable "dlp_service_sa_email" {
   type = string
 }
 
-variable "sa_tagging_dispatcher_email" {
-  type = string
-}
-
 variable "sa_tagger_email" {
   type = string
 }
@@ -18,6 +14,6 @@ variable "sa_bq_remote_func_get_policy_tags_email" {
   type = string
 }
 
-variable "dlp_config_org_id" {
+variable "tagger_custom_role_id" {
   type = string
 }

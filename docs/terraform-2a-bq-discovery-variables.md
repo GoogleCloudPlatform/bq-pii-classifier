@@ -5,8 +5,8 @@ Set the following variables to control which BigQuery tables will be scanned
 by DLP.
 
 ```terraform
-# folder id to be scanned by the org-level config
-dlp_bq_scan_folder_id = 0
+# folder ids to be scanned by the org-level config
+dlp_bq_scan_folder_id_list = [0]
 
 # regex for project names to be scanned. Omit to use default that scans all
 dlp_bq_project_id_regex = "^project_xyz$"

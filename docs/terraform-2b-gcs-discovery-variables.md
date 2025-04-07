@@ -6,7 +6,7 @@ by DLP.
 
 ```terraform
 # folder id to be scanned by the org-level config
-dlp_gcs_scan_folder_id = 0
+dlp_gcs_scan_folder_id_list = [0]
 
 # regex for project names to be scanned. Omit to use default that scans all
 dlp_gcs_project_id_regex = "^project_xyz$"

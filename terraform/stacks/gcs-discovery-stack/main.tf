@@ -3,222 +3,127 @@
 ########################################################################################################################
 
 locals {
-  dlp_region = var.data_region == "eu" ? "europe" : var.data_region
-
   service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
+
+  tagging_dispatcher_sa_roles = [
+    "roles/bigquery.jobUser", # to run the query that reads DLP findings
+    "roles/bigquery.dataEditor", # to insert dispatched tracking Ids to table dispatcher_runs
+    "roles/batch.agentReporter", # to run Cloud Batch jobs
+    "roles/logging.logWriter", # to run Cloud Batch jobs,
+    "roles/artifactregistry.reader" # to read container image for the service
+  ]
+
+  tagger_sa_roles = [
+    "roles/artifactregistry.reader" # to read container image for the service
+  ]
 }
 
-resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
-
-  // Project-level config. Only data in that project could be scanned
-  #    parent = "projects/<project id>/locations/${local.dlp_region}"
-
-  parent = "organizations/${var.dlp_gcs_scan_org_id}/locations/${local.dlp_region}"
-  org_config {
-    // The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the cloud DLP API must be enabled
-    project_id = var.project
-
-    // The data to scan folder or project
-    location {
-      folder_id = var.dlp_gcs_scan_folder_id
-    }
-  }
-
-  location = local.dlp_region
-
-  // inspection template(s) that will be used to inspect GCS buckets
-  inspect_templates = var.dlp_inspection_templates_ids_list
-
-  // Enabled target with filter on specific projects/buckets
-  targets {
-
-    cloud_storage_target {
-      filter {
-
-        // (Optional) A specific set of buckets for this filter to apply to.
-        collection {
-          include_regexes {
-            patterns {
-              cloud_storage_regex {
-                // For organizations, if unset, will match all projects.
-                project_id_regex  = var.dlp_gcs_project_id_regex
-                // Regex to test the bucket name against. If empty, all buckets match. Example: "marketing2021" or "(marketing)\d{4}" will both match the bucket gs://marketing2021
-                bucket_name_regex = var.dlp_gcs_bucket_name_regex
-              }
-            }
-
-          }
-        }
-
-        // (Optional) The bucket to scan.
-        #        cloud_storage_resource_reference {
-        #          // (Optional) The bucket to scan.
-        #          bucket_name = ""
-        #          //(Optional) If within a project-level config, then this must match the config's project id.
-        #          project_id  = ""
-        #        }
-      }
-
-      //  (Optional) In addition to matching the filter, these conditions must be true before a profile is generated for a bucket
-      conditions {
-        // (Optional) File store must have been created after this date. Used to avoid backfilling. A timestamp in RFC3339 UTC "Zulu" format with nanosecond resolution and upto nine fractional digits.
-        #        created_after = "2023-10-02T15:01:23Z"
-
-        // (Optional) Duration format. Minimum age a file store must have. If set, the value must be 1 hour or greater.
-        #        min_age = "10800s"
-
-        cloud_storage_conditions {
-
-          // (Optional) Only objects with the specified attributes will be scanned. Defaults to [ALL_SUPPORTED_BUCKETS] if unset.
-          // Each value may be one of: ALL_SUPPORTED_BUCKETS, AUTOCLASS_DISABLED, AUTOCLASS_ENABLED.
-          included_bucket_attributes = var.dlp_gcs_included_bucket_attributes
-
-          // (Optional) Only objects with the specified attributes will be scanned.
-          // If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to [ALL_SUPPORTED_OBJECTS].
-          // A profile will be created even if no objects match the included_object_attributes.
-          // Each value may be one of: ALL_SUPPORTED_OBJECTS, STANDARD, NEARLINE, COLDLINE, ARCHIVE, REGIONAL, MULTI_REGIONAL, DURABLE_REDUCED_AVAILABILITY.
-          included_object_attributes = var.dlp_gcs_included_object_attributes
-        }
-      }
-
-      // (Optional) How often and when to update profiles. New buckets that match both the filter and conditions are scanned as quickly as possible depending on system capacity
-      generation_cadence {
-
-        // (Optional) Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update
-        inspect_template_modified_cadence {
-
-          // (Required) How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-          frequency = var.dlp_gcs_reprofile_on_inspection_template_update
-        }
-
-        // (Optional) If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
-        refresh_frequency = var.dlp_gcs_reprofile_on_data_change
-      }
-    }
-  }
-
-  // Target to cover all "other" unmatched resources. Target is disabled, meaning, for all other matches than specified, do not profile.
-  targets {
-    cloud_storage_target {
-      filter {
-        others {}
-      }
-      disabled {}
-    }
-
-  }
-
-  actions {
-    export_data {
-      profile_table {
-        project_id = var.project
-        dataset_id = var.bq_results_dataset
-        table_id   = var.dlp_gcs_bq_results_table_name
-      }
-    }
-  }
-
-  actions {
-    pub_sub_notification {
-      topic             = module.pubsub-tagger-gcs-for-dlp.topic-id
-      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
-      event             = "NEW_PROFILE"
-      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
-      detail_of_message = "RESOURCE_NAME"
-    }
-  }
-
-  actions {
-    pub_sub_notification {
-      topic             = module.pubsub-tagger-gcs-for-dlp.topic-id
-      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
-      event             = "CHANGED_PROFILE"
-      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
-      detail_of_message = "RESOURCE_NAME"
-    }
-  }
-
-  dynamic actions {
-    // conditionally set the tagging actions based based on boolean variable var.dlp_gcs_apply_tags
-    for_each = var.dlp_gcs_apply_tags ? [1]: []
-    content {
-      tag_resources {
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_high_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_HIGH"
-          }
-        }
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_moderate_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_MODERATE"
-          }
-        }
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_low_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_LOW"
-          }
-        }
-        # When to attach a tags to resources
-        profile_generations_to_tag = ["PROFILE_GENERATION_NEW", "PROFILE_GENERATION_UPDATE"]
-
-        # Whether applying a tag to a resource should lower the risk of the profile for that resource.
-        # For example, in conjunction with an IAM deny policy, you can deny all principals a permission if
-        # a tag value is present, mitigating the risk of the resource.
-        # This also lowers the data risk of resources at the lower levels of the resource hierarchy.
-        # For example, reducing the data risk of a table data profile also reduces the data risk of the constituent
-        # column data profiles.
-        lower_data_risk_to_low     = true
-      }
-    }
-  }
-
-  // PAUSED | RUNNING
-  status = var.dlp_gcs_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
-}
+########################################################################################################################
+#                                             IAM
+########################################################################################################################
 
 resource "google_service_account" "sa_tagging_dispatcher_gcs" {
-  project = var.project
-  account_id = var.sa_tagging_dispatcher_gcs
+  project      = var.project
+  account_id   = var.sa_tagging_dispatcher_gcs
   display_name = "Runtime SA for Tagging Dispatcher GCS service"
 }
 
 resource "google_service_account" "sa_tagging_dispatcher_gcs_tasks" {
-  project = var.project
-  account_id = var.sa_tagging_dispatcher_gcs_tasks
+  project      = var.project
+  account_id   = var.sa_tagging_dispatcher_gcs_tasks
   display_name = "To authorize PubSub Push requests to Tagging Dispatcher GCS Service"
 }
 
 resource "google_service_account_iam_member" "sa_tagging_dispatcher_gcs_account_user_sa_dispatcher_gcs_tasks" {
   service_account_id = google_service_account.sa_tagging_dispatcher_gcs.name
-  role = "roles/iam.serviceAccountUser"
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs_tasks.email}"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs_tasks.email}"
 }
 
+resource "google_service_account" "sa_tagger_gcs" {
+  project      = var.project
+  account_id   = var.sa_tagger_gcs
+  display_name = "Runtime SA for the Tagger GCS Service"
+}
+
+resource "google_service_account" "sa_tagger_gcs_tasks" {
+  project      = var.project
+  account_id   = var.sa_tagger_gcs_tasks
+  display_name = "To authorize PubSub Push requests to Tagger GCS Service"
+}
+
+resource "google_service_account_iam_member" "sa_tagger_gcs_account_user_sa_tagger_gcs_tasks" {
+  service_account_id = google_service_account.sa_tagger_gcs.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.sa_tagger_gcs_tasks.email}"
+}
+
+resource "google_service_account" "sa_workflows" {
+  project      = var.project
+  account_id   = var.sa_workflows_gcs
+  display_name = "Runtime SA for Cloud Workflow for BigQuery Dispatcher"
+}
+
+### Permissions on flags bucket
+
+resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_bucket_admin" {
+  bucket = var.gcs_flags_bucket_name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
+
+resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
+  bucket = var.gcs_flags_bucket_name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+}
+
+### Permissions on resources bucket
+
+resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
+  bucket = var.resources_bucket_name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+}
+
+resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
+  count = length(local.tagging_dispatcher_sa_roles)
+  project = var.project
+  role    = local.tagging_dispatcher_sa_roles[count.index]
+  member  = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
+
+resource "google_project_iam_member" "sa_tagger_roles_binding" {
+  count = length(local.tagger_sa_roles)
+  project = var.project
+  role    = local.tagger_sa_roles[count.index]
+  member  = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+}
+
+########################################################################################################################
+#                                             Cloud Run
+########################################################################################################################
+
+
 module "cloud-run-tagging-dispatcher-gcs" {
-  source                        = "../../modules/cloud-run"
-  project                       = var.project
-  region                        = var.compute_region
-  service_image                 = local.service_image_uri
-  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_dispatcher.GcsDispatcherController"]
-  service_name                  = var.tagging_dispatcher_gcs_service_name
-  service_account_email         = google_service_account.sa_tagging_dispatcher_gcs.email
+  source        = "../../modules/cloud-run"
+  project       = var.project
+  region        = var.compute_region
+  service_image = local.service_image_uri
+  container_entry_point_args = [
+    "-cp", "@/app/jib-classpath-file",
+    "com.google.cloud.pso.bq_pii_classifier.apps.gcs_dispatcher.GcsDispatcherController"
+  ]
+  service_name          = var.tagging_dispatcher_gcs_service_name
+  service_account_email = google_service_account.sa_tagging_dispatcher_gcs.email
   invoker_service_account_email = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
   # Dispatcher could take time to list large number of tables
-  timeout_seconds               = var.dispatcher_service_timeout_seconds
-  max_containers                = 1
-  max_cpu                       = var.dispatcher_service_max_cpu
-  max_memory                    = var.dispatcher_service_max_memory
-  max_requests_per_container    = 1 # process one tagging dispatcher request at a time
-  environment_variables         = [
+  timeout_seconds       = var.dispatcher_service_timeout_seconds
+  max_containers        = 1
+  max_cpu               = var.dispatcher_service_max_cpu
+  max_memory            = var.dispatcher_service_max_memory
+  max_requests_per_container = 1 # process one tagging dispatcher request at a time
+  environment_variables = [
     {
       name  = "PROJECT_ID",
       value = var.project
@@ -248,61 +153,30 @@ module "cloud-run-tagging-dispatcher-gcs" {
   depends_on = [google_project_iam_member.sa_tagging_dispatcher_roles_binding]
 }
 
-module "pubsub-tagging-dispatcher-gcs" {
-  source                                  = "../../modules/pubsub"
-  project                                 = var.project
-  subscription_endpoint                   = module.cloud-run-tagging-dispatcher-gcs.service_endpoint
-  subscription_name                       = var.tagging_dispatcher_gcs_pubsub_sub
-  subscription_service_account            = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
-  topic                                   = var.tagging_dispatcher_gcs_pubsub_topic
-  topic_publishers_sa_emails              = [google_service_account.sa_workflows.email]
-  # use a deadline large enough to process BQ listing for large scopes
-  subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
-  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
-  # min value must be at equal to the ack_deadline_seconds
-  subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
-}
-
-resource "google_service_account" "sa_tagger_gcs" {
-  project = var.project
-  account_id = var.sa_tagger_gcs
-  display_name = "Runtime SA for the Tagger GCS Service"
-}
-
-resource "google_service_account" "sa_tagger_gcs_tasks" {
-  project = var.project
-  account_id = var.sa_tagger_gcs_tasks
-  display_name = "To authorize PubSub Push requests to Tagger GCS Service"
-}
-
-resource "google_service_account_iam_member" "sa_tagger_gcs_account_user_sa_tagger_gcs_tasks" {
-  service_account_id = google_service_account.sa_tagger_gcs.name
-  role = "roles/iam.serviceAccountUser"
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs_tasks.email}"
-}
-
 module "cloud-run-tagger-gcs" {
-  source                        = "../../modules/cloud-run"
-  project                       = var.project
-  region                        = var.compute_region
-  service_image                 = local.service_image_uri
-  container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger.GcsTaggerController"]
-  service_name                  = var.tagger_gcs_service_name
-  service_account_email         = google_service_account.sa_tagger_gcs.email
+  source        = "../../modules/cloud-run"
+  project       = var.project
+  region        = var.compute_region
+  service_image = local.service_image_uri
+  container_entry_point_args = [
+    "-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger.GcsTaggerController"
+  ]
+  service_name               = var.tagger_gcs_service_name
+  service_account_email      = google_service_account.sa_tagger_gcs.email
   invoker_service_account_email = google_service_account.sa_tagger_gcs_tasks.email
   # Dispatcher could take time to list large number of tables
-  timeout_seconds               = var.tagger_service_timeout_seconds
+  timeout_seconds            = var.tagger_service_timeout_seconds
   # Discovery Tagging:
   #   GCS Tagger hits the DLP API (get file store profile) and Cloud Storage API (update bucket)
   #   DLP API: 600 requests per minute
   #   Storage API: NA
   # Dispatcher Tagging:
   #   Only hits the Storage API to add labels to buckets
-  max_containers                = 100
-  max_requests_per_container    = 800
-  max_cpu                       = 8
-  max_memory                    = "16Gi"
-  environment_variables         = [
+  max_containers             = 100
+  max_requests_per_container = 800
+  max_cpu                    = 8
+  max_memory                 = "16Gi"
+  environment_variables = [
     {
       name  = "IS_DRY_RUN_LABELS",
       value = var.is_dry_run_labels,
@@ -332,6 +206,26 @@ module "cloud-run-tagger-gcs" {
   depends_on = [google_project_iam_member.sa_tagger_roles_binding]
 }
 
+########################################################################################################################
+#                                            PubSub
+########################################################################################################################
+
+
+module "pubsub-tagging-dispatcher-gcs" {
+  source                                  = "../../modules/pubsub"
+  project                                 = var.project
+  subscription_endpoint                   = module.cloud-run-tagging-dispatcher-gcs.service_endpoint
+  subscription_name                       = var.tagging_dispatcher_gcs_pubsub_sub
+  subscription_service_account            = google_service_account.sa_tagging_dispatcher_gcs_tasks.email
+  topic                                   = var.tagging_dispatcher_gcs_pubsub_topic
+  topic_publishers_sa_emails = [google_service_account.sa_workflows.email]
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+}
+
 module "pubsub-tagger-gcs-for-dlp" {
   source                                  = "../../modules/pubsub"
   project                                 = var.project
@@ -339,13 +233,14 @@ module "pubsub-tagger-gcs-for-dlp" {
   subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dlp"
   subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
   topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dlp"
-  topic_publishers_sa_emails              = [var.dlp_service_account_email]
+  topic_publishers_sa_emails = [var.dlp_service_account_email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
-  retain_acked_messages                   = var.retain_dlp_tagger_pubsub_messages # to enable replays for messages published by DLP
+  retain_acked_messages                   = var.retain_dlp_tagger_pubsub_messages
+  # to enable replays for messages published by DLP
 
 }
 
@@ -356,7 +251,7 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dispatcher"
   subscription_service_account            = google_service_account.sa_tagger_gcs_tasks.email
   topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dispatcher"
-  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher_gcs.email]
+  topic_publishers_sa_emails = [google_service_account.sa_tagging_dispatcher_gcs.email]
   # use a deadline large enough to process BQ listing for large scopes
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
@@ -364,87 +259,39 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
-### Permissions on flags bucket
+########################################################################################################################
+#                                            Helper Functions
+########################################################################################################################
 
-resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_bucket_admin" {
-  bucket = var.gcs_flags_bucket_name
-  role = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
-}
-
-resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
-  bucket = var.gcs_flags_bucket_name
-  role = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
-}
-
-### Permissions on resources bucket
-
-resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
-  bucket = var.resources_bucket_name
-  role = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
-}
 
 # Helper functions for data analysis and cost estimation
 module "bq-remote-func-get-buckets-metadata" {
-  source                         = "../../modules/bq-remote-function"
-  function_name                  = var.bq_remote_func_get_buckets_metadata
-  cloud_function_src_dir         = "../helpers/bq-remote-functions/get-buckets-metadata"
-  cloud_function_temp_dir        = "/tmp/get-buckets-metadata.zip"
-  service_account_name           = var.sa_bq_remote_func_get_buckets_metadata
-  function_entry_point           = "process_request"
-  env_variables                  = {}
-  project                        = var.project
-  compute_region                 = var.compute_region
-  data_region                    = var.data_region
-  bigquery_dataset_name          = var.bq_results_dataset
-  deployment_procedure_path      = "modules/bq-remote-function/procedures/deploy_get_buckets_metadata_remote_func.tpl"
+  source                    = "../../modules/bq-remote-function"
+  function_name             = var.bq_remote_func_get_buckets_metadata
+  cloud_function_src_dir    = "../helpers/bq-remote-functions/get-buckets-metadata"
+  cloud_function_temp_dir   = "/tmp/get-buckets-metadata.zip"
+  service_account_name      = var.sa_bq_remote_func_get_buckets_metadata
+  function_entry_point      = "process_request"
+  env_variables = {}
+  project                   = var.project
+  compute_region            = var.compute_region
+  data_region               = var.data_region
+  bigquery_dataset_name     = var.bq_results_dataset
+  deployment_procedure_path = "modules/bq-remote-function/procedures/deploy_get_buckets_metadata_remote_func.tpl"
   cloud_functions_sa_extra_roles = []
 }
 
-locals {
-  tagging_dispatcher_sa_roles = [
-    "roles/bigquery.jobUser", # to run the query that reads DLP findings
-    "roles/bigquery.dataEditor", # to insert dispatched tracking Ids to table dispatcher_runs
-    "roles/batch.agentReporter", # to run Cloud Batch jobs
-    "roles/logging.logWriter", # to run Cloud Batch jobs,
-    "roles/artifactregistry.reader" # to read container image for the service
-  ]
 
-  tagger_sa_roles = [
-    "roles/artifactregistry.reader" # to read container image for the service
-  ]
-}
-
-resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
-  count = length(local.tagging_dispatcher_sa_roles)
-  project = var.project
-  role = local.tagging_dispatcher_sa_roles[count.index]
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
-}
-
-resource "google_project_iam_member" "sa_tagger_roles_binding" {
-  count = length(local.tagger_sa_roles)
-  project = var.project
-  role = local.tagger_sa_roles[count.index]
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
-}
-
-### Workflows
-
-resource "google_service_account" "sa_workflows" {
-  project = var.project
-  account_id = var.sa_workflows_gcs
-  display_name = "Runtime SA for Cloud Workflow for BigQuery Dispatcher"
-}
+########################################################################################################################
+#                                            Workflows
+########################################################################################################################
 
 resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
 
-  project  = var.project
-  name     = var.workflows_gcs_name
+  project     = var.project
+  name        = var.workflows_gcs_name
   description = var.workflows_gcs_description
-  region = var.compute_region
+  region      = var.compute_region
 
   service_account = google_service_account.sa_workflows.email
 
@@ -459,8 +306,8 @@ main:
           - project: '${var.project}'
           - topic: '${module.pubsub-tagging-dispatcher-gcs.topic-id}'
           - message:
-              projectsRegex: $${default(map.get(input, "projectsRegex"), "${var.dlp_gcs_project_id_regex}")}
-              bucketsRegex: $${default(map.get(input, "bucketsRegex"), "${var.dlp_gcs_bucket_name_regex}")}
+              projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
+              bucketsRegex: $${default(map.get(input, "bucketsRegex"), ".*")}
           - base64Msg: '$${base64.encode(json.encode(message))}'
     - publish_message_to_topic:
         call: googleapis.pubsub.v1.projects.topics.publish
@@ -474,6 +321,37 @@ main:
         return:
           message_id: '$${publish_result.messageIds[0]}'
 EOF
+}
 
 
+########################################################################################################################
+#                                            DLP Configs
+########################################################################################################################
+
+module "gcs_dlp_configs" {
+  source = "../../modules/dlp-gcs-discovery-config"
+
+  count = length(var.dlp_gcs_discovery_configurations)
+
+  dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
+
+  dlp_gcs_scan_folder_id                          = var.dlp_gcs_discovery_configurations[count.index].folder_id
+  dlp_gcs_bucket_name_regex                       = var.dlp_gcs_discovery_configurations[count.index].bucket_name_regex
+  dlp_gcs_project_id_regex                        = var.dlp_gcs_discovery_configurations[count.index].project_id_regex
+  dlp_gcs_apply_tags                              = var.dlp_gcs_discovery_configurations[count.index].apply_tags
+  dlp_gcs_create_configuration_in_paused_state    = var.dlp_gcs_discovery_configurations[count.index].create_configuration_in_paused_state
+  dlp_gcs_reprofile_on_data_change                = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_data_change
+  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_inspection_template_update
+  dlp_gcs_included_bucket_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_bucket_attributes
+  dlp_gcs_included_object_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_object_attributes
+
+  bq_results_dataset                = var.bq_results_dataset
+  data_region                       = var.data_region
+  dlp_gcs_bq_results_table_name     = var.dlp_gcs_bq_results_table_name
+  dlp_inspection_templates_ids_list = var.dlp_inspection_templates_ids_list
+  dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_id
+  dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_id
+  dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_id
+  project                           = var.project
+  pubsub_tagger_topic_id            = module.pubsub-tagger-gcs-for-dlp.topic-id
 }

@@ -4,9 +4,6 @@
 # Terraform service account name used to deploy this Terraform module
 terraform_service_account_email = "bq-pii-classifier-terraform@<PROJECT ID>.iam.gserviceaccount.com"
 
-# Which DLP discovery configurations to deploy: "BIGQUERY_DISCOVERY" and/or "GCS_DISCOVERY"
-supported_stacks = ["BIGQUERY_DISCOVERY"]
-
 # container image name that contains the services code (i.e. tagging dispatcher & tagger)
 # this is built and deployed outside of TF in an earlier step
 image_name = "bq-pii-classifier-services:latest"
@@ -109,20 +106,29 @@ iam_mapping = {}
 # To attach policy tags to columns. is_dry_run_tags = False will attach policy tags
 is_dry_run_tags = false
 
-# folder id to be scanned by the org-level config
-dlp_bq_scan_folder_id = 0
+dlp_bq_discovery_configurations = [
+  {
+    # folder id to be scanned by the org-level config
+    folder_id = 1234,
 
-# regex for project names to be scanned. Remove to use default that scans all
-dlp_bq_project_id_regex = "^project_xyz$"
+    # regex for project names to be scanned. Remove to use default that scans all
+    project_id_regex = "^project_xyz$"
 
-# regex for dataset names to be scanned. Remove to use default that scans all
-dlp_bq_dataset_regex = "^dataset_xyz$"
+    # regex for dataset names to be scanned. Remove to use default that scans all
+    dataset_regex = "^dataset_xyz$"
 
-# regex for table names to be scanned. Remove to use default that scans all
-dlp_bq_table_regex = "^table_xyz$"
+    # regex for table names to be scanned. Remove to use default that scans all
+    table_regex = ".*"
 
-# Set to true to create the config in paused state (e.g. for manual verification, etc)
-dlp_bq_create_configuration_in_paused_state = false
+    # Set to true to create the config in paused state (e.g. for manual verification, etc)
+    create_configuration_in_paused_state = false
+  },
+  {
+    folder_id = 5678
+  }
+]
+
+
 
 # Used to identify and delete existing BQ resource labels previously created by the solution when new DLP findings doesn't include that label
 # remove to use default value that doesn't delete any existing labels

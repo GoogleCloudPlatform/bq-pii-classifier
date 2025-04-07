@@ -1,11 +1,13 @@
 
 module "bq-discovery-stack" {
 
-  // deploy it only if the BIGQUERY_DISCOVERY is selected
-  count = contains(var.supported_stacks, "BIGQUERY_DISCOVERY")? 1 : 0
+  // deploy the stack one time if the configurations list is not empty
+  count = length(var.dlp_bq_discovery_configurations) == 0 ? 0: 1
 
   source = "./stacks/bq-discovery-stack"
 
+  dlp_bq_discovery_configurations = var.dlp_bq_discovery_configurations
+  bigquery_dataset_name = google_bigquery_dataset.results_dataset.dataset_id
   auto_dlp_results_table_name = var.auto_dlp_results_table_name
   bq_existing_labels_regex = var.bq_existing_labels_regex
   bq_remote_func_get_policy_tags_name = var.bq_remote_func_get_policy_tags_name
@@ -16,30 +18,17 @@ module "bq-discovery-stack" {
   data_region = var.data_region
   datastore_database_name = var.datastore_database_name
   default_domain_name = var.default_domain_name
-  deploy_dlp_inspection_template_to_global_region = var.deploy_dlp_inspection_template_to_global_region
   dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
   dispatcher_service_max_memory = var.dispatcher_service_max_memory
   dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
   dispatcher_subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
   dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
-  dlp_bq_create_configuration_in_paused_state = var.dlp_bq_create_configuration_in_paused_state
-  dlp_bq_dataset_regex = var.dlp_bq_dataset_regex
-  dlp_bq_project_id_regex = var.dlp_bq_project_id_regex
-  dlp_bq_reprofile_on_inspection_template_update_frequency = var.dlp_bq_reprofile_on_inspection_template_update_frequency
-  dlp_bq_reprofile_on_schema_update_types = var.dlp_bq_reprofile_on_schema_update_types
-  dlp_bq_reprofile_on_table_data_update_frequency = var.dlp_bq_reprofile_on_table_data_update_frequency
-  dlp_bq_reprofile_on_table_data_update_types = var.dlp_bq_reprofile_on_table_data_update_types
-  dlp_bq_reprofile_on_table_schema_update_frequency = var.dlp_bq_reprofile_on_table_schema_update_frequency
-  dlp_bq_scan_folder_id = var.dlp_bq_scan_folder_id
   dlp_bq_scan_org_id = var.org_id
-  dlp_bq_table_regex = var.dlp_bq_table_regex
-  dlp_bq_table_types = var.dlp_bq_table_types
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
   domain_mapping = var.domain_mapping
   gar_docker_repo_name = var.gar_docker_repo_name
   gcs_flags_bucket_name = google_storage_bucket.gcs_flags_bucket.id
   iam_mapping = var.iam_mapping
-  info_types_map = local.info_types_map
   is_dry_run_labels = var.is_dry_run_labels
   is_dry_run_tags = var.is_dry_run_tags
   logging_table_name = google_bigquery_table.logging_table.table_id
@@ -74,34 +63,46 @@ module "bq-discovery-stack" {
   dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
-  dlp_bq_apply_tags = var.dlp_bq_apply_tags
 
   depends_on = [google_project_service.enable_apis]
 
 }
 
-// This module assigns roles and permissions to service accounts used in this solution on FOLDER and ORG level (and not the host project)
-// The Terraform service account needs certain folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
-// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles folder level
-module "data-folder-permissions-for-bq-discovery-stack" {
+// This module creates granular custom roles and assigns roles and permissions to service accounts used in this solution on ORG levels (and not the host project)
+// The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
+module "bq-discovery-stack-org-permissions" {
+  source = "./modules/bq-discovery-stack-org-permissions"
 
-  source = "./modules/org-and-folder-permissions-for-bq-discovery-stack"
+  // deploy the stack one time if the configurations list is not empty
+  count = length(var.dlp_bq_discovery_configurations) == 0 ? 0: 1
 
-  // deploy it only if the BIGQUERY_DISCOVERY is selected
-  count = contains(var.supported_stacks, "BIGQUERY_DISCOVERY")? 1 : 0
-
-  dlp_config_folder_id                    = var.dlp_bq_scan_folder_id
-
+  org_id          = var.org_id
   # default: tagger@<host project id>.iam.gserviceaccount.com
-  sa_tagger_email                         = module.bq-discovery-stack[0].sa_tagger_email
-  # default: tag-dispatcher@<host project id>.iam.gserviceaccount.com
-  sa_tagging_dispatcher_email             = module.bq-discovery-stack[0].sa_tagging_dispatcher_email
+  tagger_sa_email = module.bq-discovery-stack[0].sa_tagger_email
+
+  depends_on = [module.bq-discovery-stack]
+}
+
+// This module assigns roles and permissions to service accounts used in this solution on data FOLDER levels (and not the host project)
+// The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
+// Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
+module "bq-discovery-stack-folder-permissions" {
+  source = "./modules/bq-discovery-stack-folder-permissions"
+
+  // deploy once per folder
+  count = length(var.dlp_bq_discovery_configurations)
+
+
+  dlp_config_folder_id                    = var.dlp_bq_discovery_configurations[count.index].folder_id
   # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
   dlp_service_sa_email                    = local.dlp_service_account_email
   # default: sa-func-get-policy-tags@<host project id>.iam.gserviceaccount.com
   sa_bq_remote_func_get_policy_tags_email = module.bq-discovery-stack[0].sa_bq_remote_func_get_policy_tags_email
+  # <var.sa_tagger_bq>@<host project name>.iam.gserviceaccount.com. Default: tagger@<host project name>.iam.gserviceaccount.com
+  sa_tagger_email                         = module.bq-discovery-stack[0].sa_tagger_email
+  tagger_custom_role_id = module.bq-discovery-stack-org-permissions[0].tagger_custom_role_id
 
-  dlp_config_org_id = var.org_id
+  depends_on = [module.gcs-discovery-stack-org-permissions]
 
-  depends_on = [module.bq-discovery-stack]
 }

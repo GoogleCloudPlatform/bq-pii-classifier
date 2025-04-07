@@ -3,7 +3,7 @@ locals {
   dlp_regional_end_point = var.data_region == "eu" ? "europe" : var.data_region
 
   dlp_service_account_email = "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
-  
+
   service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
 
   project_and_domains = distinct([
@@ -77,7 +77,9 @@ module "cloud-run-tagging-dispatcher" {
   # Dispatcher could take time to list large number of tables
   timeout_seconds               = var.dispatcher_service_timeout_seconds
   max_containers                = 1
-  max_cpu                       = 2
+  max_cpu                       = var.dispatcher_service_max_cpu
+  max_memory = var.dispatcher_service_max_memory
+  max_requests_per_container = 1 # process one tagging dispatcher request at a time
   environment_variables         = [
     {
       name  = "TAGGER_TOPIC",
@@ -439,164 +441,7 @@ resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_t
   member = "serviceAccount:${google_service_account.sa_tagger.email}"
 }
 
-############## DLP DISCOVERY SERVICE ################
 
-resource "google_data_loss_prevention_discovery_config" "dlp_bq_org_folder" {
-
-  // Project-level config. Only data in that project could be scanned
-  #    parent = "projects/<project id>/locations/${local.dlp_region}"
-
-  parent = "organizations/${var.dlp_bq_scan_org_id}/locations/${local.dlp_regional_end_point}"
-
-  org_config {
-    // The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the cloud DLP API must be enabled
-    project_id = var.project
-
-    // The data to scan folder or project
-    location {
-      folder_id = var.dlp_bq_scan_folder_id
-    }
-  }
-
-  location = local.dlp_regional_end_point
-
-  // inspection template(s) that will be used to inspect BQ tables
-  inspect_templates = var.dlp_inspection_templates_ids_list
-
-  // Enabled target with filter on specific projects/datasets/tables
-  targets {
-    big_query_target {
-
-      filter {
-        tables {
-          include_regexes {
-            patterns {
-              project_id_regex = var.dlp_bq_project_id_regex
-              dataset_id_regex = var.dlp_bq_dataset_regex
-              table_id_regex = var.dlp_bq_table_regex
-            }
-          }
-        }
-      }
-
-      conditions {
-        // Restrict discovery to specific table type Structure
-        types {
-          types = var.dlp_bq_table_types
-        }
-      }
-
-      // How often and when to update profiles. New tables that match both the fiter and conditions are scanned as quickly as possible depending on system capacity (i.e. columns are added/updated/deleted)
-      cadence {
-        // Governs when to update data profiles when a schema is modified
-        schema_modified_cadence {
-          // The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
-          types = var.dlp_bq_reprofile_on_schema_update_types
-          // How frequently profiles may be updated when schemas are modified. Default to monthly Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
-          frequency = var.dlp_bq_reprofile_on_table_schema_update_frequency
-        }
-        // Governs when to update profile when a table is modified (i.e. rows are added/updated/deleted)
-        table_modified_cadence {
-          // The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP.
-          types = var.dlp_bq_reprofile_on_table_data_update_types
-          // How frequently data profiles can be updated when tables are modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-          frequency = var.dlp_bq_reprofile_on_table_data_update_frequency
-        }
-        // Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update
-        inspect_template_modified_cadence {
-          // How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-          frequency = var.dlp_bq_reprofile_on_inspection_template_update_frequency
-        }
-      }
-    }
-  }
-
-  // Target to cover all "other" unmatched resources. For all other matches than specified, do not profile.
-  targets {
-    big_query_target {
-      filter {
-        other_tables {}
-      }
-      disabled {}
-    }
-  }
-
-  actions {
-    export_data {
-      profile_table {
-        project_id = var.project
-        dataset_id =var.bigquery_dataset_name
-        table_id   = var.auto_dlp_results_table_name
-      }
-    }
-  }
-
-  actions {
-    pub_sub_notification {
-      topic             = module.pubsub-tagger-for-dlp.topic-id
-      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
-      event             = "NEW_PROFILE"
-      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
-      detail_of_message = "RESOURCE_NAME"
-    }
-  }
-
-  actions {
-    pub_sub_notification {
-      topic             = module.pubsub-tagger-for-dlp.topic-id
-      // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
-      event             = "CHANGED_PROFILE"
-      // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
-      detail_of_message = "RESOURCE_NAME"
-    }
-  }
-
-  dynamic actions {
-    // conditionally set the tagging actions based based on boolean variable var.dlp_gcs_apply_tags
-    for_each = var.dlp_bq_apply_tags ? [1]: []
-    content {
-      tag_resources {
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_high_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_HIGH"
-          }
-        }
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_moderate_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_MODERATE"
-          }
-        }
-        tag_conditions {
-          tag {
-            namespaced_value = var.dlp_tag_low_sensitivity_id
-          }
-          sensitivity_score {
-            score = "SENSITIVITY_LOW"
-          }
-        }
-        # When to attach a tags to resources
-        profile_generations_to_tag = ["PROFILE_GENERATION_NEW", "PROFILE_GENERATION_UPDATE"]
-
-        # Whether applying a tag to a resource should lower the risk of the profile for that resource.
-        # For example, in conjunction with an IAM deny policy, you can deny all principals a permission if
-        # a tag value is present, mitigating the risk of the resource.
-        # This also lowers the data risk of resources at the lower levels of the resource hierarchy.
-        # For example, reducing the data risk of a table data profile also reduces the data risk of the constituent
-        # column data profiles.
-        lower_data_risk_to_low     = true
-      }
-    }
-  }
-
-  // PAUSED | RUNNING
-  status = var.dlp_bq_create_configuration_in_paused_state ? "PAUSED" : "RUNNING"
-}
 
 ####### Workflows
 
@@ -627,9 +472,9 @@ main:
           - project: '${var.project}'
           - topic: '${module.pubsub-tagging-dispatcher.topic-id}'
           - message:
-              projectsRegex: $${default(map.get(input, "projectsRegex"), "${var.dlp_bq_project_id_regex}")}
-              datasetsRegex: $${default(map.get(input, "datasetsRegex"), "${var.dlp_bq_dataset_regex}")}
-              tablesRegex: $${default(map.get(input, "tablesRegex"), "${var.dlp_bq_table_regex}")}
+              projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
+              datasetsRegex: $${default(map.get(input, "datasetsRegex"), ".*")}
+              tablesRegex: $${default(map.get(input, "tablesRegex"), ".*")}
           - base64Msg: '$${base64.encode(json.encode(message))}'
     - publish_message_to_topic:
         call: googleapis.pubsub.v1.projects.topics.publish
@@ -643,4 +488,38 @@ main:
         return:
           message_id: '$${publish_result.messageIds[0]}'
 EOF
+}
+
+####### DLP  Configs
+
+module "bq_dlp_configs" {
+  source = "../../modules/dlp-bq-discovery-config"
+
+  count = length(var.dlp_bq_discovery_configurations)
+
+  dlp_bq_scan_org_id                                       = var.dlp_bq_scan_org_id
+
+  dlp_bq_table_regex                                       = var.dlp_bq_discovery_configurations[count.index].table_regex
+  dlp_bq_table_types = var.dlp_bq_discovery_configurations[count.index].table_types
+  dlp_bq_apply_tags                                        = var.dlp_bq_discovery_configurations[count.index].apply_tags
+  dlp_bq_create_configuration_in_paused_state              = var.dlp_bq_discovery_configurations[count.index].create_configuration_in_paused_state
+  dlp_bq_dataset_regex                                     = var.dlp_bq_discovery_configurations[count.index].dataset_regex
+  dlp_bq_project_id_regex                                  = var.dlp_bq_discovery_configurations[count.index].project_id_regex
+  dlp_bq_reprofile_on_inspection_template_update_frequency = var.dlp_bq_discovery_configurations[count.index].reprofile_frequency_on_inspection_template_update
+  dlp_bq_reprofile_on_schema_update_types = var.dlp_bq_discovery_configurations[count.index].reprofile_types_on_schema_update
+  dlp_bq_reprofile_on_table_data_update_frequency          = var.dlp_bq_discovery_configurations[count.index].reprofile_frequency_on_table_data_update
+  dlp_bq_reprofile_on_table_data_update_types = var.dlp_bq_discovery_configurations[count.index].reprofile_types_on_table_data_update
+  dlp_bq_reprofile_on_table_schema_update_frequency        = var.dlp_bq_discovery_configurations[count.index].reprofile_frequency_on_table_schema_update
+  dlp_bq_scan_folder_id                                    = var.dlp_bq_discovery_configurations[count.index].folder_id
+
+
+  auto_dlp_results_table_name                              = var.auto_dlp_results_table_name
+  bigquery_dataset_name                                    = var.bigquery_dataset_name
+  data_region                                              = var.data_region
+  dlp_inspection_templates_ids_list = var.dlp_inspection_templates_ids_list
+  dlp_tag_high_sensitivity_id                              = var.dlp_tag_high_sensitivity_id
+  dlp_tag_low_sensitivity_id                               = var.dlp_tag_low_sensitivity_id
+  dlp_tag_moderate_sensitivity_id                          = var.dlp_tag_moderate_sensitivity_id
+  project                                                  = var.project
+  pubsub_tagger_topic_id                                   = module.pubsub-tagger-for-dlp.topic-id
 }

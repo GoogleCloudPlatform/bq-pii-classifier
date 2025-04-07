@@ -172,19 +172,6 @@ variable "retain_dlp_tagger_pubsub_messages" {
   description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
 }
 
-
-variable "supported_stacks" {
-  type = set(string)
-  default = ["BIGQUERY_DISCOVERY"]
-  description = "Define which source systems would be scanned by Cloud DLP, using which methods (inspection vs discovery). Values are BIGQUERY_DISCOVERY, GCS_DISCOVERY. Only one stack is allowed per source system."
-  validation {
-    condition = anytrue([
-    for item in var.supported_stacks: contains(["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"], item)
-    ])
-    error_message = "The variable `supported_stacks` must contain either 'BIGQUERY_DISCOVERY' or 'GCS_DISCOVERY'."
-  }
-}
-
 variable "deploy_dlp_inspection_template_to_global_region" {
   type = bool
   default = false

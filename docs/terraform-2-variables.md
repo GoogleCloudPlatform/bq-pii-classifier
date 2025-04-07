@@ -10,13 +10,7 @@ Create a new `.tfvars` file and override the variables in the below sections. Yo
 export VARS=my-variables.tfvars
 ```
 
-Alternatively, you can merge both example files to deploy both stacks while setting the following variable:
-
-
-```terraform
-supported_stacks = ["BIGQUERY_DISCOVERY", "GCS_DISCOVERY"]
-```
-
+Alternatively, you can merge both example files to deploy both stacks.
 
 ### Configure Terraform Variables
 
@@ -28,7 +22,7 @@ However, you must define the below variables:
 
 ```terraform
 project = "<GCP project ID to deploy solution to>"
-dlp_bq_scan_org_id = 0 # < organization id on which this dlp configuration will reside >
+org_id = 0 # < organization id in which the dlp configurations will be created >
 compute_region = "<GCP region to deploy compute resources e.g. cloud run, iam, etc>"
 data_region = "<GCP region where application-owned data will be deployed e.g. dlp results table, gcs buckets, etc. >"
 source_data_regions  = ["<List of GCP regions where the source data resides. Policy tags and DLP inspection templates will be deployed there.>"]
