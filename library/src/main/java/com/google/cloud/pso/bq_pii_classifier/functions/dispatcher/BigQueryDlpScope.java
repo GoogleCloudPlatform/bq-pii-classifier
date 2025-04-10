@@ -16,4 +16,4 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-public record BigQueryDlpScope(String projectsRegex, String datasetsRegex, String tablesRegex) { }
+public record BigQueryDlpScope(String foldersRegex, String projectsRegex, String datasetsRegex, String tablesRegex) { }

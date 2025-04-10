@@ -89,14 +89,15 @@ public class GcsDispatcherController {
             BigQueryService bigQueryService = new BigQueryServiceImpl();
 
             DlpFindingsScanner dlpFindingsScanner = new UniversalDlpFindingsScannerImpl(
-                    "sql/v_gcs_dispatcher.tpl",
+                    "sql/dispatcher_gcs.tpl",
                     Map.of(
-                            "${project}", environment.getProjectId(),
+                            "${project}", environment.getPublishingProjectId(),
                             "${dataset}", environment.getDlpResultsDataset(),
                             "${dlp_gcs_results_table}", environment.getDlpResultsTable(),
                             "${dispatcher_runs_table}", environment.getDispatcherRunsTable(),
                             "${project_name_regex}", gcsDlpScope.projectsRegex(),
                             "${bucket_name_regex}", gcsDlpScope.bucketsRegex(),
+                            "${folder_id_regex}", gcsDlpScope.foldersRegex(),
                             "${run_id}", runId),
                     bigQueryService
             );

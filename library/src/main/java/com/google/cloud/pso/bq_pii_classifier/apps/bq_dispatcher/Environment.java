@@ -31,6 +31,11 @@ public class Environment {
     public String getProjectId(){
         return Utils.getConfigFromEnv("PROJECT_ID", true);
     }
+
+    public String getPublishingProjectId(){
+        return Utils.getConfigFromEnv("PUBLISHING_PROJECT_ID", true);
+    }
+
     public String getTaggerTopic() { return Utils.getConfigFromEnv("TAGGER_TOPIC", true); }
 
     public String getGcsFlagsBucket(){
@@ -44,6 +49,7 @@ public class Environment {
     public String getDlpTableAuto(){
         return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
     }
+
     public String getDispatcherRunsTable () {return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);}
 
 }

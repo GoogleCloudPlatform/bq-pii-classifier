@@ -101,7 +101,7 @@ Cloud Workflows is used to manually invoke this process:
 * Click the "Execute" button on top
 * Inspect the annotation scope in the "message" field under "Code"
 * To override the scope pass a JSON object with the attributes as the message in the "Input" tab
-* * For example `{"projectsRegex": "^prod-", "bucketsRegex": ".*"}`
+* * For example `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex": ".*"}`
 * Click the "Execute" button in the bottom
 
 

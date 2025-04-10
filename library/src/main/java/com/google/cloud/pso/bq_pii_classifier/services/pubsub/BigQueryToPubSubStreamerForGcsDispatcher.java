@@ -10,28 +10,28 @@ import com.google.pubsub.v1.PubsubMessage;
 import java.util.HashSet;
 
 public class BigQueryToPubSubStreamerForGcsDispatcher extends BigQueryToPubSubStreamerAbstract {
-    public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row){
-        String runId = row.get("run_id").getStringValue();
-        String trackingId = row.get("tracking_id").getStringValue();
-        String bucketName = row.get("bucket_name").getStringValue();
-        String projectId = row.get("project_id").getStringValue();
-        String infoTypesStrList = row.get("info_types").getStringValue();
+  public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row) {
+    String runId = row.get("run_id").getStringValue();
+    String trackingId = row.get("tracking_id").getStringValue();
+    String profileName = row.get("profile_name").getStringValue();
+    String bucketName = row.get("bucket_name").getStringValue();
+    String projectId = row.get("project_id").getStringValue();
+    String folderId = row.get("folder_id").getStringValue();
+    String infoTypesStrList = row.get("info_types").getStringValue();
 
+    GcsTaggerRequest taggerRequest =
+        new GcsTaggerRequest(
+            runId,
+            trackingId,
+            new GcsDlpProfileSummary(
+                profileName,
+                String.format("gs://%s", bucketName),
+                projectId,
+                folderId,
+                new HashSet<>(Utils.tokenize(infoTypesStrList, ",", true))));
 
-        GcsTaggerRequest taggerRequest = new GcsTaggerRequest(
-                runId,
-                trackingId,
-                new GcsDlpProfileSummary(
-                        bucketName,
-                        projectId,
-                        new HashSet<>(Utils.tokenize(infoTypesStrList, ",", true))
-                )
-        );
+    ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
 
-        ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
-
-        return PubsubMessage.newBuilder()
-                .setData(data)
-                .build();
-    }
+    return PubsubMessage.newBuilder().setData(data).build();
+  }
 }

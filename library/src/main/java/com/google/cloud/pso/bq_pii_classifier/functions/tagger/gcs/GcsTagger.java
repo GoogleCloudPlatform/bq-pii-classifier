@@ -116,7 +116,7 @@ public class GcsTagger {
         request.getTrackingId(),
         bucketResourceName,
         String.format(
-            "detected info types with metadata: %s", detectedInfoTypesWithMetadata.toString()));
+            "detected info types with metadata: %s", detectedInfoTypesWithMetadata.size()));
 
     // construct a map of label key, label value based on all labels configured for all detected
     // info types
@@ -215,8 +215,11 @@ public class GcsTagger {
       // lookup the labels associated with that info type based on the classification taxonomy (in
       // Terraform)
       // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
-      for (ResourceLabel infoTypeLabel : infoTypeMetadataMap.get(infoType).labels()) {
-        bucketLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
+      InfoTypeInfo infoTypeInfo = infoTypeMetadataMap.get(infoType);
+      if (infoTypeInfo != null){
+        for (ResourceLabel infoTypeLabel : infoTypeInfo.labels()) {
+          bucketLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
+        }
       }
     }
     return bucketLabels;

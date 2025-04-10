@@ -29,25 +29,10 @@ public class GcsDlpProfileSummary{
     private final String bucketPath;
     private final String bucketName;
     private final String projectId;
+    private final String folderId;
     private final Set<String> infoTypes; // New field, optional
 
-    public GcsDlpProfileSummary(String bucketName, String projectId, Set<String> infoTypes){
-
-
-        if (bucketName.startsWith("gs://")) {
-            throw new IllegalArgumentException(String.format(
-                    "bucketName should not start with gs://. Provided bucketName is '%s'",
-                    bucketName));
-        }
-
-        this.bucketName = bucketName;
-        this.bucketPath = String.format("gs://%s", bucketName);
-        this.projectId = projectId;
-        this.infoTypes = infoTypes;
-        this.fileStoreProfileName = null;
-    }
-
-    public GcsDlpProfileSummary(String fileStoreProfileName, String bucketPath, String projectId, Set<String> infoTypes) {
+    public GcsDlpProfileSummary(String fileStoreProfileName, String bucketPath, String projectId, String folderId, Set<String> infoTypes) {
         this.fileStoreProfileName = fileStoreProfileName;
 
         if (!bucketPath.startsWith("gs://")) {
@@ -58,12 +43,14 @@ public class GcsDlpProfileSummary{
         this.bucketPath = bucketPath;
         this.bucketName = bucketPath.substring(5);
         this.projectId = projectId == null? "": projectId;
+        this.folderId = folderId == null? "": folderId;
         this.infoTypes = infoTypes == null? Collections.emptySet(): Set.copyOf(infoTypes); // Handle null, make immutable
     }
 
 
+    // used by the dispatcher app when called by the DLP pubsub notification
     public GcsDlpProfileSummary(String fileStoreProfileName, String bucketPath) {
-        this(fileStoreProfileName, bucketPath, null, null); // Constructor without infoTypes
+        this(fileStoreProfileName, bucketPath, null, null, null); // Constructor without infoTypes
     }
 
     public String getProjectId() {
@@ -90,14 +77,20 @@ public class GcsDlpProfileSummary{
         return!infoTypes.isEmpty(); // Check if infoTypes is not empty
     }
 
+    public String getFolderId() {
+        return folderId;
+    }
+
     @Override
     public String toString() {
-        return "GcsTaggerRequest{" +
+        return "GcsDlpProfileSummary{" +
                 "fileStoreProfileName='" + fileStoreProfileName + '\'' +
                 ", bucketPath='" + bucketPath + '\'' +
                 ", bucketName='" + bucketName + '\'' +
-                ", infoTypes='" + infoTypes + '\'' +
-                "} ";
+                ", projectId='" + projectId + '\'' +
+                ", folderId='" + folderId + '\'' +
+                ", infoTypes=" + infoTypes +
+                '}';
     }
 
     @Override
@@ -118,6 +111,7 @@ public class GcsDlpProfileSummary{
                 profile.getName(),
                 profile.getFileStorePath(),
                 profile.getProjectId(),
+                String.valueOf(profile.getConfigSnapshot().getDiscoveryConfig().getOrgConfig().getLocation().getFolderId()),
                 profile.getFileStoreInfoTypeSummariesList().stream().map(x->x.getInfoType().getName()).collect(Collectors.toSet())
         );
     }

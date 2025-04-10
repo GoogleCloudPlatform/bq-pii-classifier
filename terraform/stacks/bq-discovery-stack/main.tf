@@ -90,6 +90,10 @@ module "cloud-run-tagging-dispatcher" {
       value = var.project,
     },
     {
+      name  = "PUBLISHING_PROJECT_ID",
+      value = var.publishing_project
+    },
+    {
       name  = "GCS_FLAGS_BUCKET",
       value = var.gcs_flags_bucket_name,
     },
@@ -449,6 +453,7 @@ main:
           - project: '${var.project}'
           - topic: '${module.pubsub-tagging-dispatcher.topic-id}'
           - message:
+              foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
               projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
               datasetsRegex: $${default(map.get(input, "datasetsRegex"), ".*")}
               tablesRegex: $${default(map.get(input, "tablesRegex"), ".*")}

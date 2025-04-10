@@ -19,15 +19,29 @@ package com.google.cloud.pso.bq_pii_classifier.entities;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public record TableSpec(String project, String dataset, String table) {
+public record TableSpec(@Nullable String folder, String project, String dataset, String table) {
 
+    public TableSpec(String project, String dataset, String table){
+        this(null, project, dataset, table);
+    }
     public String toSqlString(){
         return String.format("%s.%s.%s", project, dataset, table);
     }
 
     public TableId toTableId(){ return TableId.of(project, dataset, table); }
+
+    @Override
+    public String toString() {
+        return "TableSpec{" +
+                "folder='" + folder + '\'' +
+                ", project='" + project + '\'' +
+                ", dataset='" + dataset + '\'' +
+                ", table='" + table + '\'' +
+                '}';
+    }
 
     // parse from "project.dataset.table" format
     public static TableSpec fromSqlString(String sqlTableId){

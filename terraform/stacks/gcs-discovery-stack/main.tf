@@ -15,6 +15,8 @@ locals {
   tagger_sa_roles = [
     "roles/artifactregistry.reader" # to read container image for the service
   ]
+
+  auto_dlp_results_latest_view = "${var.dlp_gcs_bq_results_table_name}_latest_v1"
 }
 
 ########################################################################################################################
@@ -137,6 +139,10 @@ module "cloud-run-tagging-dispatcher-gcs" {
       value = var.project
     },
     {
+      name  = "PUBLISHING_PROJECT_ID",
+      value = var.publishing_project
+    },
+    {
       name  = "TAGGER_TOPIC",
       value = module.pubsub-tagger-gcs-for-dispatcher.topic-name
     },
@@ -150,7 +156,7 @@ module "cloud-run-tagging-dispatcher-gcs" {
     },
     {
       name  = "DLP_RESULTS_TABLE",
-      value = var.dlp_gcs_bq_results_table_name,
+      value = local.auto_dlp_results_latest_view,
     },
     {
       name  = "DISPATCHER_RUNS_TABLE",
@@ -292,6 +298,7 @@ main:
           - project: '${var.project}'
           - topic: '${module.pubsub-tagging-dispatcher-gcs.topic-id}'
           - message:
+              foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
               projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
               bucketsRegex: $${default(map.get(input, "bucketsRegex"), ".*")}
           - base64Msg: '$${base64.encode(json.encode(message))}'

@@ -20,6 +20,7 @@ public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStr
 
     String runId = row.get("run_id").getStringValue();
     String trackingId = row.get("tracking_id").getStringValue();
+    String folderId = row.get("folder_id").getStringValue();
     String projectId = row.get("project_id").getStringValue();
     String datasetId = row.get("dataset_id").getStringValue();
     String tableId = row.get("table_id").getStringValue();
@@ -45,7 +46,7 @@ public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStr
 
     TaggerRequest taggerRequest =
         new TaggerRequest(
-            runId, trackingId, new TableSpec(projectId, datasetId, tableId), fieldsFindings);
+            runId, trackingId, new TableSpec(folderId, projectId, datasetId, tableId), fieldsFindings);
 
     ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
 

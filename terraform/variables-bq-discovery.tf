@@ -2,7 +2,7 @@
 variable "auto_dlp_results_table_name" {
   type = string
   description = "New table name to be created to hold DLP findings in the format 'table'"
-  default = "auto_dlp_results"
+  default = "dlp_discovery_services_bq_results"
 }
 
 variable "sa_tagging_dispatcher" {

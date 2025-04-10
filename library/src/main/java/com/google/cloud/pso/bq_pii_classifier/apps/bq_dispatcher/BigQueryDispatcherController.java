@@ -91,9 +91,10 @@ public class BigQueryDispatcherController {
       BigQueryService bigQueryService = new BigQueryServiceImpl();
 
       Map<String, String> sqlParamsMap = new HashMap<>();
-      sqlParamsMap.put("${project}", environment.getProjectId());
+      sqlParamsMap.put("${project}", environment.getPublishingProjectId());
       sqlParamsMap.put("${dataset}", environment.getSolutionDataset());
       sqlParamsMap.put("${results_table}", environment.getDlpTableAuto());
+      sqlParamsMap.put("${folder_id_regex}", bigQueryDlpScope.foldersRegex());
       sqlParamsMap.put("${project_id_regex}", bigQueryDlpScope.projectsRegex());
       sqlParamsMap.put("${dataset_id_regex}", bigQueryDlpScope.datasetsRegex());
       sqlParamsMap.put("${table_id_regex}", bigQueryDlpScope.tablesRegex());
@@ -104,7 +105,7 @@ public class BigQueryDispatcherController {
 
       DlpFindingsScanner dlpFindingsScanner =
           new UniversalDlpFindingsScannerImpl(
-              "sql/v_bq_auto_dlp_dispatcher.tpl", sqlParamsMap, bigQueryService);
+                  "sql/dispatcher_bq.tpl", sqlParamsMap, bigQueryService);
 
       Dispatcher dispatcher =
           new Dispatcher(

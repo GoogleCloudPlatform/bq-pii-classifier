@@ -10,6 +10,11 @@
     "mode": "NULLABLE"
   },
   {
+    "mode": "NULLABLE",
+    "name": "folder_id",
+    "type": "STRING"
+  },
+  {
     "name": "project_id",
     "type": "STRING",
     "mode": "NULLABLE"

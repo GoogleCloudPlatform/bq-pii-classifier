@@ -32,6 +32,10 @@ public class Environment {
         return Utils.getConfigFromEnv("PROJECT_ID", true);
     }
 
+    public String getPublishingProjectId(){
+        return Utils.getConfigFromEnv("PUBLISHING_PROJECT_ID", true);
+    }
+
     public String getTaggerTopic() { return Utils.getConfigFromEnv("TAGGER_TOPIC", true); }
 
     public String getGcsFlagsBucket(){
