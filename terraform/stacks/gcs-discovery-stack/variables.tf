@@ -14,10 +14,6 @@ variable "data_region" {
   type = string
 }
 
-variable "source_data_regions" {
-  type = set(string)
-}
-
 variable "gar_docker_repo_name" {
   type = string
 }
@@ -235,4 +231,8 @@ variable "dlp_gcs_discovery_configurations" {
     # "Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to [ALL_SUPPORTED_OBJECTS]. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: ALL_SUPPORTED_OBJECTS, STANDARD, NEARLINE, COLDLINE, ARCHIVE, REGIONAL, MULTI_REGIONAL, DURABLE_REDUCED_AVAILABILITY."
     included_object_attributes = list(string)
   }))
+}
+
+variable "publishing_project" {
+  type = string
 }

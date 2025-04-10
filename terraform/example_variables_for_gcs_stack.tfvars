@@ -9,7 +9,7 @@ terraform_service_account_email = "bq-pii-classifier-terraform@<PROJECT ID>.iam.
 image_name = "bq-pii-classifier-services:latest"
 
 # host project to deploy the solution
-project = ""
+application_project = ""
 
 # org id to deploy the dlp discovery config to
 org_id = 0

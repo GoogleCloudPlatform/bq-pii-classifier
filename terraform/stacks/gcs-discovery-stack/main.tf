@@ -5,9 +5,8 @@
 locals {
   service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
 
-  tagging_dispatcher_sa_roles = [
+  tagging_dispatcher_sa_roles_on_host_project = [
     "roles/bigquery.jobUser", # to run the query that reads DLP findings
-    "roles/bigquery.dataEditor", # to insert dispatched tracking Ids to table dispatcher_runs
     "roles/batch.agentReporter", # to run Cloud Batch jobs
     "roles/logging.logWriter", # to run Cloud Batch jobs,
     "roles/artifactregistry.reader" # to read container image for the service
@@ -21,6 +20,15 @@ locals {
 ########################################################################################################################
 #                                             IAM
 ########################################################################################################################
+
+
+resource "google_bigquery_dataset_iam_member" "results_dataset_iam_editors_bindings" {
+  project = var.publishing_project
+  dataset_id = var.bq_results_dataset
+  # to insert dispatched tracking Ids to table dispatcher_runs and read dlp findings
+  role = "roles/bigquery.dataEditor"
+  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
+}
 
 resource "google_service_account" "sa_tagging_dispatcher_gcs" {
   project      = var.project
@@ -87,9 +95,9 @@ resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_t
 }
 
 resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
-  count = length(local.tagging_dispatcher_sa_roles)
+  count = length(local.tagging_dispatcher_sa_roles_on_host_project)
   project = var.project
-  role    = local.tagging_dispatcher_sa_roles[count.index]
+  role    = local.tagging_dispatcher_sa_roles_on_host_project[count.index]
   member  = "serviceAccount:${google_service_account.sa_tagging_dispatcher_gcs.email}"
 }
 
@@ -259,28 +267,6 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
-########################################################################################################################
-#                                            Helper Functions
-########################################################################################################################
-
-
-# Helper functions for data analysis and cost estimation
-module "bq-remote-func-get-buckets-metadata" {
-  source                    = "../../modules/bq-remote-function"
-  function_name             = var.bq_remote_func_get_buckets_metadata
-  cloud_function_src_dir    = "../helpers/bq-remote-functions/get-buckets-metadata"
-  cloud_function_temp_dir   = "/tmp/get-buckets-metadata.zip"
-  service_account_name      = var.sa_bq_remote_func_get_buckets_metadata
-  function_entry_point      = "process_request"
-  env_variables = {}
-  project                   = var.project
-  compute_region            = var.compute_region
-  data_region               = var.data_region
-  bigquery_dataset_name     = var.bq_results_dataset
-  deployment_procedure_path = "modules/bq-remote-function/procedures/deploy_get_buckets_metadata_remote_func.tpl"
-  cloud_functions_sa_extra_roles = []
-}
-
 
 ########################################################################################################################
 #                                            Workflows
@@ -354,4 +340,5 @@ module "gcs_dlp_configs" {
   dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_id
   project                           = var.project
   pubsub_tagger_topic_id            = module.pubsub-tagger-gcs-for-dlp.topic-id
+  publishing_project                = var.publishing_project
 }

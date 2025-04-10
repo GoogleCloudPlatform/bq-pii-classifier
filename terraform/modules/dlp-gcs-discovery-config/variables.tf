@@ -2,6 +2,10 @@ variable "project" {
   type = string
 }
 
+variable "publishing_project" {
+  type = string
+}
+
 variable "data_region" {
   type = string
 }

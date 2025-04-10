@@ -26,7 +26,7 @@ resource "random_id" "run_id" {
 
 resource "google_bigquery_connection" "connection" {
   connection_id = var.function_name
-  project       = var.project
+  project       = var.publishing_project
   location      = var.data_region # same region as the cloud function
 
   ## Note: The cloud resource nested object has only one output only field - serviceAccountId.
@@ -123,7 +123,7 @@ resource "google_cloudfunctions2_function" "function" {
 }
 
 resource "google_cloud_run_service_iam_member" "sa_invoker" {
-  project  = var.project
+  project  = var.publishing_project
   location = var.compute_region # same region as the cloud function
   service  = google_cloudfunctions2_function.function.service_config[0].service
   role     = "roles/run.invoker"
@@ -135,13 +135,14 @@ resource "google_cloud_run_service_iam_member" "sa_invoker" {
 
 # create a stored procedure that deploys the function and call it from outside Terraform
 resource "google_bigquery_routine" "routine_deploy_functions" {
+  project         = var.publishing_project
   dataset_id      = var.bigquery_dataset_name
   routine_id      = "deploy_${var.function_name}"
   routine_type    = "PROCEDURE"
   language        = "SQL"
   definition_body = templatefile(var.deployment_procedure_path,
     {
-      project            = var.project
+      project            = var.publishing_project
       dataset            = var.bigquery_dataset_name
       function_name      = "remote_${var.function_name}"
       connection_region  = google_bigquery_connection.connection.location
@@ -155,12 +156,13 @@ resource "google_bigquery_routine" "routine_deploy_functions" {
 
 ## Run a BQ job to deploy the remote functions
 resource "google_bigquery_job" "deploy_remote_functions_job" {
+  project  = var.publishing_project
   job_id   = "d_job_${google_bigquery_routine.routine_deploy_functions.routine_id}_${random_id.run_id.hex}"
   location = var.data_region # same as dataset used by the solution
 
   query {
     priority = "INTERACTIVE"
-    query    = "CALL ${var.bigquery_dataset_name}.${google_bigquery_routine.routine_deploy_functions.routine_id}();"
+    query    = "CALL `${var.publishing_project}`.${var.bigquery_dataset_name}.${google_bigquery_routine.routine_deploy_functions.routine_id}();"
     create_disposition = "" # must be set to "" for scripts
     write_disposition = ""  # must be set to "" for scripts
   }

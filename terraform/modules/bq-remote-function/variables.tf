@@ -22,6 +22,10 @@ variable "project" {
   type = string
 }
 
+variable "publishing_project" {
+  type = string
+}
+
 variable "compute_region" {
   type = string
 }

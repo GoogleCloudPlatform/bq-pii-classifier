@@ -1,7 +1,14 @@
-### BigQuery ####
+#######################################################################################################################
+#                                    BigQuery
+#######################################################################################################################
+
+
+#############################################################
+#                                    Dataset & Permissions
+##############################################################
 
 resource "google_bigquery_dataset" "results_dataset" {
-  project = var.project
+  project = var.publishing_project
   location = var.data_region
   dataset_id = var.bigquery_dataset_name
   description = "To store DLP results and data for the BQ PII Classifier solution"
@@ -11,15 +18,28 @@ resource "google_bigquery_dataset" "results_dataset" {
   depends_on = [google_project_service.enable_apis]
 }
 
-# Logging BQ sink must be able to write data to logging table in the dataset
-resource "google_bigquery_dataset_iam_member" "logging_sink_access" {
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
-  role = "roles/bigquery.dataEditor"
-  member = google_logging_project_sink.bigquery-logging-sink.writer_identity
+locals {
+  bq_app_dataset_data_editors = [
+    google_logging_project_sink.bigquery-logging-sink.writer_identity, # Logging BQ sink must be able to write data to logging table in the dataset
+    "serviceAccount:${local.dlp_service_account_email}" # Dlp writes discovery results to a table in this dataset
+  ]
 }
 
+
+resource "google_bigquery_dataset_iam_member" "results_dataset_iam_editors_bindings" {
+  count = length(local.bq_app_dataset_data_editors)
+  project = var.publishing_project
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  role = "roles/bigquery.dataEditor"
+  member = local.bq_app_dataset_data_editors[count.index]
+}
+
+#############################################################
+#                                    Tables
+##############################################################
+
 resource "google_bigquery_table" "logging_table" {
-  project = var.project
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   # don't change the name so that cloud logging can find it
   table_id = "run_googleapis_com_stdout"
@@ -34,8 +54,12 @@ resource "google_bigquery_table" "logging_table" {
   deletion_protection = var.terraform_data_deletion_protection
 }
 
+#############################################################
+#                                    Views
+##############################################################
 
 resource "google_bigquery_table" "logging_view_steps" {
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_steps"
 
@@ -45,7 +69,7 @@ resource "google_bigquery_table" "logging_view_steps" {
     use_legacy_sql = false
     query = templatefile("views/v_steps.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table.table_id
       }
@@ -54,6 +78,7 @@ resource "google_bigquery_table" "logging_view_steps" {
 }
 
 resource "google_bigquery_table" "view_service_calls" {
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_service_calls"
 
@@ -63,7 +88,7 @@ resource "google_bigquery_table" "view_service_calls" {
     use_legacy_sql = false
     query = templatefile("views/v_service_calls.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         logging_view_steps = google_bigquery_table.logging_view_steps.table_id
       }
@@ -72,6 +97,7 @@ resource "google_bigquery_table" "view_service_calls" {
 }
 
 resource "google_bigquery_table" "logging_view_broken_steps" {
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_broken_steps"
 
@@ -81,7 +107,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
     use_legacy_sql = false
     query = templatefile("views/v_broken_steps.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         v_service_calls = google_bigquery_table.view_service_calls.table_id
         logging_table = google_bigquery_table.logging_table.table_id
@@ -92,6 +118,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
 
 
 resource "google_bigquery_table" "view_errors_non_retryable" {
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_errors_non_retryable"
 
@@ -101,7 +128,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
     use_legacy_sql = false
     query = templatefile("views/v_errors_non_retryable.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table.table_id
       }
@@ -110,6 +137,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
 }
 
 resource "google_bigquery_table" "view_errors_retryable" {
+  project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_errors_retryable"
 
@@ -119,7 +147,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
     use_legacy_sql = false
     query = templatefile("views/v_errors_retryable.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table.table_id
       }
@@ -128,6 +156,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
 }
 
 resource "google_bigquery_table" "view_run_summary" {
+  project = var.publishing_project
   dataset_id = var.bigquery_dataset_name
   table_id = "v_run_summary"
 
@@ -137,7 +166,7 @@ resource "google_bigquery_table" "view_run_summary" {
     use_legacy_sql = false
     query = templatefile("views/v_run_summary.tpl",
       {
-        project = var.project
+        project = var.publishing_project
         dataset = var.bigquery_dataset_name
         v_service_calls = google_bigquery_table.view_service_calls.table_id
         v_errors_non_retryable = google_bigquery_table.view_errors_non_retryable.table_id

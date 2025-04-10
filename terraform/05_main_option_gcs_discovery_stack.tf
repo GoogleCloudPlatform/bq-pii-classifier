@@ -17,7 +17,8 @@ module "gcs-discovery-stack" {
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
   gar_docker_repo_name = var.gar_docker_repo_name
   gcs_flags_bucket_name = google_storage_bucket.gcs_flags_bucket.name
-  project = var.project
+  project = var.application_project
+  publishing_project = var.publishing_project
   tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
   dispatcher_subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
   dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
@@ -26,7 +27,6 @@ module "gcs-discovery-stack" {
   tagger_subscription_ack_deadline_seconds           = var.tagger_subscription_ack_deadline_seconds
   tagger_subscription_message_retention_duration     = var.tagger_subscription_message_retention_duration
   dlp_service_account_email                          = local.dlp_service_account_email
-  source_data_regions                                = var.source_data_regions
   dlp_gcs_bq_results_table_name = var.dlp_gcs_bq_results_table_name
   sa_tagger_gcs = var.sa_tagger_gcs
   sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
@@ -58,7 +58,10 @@ module "gcs-discovery-stack" {
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
 
-  depends_on = [google_project_service.enable_apis]
+  depends_on = [google_project_service.enable_apis,
+    google_project_service.enable_apis_on_publishing_project,
+    google_bigquery_table.logging_table
+  ]
 }
 
 // This module creates granular custom roles and assigns roles and permissions to service accounts used in this solution on ORG levels (and not the host project)

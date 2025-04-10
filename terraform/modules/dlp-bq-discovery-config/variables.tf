@@ -2,6 +2,10 @@ variable "project" {
   type = string
 }
 
+variable "publishing_project" {
+  type = string
+}
+
 variable "dlp_bq_scan_org_id" {
   type = string
 }

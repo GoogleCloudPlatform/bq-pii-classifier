@@ -12,8 +12,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-variable "project" {
+variable "application_project" {
   type = string
+  description = "GCP project to host the application internal resources (e.g. DLP, Cloud Run, Service Accounts, etc)"
+}
+
+variable "publishing_project" {
+  type = string
+  description = "GCP project to host external/shared resources such as DLP results and monitoring views"
 }
 
 variable "compute_region" {
@@ -202,7 +208,7 @@ variable "org_id" {
 
 variable "dlp_tag_sensitivity_level_key_name" {
   type = string
-  default = "dlp_sensitivity_level"
+  default = "dlp_sensitivity_level_2"
 }
 
 variable "dlp_tag_high_sensitivity_value_name" {

@@ -32,7 +32,8 @@ module "bq-discovery-stack" {
   is_dry_run_labels = var.is_dry_run_labels
   is_dry_run_tags = var.is_dry_run_tags
   logging_table_name = google_bigquery_table.logging_table.table_id
-  project = var.project
+  project = var.application_project
+  publishing_project = var.publishing_project
   promote_dlp_other_matches = var.promote_dlp_other_matches
   retain_dlp_tagger_pubsub_messages = var.retain_dlp_tagger_pubsub_messages
   sa_bq_remote_func_get_policy_tags = var.sa_bq_remote_func_get_policy_tags
@@ -64,7 +65,11 @@ module "bq-discovery-stack" {
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
 
-  depends_on = [google_project_service.enable_apis]
+  depends_on = [google_project_service.enable_apis,
+    google_project_service.enable_apis_on_publishing_project,
+    google_bigquery_table.logging_table
+  ]
+
 
 }
 

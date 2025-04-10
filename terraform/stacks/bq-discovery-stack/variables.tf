@@ -319,3 +319,7 @@ variable "dlp_bq_discovery_configurations" {
     reprofile_types_on_table_data_update = list(string)
   }))
 }
+
+variable "publishing_project" {
+  type = string
+}

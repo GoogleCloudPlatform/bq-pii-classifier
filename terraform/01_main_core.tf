@@ -13,13 +13,13 @@
 #   limitations under the License.
 
 provider "google" {
-  project                     = var.project
+  project                     = var.application_project
   region                      = var.compute_region
   impersonate_service_account = var.terraform_service_account_email
 }
 
 data google_project "gcp_project" {
-  project_id = var.project
+  project_id = var.application_project
 }
 
 ### Locals ####
@@ -46,8 +46,8 @@ locals {
 ### GCS RESOURCES ####
 
 resource "google_storage_bucket" "gcs_flags_bucket" {
-  project  = var.project
-  name     = "${var.project}-${var.gcs_flags_bucket_name}"
+  project  = var.application_project
+  name     = "${var.application_project}-${var.gcs_flags_bucket_name}"
   # This bucket is used by the services so let's create in the same compute region
   location = var.compute_region
 
@@ -72,7 +72,7 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
 
 resource "google_logging_project_sink" "bigquery-logging-sink" {
   name                   = var.log_sink_name
-  destination            = "bigquery.googleapis.com/projects/${var.project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
+  destination            = "bigquery.googleapis.com/projects/${var.application_project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
   filter                 = "resource.type=cloud_run_revision jsonPayload.global_app=bq-pii-classifier"
   # Use a unique writer (creates a unique service account used for writing)
   unique_writer_identity = true
@@ -95,7 +95,7 @@ locals {
 module "dlp" {
   count                   = length(local.dlp_regions)
   source                  = "./modules/dlp"
-  project                 = var.project
+  project                 = var.application_project
   region                  = tolist(local.dlp_regions)[count.index]
   classification_taxonomy = var.classification_taxonomy
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
@@ -137,8 +137,8 @@ resource "google_tags_tag_value" "dlp_low_sensitivity_value" {
 
 ### bucket to store xxl configurations that can't fit in env variables in Cloud Run
 resource "google_storage_bucket" "gcs_solution_resources" {
-  project  = var.project
-  name     = "${var.project}-resources"
+  project  = var.application_project
+  name     = "${var.application_project}-resources"
   # This bucket is used by the services so let's create in the same compute region
   location = var.compute_region
 

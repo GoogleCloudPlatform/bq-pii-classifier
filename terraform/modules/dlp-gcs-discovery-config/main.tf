@@ -105,7 +105,7 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
   actions {
     export_data {
       profile_table {
-        project_id = var.project
+        project_id = var.publishing_project
         dataset_id = var.bq_results_dataset
         table_id   = var.dlp_gcs_bq_results_table_name
       }
