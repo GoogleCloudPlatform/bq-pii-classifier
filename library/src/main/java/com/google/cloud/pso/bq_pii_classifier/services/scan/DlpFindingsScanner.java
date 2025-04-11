@@ -17,13 +17,10 @@
 package com.google.cloud.pso.bq_pii_classifier.services.scan;
 
 import com.google.cloud.bigquery.TableResult;
-
 import java.io.IOException;
 
-/**
- * Used with Tagging Dispatcher(s) to list down dlp profiles to be used for tagging resources
- */
+/** Used with Tagging Dispatcher(s) to list down dlp profiles to be used for tagging resources */
 public interface DlpFindingsScanner {
 
-    TableResult getDlpProfilesFromBigQuery(String runId) throws IOException, InterruptedException;
+  TableResult getDlpProfilesFromBigQuery(String runId) throws IOException, InterruptedException;
 }

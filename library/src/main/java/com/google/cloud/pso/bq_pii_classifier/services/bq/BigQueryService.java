@@ -20,36 +20,41 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
 public interface BigQueryService {
-    String getDatasetLocation(String projectId, String datasetId) throws IOException;
+  String getDatasetLocation(String projectId, String datasetId) throws IOException;
 
-    Job submitJob(String query);
+  Job submitJob(String query);
 
-    TableResult waitAndGetJobResults(Job queryJob) throws InterruptedException, RuntimeException;
+  TableResult waitAndGetJobResults(Job queryJob) throws InterruptedException, RuntimeException;
 
-    List<TableFieldSchema> getTableSchemaFields(TableSpec tableSpec) throws IOException;
+  List<TableFieldSchema> getTableSchemaFields(TableSpec tableSpec) throws IOException;
 
-    void patchTableSchema(TableSpec tableSpec, List<TableFieldSchema> updatedFields) throws IOException;
-    void patchTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) throws IOException;
+  void patchTableSchema(TableSpec tableSpec, List<TableFieldSchema> updatedFields)
+      throws IOException;
 
-    void patchTable(TableSpec tableSpec, List<TableFieldSchema> updatedFields, Map<String, String> tableLabels) throws IOException;
+  void patchTableLabels(TableSpec tableSpec, Map<String, String> tableLabels) throws IOException;
 
-    BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;
+  void patchTable(
+      TableSpec tableSpec, List<TableFieldSchema> updatedFields, Map<String, String> tableLabels)
+      throws IOException;
 
-    Map<String, String> getTableLabels(TableSpec tableSpec) throws IOException;
+  BigInteger getTableNumRows(TableSpec tableSpec) throws IOException;
 
-    boolean tableExists(TableSpec tableSpec);
+  Map<String, String> getTableLabels(TableSpec tableSpec) throws IOException;
 
-    /**
-     * Set table labels to the one supplied only. This is different from patchTableLabels that appends and updates labels only but doesn't delete
-     * @param tableSpec table to be updated
-     * @param tableLabels table labels to be attached to the table
-     */
-    void overWriteTableLabels(TableSpec tableSpec, Map<String, String> tableLabels);
+  boolean tableExists(TableSpec tableSpec);
+
+  /**
+   * Set table labels to the one supplied only. This is different from patchTableLabels that appends
+   * and updates labels only but doesn't delete
+   *
+   * @param tableSpec table to be updated
+   * @param tableLabels table labels to be attached to the table
+   */
+  void overWriteTableLabels(TableSpec tableSpec, Map<String, String> tableLabels);
 }

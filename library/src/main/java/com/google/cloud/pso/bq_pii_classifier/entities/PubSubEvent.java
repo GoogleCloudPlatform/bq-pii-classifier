@@ -23,78 +23,86 @@ import java.util.Map;
 // additional information regarding Pub/Sub events.
 public class PubSubEvent {
 
-    private Message message;
+  private Message message;
 
-    public PubSubEvent() {}
+  public PubSubEvent() {}
 
-    public Message getMessage() {
-        return message;
+  public Message getMessage() {
+    return message;
+  }
+
+  public void setMessage(Message message) {
+    this.message = message;
+  }
+
+  public class Message {
+
+    private String messageId;
+    private String publishTime;
+    private byte[] data;
+    private Map<String, String> attributes;
+
+    public Message() {}
+
+    public Message(
+        String messageId, String publishTime, byte[] data, Map<String, String> attributes) {
+      this.messageId = messageId;
+      this.publishTime = publishTime;
+      this.data = data;
+      this.attributes = attributes;
     }
 
-    public void setMessage(Message message) {
-        this.message = message;
+    public String getMessageId() {
+      return messageId;
     }
 
-    public class Message {
-
-        private String messageId;
-        private String publishTime;
-        private byte[] data;
-        private Map<String, String> attributes;
-
-        public Message() {}
-
-        public Message(String messageId, String publishTime, byte[] data, Map<String, String> attributes) {
-            this.messageId = messageId;
-            this.publishTime = publishTime;
-            this.data = data;
-            this.attributes = attributes;
-        }
-
-        public String getMessageId() {
-            return messageId;
-        }
-
-        public void setMessageId(String messageId) {
-            this.messageId = messageId;
-        }
-
-        public String getPublishTime() {
-            return publishTime;
-        }
-
-        public void setPublishTime(String publishTime) {
-            this.publishTime = publishTime;
-        }
-
-        public byte[] getData() {
-            return data;
-        }
-
-        public void setData(byte[] data) {
-            this.data = data;
-        }
-
-        public Map<String, String> getAttributes() {
-            return attributes;
-        }
-
-        public void setAttributes(Map<String, String> attributes) {
-            this.attributes = attributes;
-        }
-
-        public String dataToUtf8String (){
-            return new String(data, StandardCharsets.UTF_8);
-        }
-
-        @Override
-        public String toString() {
-            return "Message{" +
-                    "messageId='" + messageId + '\'' +
-                    ", publishTime='" + publishTime + '\'' +
-                    ", data='" + data + '\'' +
-                    ", attributes=" + attributes +
-                    '}';
-        }
+    public void setMessageId(String messageId) {
+      this.messageId = messageId;
     }
+
+    public String getPublishTime() {
+      return publishTime;
+    }
+
+    public void setPublishTime(String publishTime) {
+      this.publishTime = publishTime;
+    }
+
+    public byte[] getData() {
+      return data;
+    }
+
+    public void setData(byte[] data) {
+      this.data = data;
+    }
+
+    public Map<String, String> getAttributes() {
+      return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+      this.attributes = attributes;
+    }
+
+    public String dataToUtf8String() {
+      return new String(data, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public String toString() {
+      return "Message{"
+          + "messageId='"
+          + messageId
+          + '\''
+          + ", publishTime='"
+          + publishTime
+          + '\''
+          + ", data='"
+          + data
+          + '\''
+          + ", attributes="
+          + attributes
+          + '}';
+    }
+  }
 }

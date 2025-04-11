@@ -17,20 +17,18 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
-
 import java.util.Map;
 import java.util.Set;
 
-public record TaggerConfig(String projectId,
-                           Set<String> appOwnedTaxonomies,
-                           Boolean isDryRunTags,
-                           Boolean isDryRunLabels,
-                           Map<String, InfoTypeInfo> infoTypeMap,
-                           String existingLabelsRegex,
-                           Boolean promoteDlpOtherMatches,
-                           Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> infoTypePolicyTagMap,
-                           Map<String, String> projectDomainMap,
-                           Map<DatasetDomainMapKey, String> datasetDomainMap,
-                           String defaultDomainName
-                           ) {}
-
+public record TaggerConfig(
+    String projectId,
+    Set<String> appOwnedTaxonomies,
+    Boolean isDryRunTags,
+    Boolean isDryRunLabels,
+    Map<String, InfoTypeInfo> infoTypeMap,
+    String existingLabelsRegex,
+    Boolean promoteDlpOtherMatches,
+    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> infoTypePolicyTagMap,
+    Map<String, String> projectDomainMap,
+    Map<DatasetDomainMapKey, String> datasetDomainMap,
+    String defaultDomainName) {}

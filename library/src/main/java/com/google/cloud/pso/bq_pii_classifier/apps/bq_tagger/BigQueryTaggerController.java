@@ -28,19 +28,19 @@ import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
 public class BigQueryTaggerController {
 
-  private final LoggingHelper logger;
   private static final Integer functionNumber = 3;
+  private final LoggingHelper logger;
   private final Gson gson;
   private final Environment environment;
 
@@ -53,6 +53,10 @@ public class BigQueryTaggerController {
             BigQueryTaggerController.class.getSimpleName(),
             functionNumber,
             environment.getProjectId());
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(BigQueryTaggerController.class, args);
   }
 
   @RequestMapping(value = "/tagging-dispatcher-handler", method = RequestMethod.POST)
@@ -157,9 +161,5 @@ public class BigQueryTaggerController {
     } catch (Exception e) {
       return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
-  }
-
-  public static void main(String[] args) {
-    SpringApplication.run(BigQueryTaggerController.class, args);
   }
 }

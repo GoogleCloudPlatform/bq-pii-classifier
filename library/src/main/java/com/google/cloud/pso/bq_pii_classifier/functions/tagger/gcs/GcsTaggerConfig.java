@@ -17,7 +17,10 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.InfoTypeInfo;
-
 import java.util.Map;
 
-public record GcsTaggerConfig(String projectId, Boolean isDryRunLabels, Map<String, InfoTypeInfo> infoTypeMap, String existingLabelsRegex) { }
+public record GcsTaggerConfig(
+    String projectId,
+    Boolean isDryRunLabels,
+    Map<String, InfoTypeInfo> infoTypeMap,
+    String existingLabelsRegex) {}

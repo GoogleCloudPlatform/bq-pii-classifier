@@ -16,6 +16,4 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-import com.google.common.base.Objects;
-
-public record GcsDlpScope(String foldersRegex, String projectsRegex, String bucketsRegex) { }
+public record GcsDlpScope(String foldersRegex, String projectsRegex, String bucketsRegex) {}

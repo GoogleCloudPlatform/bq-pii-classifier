@@ -8,7 +8,6 @@ import com.google.cloud.pso.bq_pii_classifier.entities.TableSpec;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.TaggerRequest;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +45,10 @@ public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStr
 
     TaggerRequest taggerRequest =
         new TaggerRequest(
-            runId, trackingId, new TableSpec(folderId, projectId, datasetId, tableId), fieldsFindings);
+            runId,
+            trackingId,
+            new TableSpec(folderId, projectId, datasetId, tableId),
+            fieldsFindings);
 
     ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
 

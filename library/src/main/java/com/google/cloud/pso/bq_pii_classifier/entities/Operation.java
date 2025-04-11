@@ -20,36 +20,31 @@ import com.google.gson.Gson;
 
 public class Operation implements JsonMessage {
 
-    private String runId;
-    private String trackingId;
+  private String runId;
+  private String trackingId;
 
-    public Operation() {
-    }
+  public Operation() {}
 
-    public Operation(String runId, String trackingId) {
-        this.runId = runId;
-        this.trackingId = trackingId;
-    }
+  public Operation(String runId, String trackingId) {
+    this.runId = runId;
+    this.trackingId = trackingId;
+  }
 
-    public String getRunId() {
-        return runId;
-    }
+  public String getRunId() {
+    return runId;
+  }
 
-    public String getTrackingId() {
-        return trackingId;
-    }
+  public String getTrackingId() {
+    return trackingId;
+  }
 
-    @Override
-    public String toString() {
-        return "Operation{" +
-                " runId='" + runId + '\'' +
-                ", trackingId='" + trackingId + '\'' +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "Operation{" + " runId='" + runId + '\'' + ", trackingId='" + trackingId + '\'' + '}';
+  }
 
-    @Override
-    public String toJsonString (){
-        return new Gson().toJson(this);
-
-    }
+  @Override
+  public String toJsonString() {
+    return new Gson().toJson(this);
+  }
 }

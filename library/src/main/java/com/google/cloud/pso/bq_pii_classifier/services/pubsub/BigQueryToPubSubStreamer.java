@@ -19,7 +19,6 @@ package com.google.cloud.pso.bq_pii_classifier.services.pubsub;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 

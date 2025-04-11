@@ -28,9 +28,8 @@ import java.util.stream.Collectors;
 
 public class GcsTagger {
 
-  private final LoggingHelper logger;
-
   private static final Integer functionNumber = 3;
+  private final LoggingHelper logger;
   private final GcsTaggerConfig config;
 
   private final DlpFindingsReader findingsReader;
@@ -57,6 +56,45 @@ public class GcsTagger {
   }
 
   /**
+   * @param infoTypes A list of info types names
+   * @param infoTypeMetadataMap A Map<info type name, info type metadata>
+   * @return A subset of map infoTypeMetadataMap with only the info type entries/keys that are found
+   *     in infoTypes
+   */
+  public static Map<String, InfoTypeInfo> filterInfoTypesMetadataMap(
+      Set<String> infoTypes, Map<String, InfoTypeInfo> infoTypeMetadataMap) {
+
+    return infoTypeMetadataMap.entrySet().stream()
+        .filter(entry -> infoTypes.contains(entry.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * @param infoTypesFindings A list of info types names that are detected by DLP in a bucket
+   * @param infoTypeMetadataMap A Map<info type name, info type metadata> used as master data for
+   *     lookup
+   * @return A map of label key, label value pairs that are configured for all info types in the
+   *     infoTypesFindings list
+   */
+  public static Map<String, String> generateBucketLabelsFromDlpFindings(
+      Set<String> infoTypesFindings, Map<String, InfoTypeInfo> infoTypeMetadataMap) {
+    Map<String, String> bucketLabels = new HashMap<>();
+    // loop on all InfoTyps found in that bucket
+    for (String infoType : infoTypesFindings) {
+      // lookup the labels associated with that info type based on the classification taxonomy (in
+      // Terraform)
+      // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
+      InfoTypeInfo infoTypeInfo = infoTypeMetadataMap.get(infoType);
+      if (infoTypeInfo != null) {
+        for (ResourceLabel infoTypeLabel : infoTypeInfo.labels()) {
+          bucketLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
+        }
+      }
+    }
+    return bucketLabels;
+  }
+
+  /**
    * @param request The request object for the tagging operation.
    * @param pubSubMessageId The pubsub message id containing the request. This is used to ensure
    *     exactly once processing
@@ -67,9 +105,7 @@ public class GcsTagger {
 
     logger.logFunctionStart(request.getTrackingId(), null);
     logger.logInfoWithTracker(
-        request.getTrackingId(),
-        null,
-        String.format("Request : %s", request.toString()));
+        request.getTrackingId(), null, String.format("Request : %s", request));
 
     /**
      * Check if we already processed this pubSubMessageId before to avoid submitting BQ queries in
@@ -100,14 +136,12 @@ public class GcsTagger {
 
     // overwrite the bucket resource name after fetching the full profile
     String bucketResourceName =
-            Utils.generateBucketEntityId(
-                    profileSummary.getProjectId(),
-                    profileSummary.getBucketName());
+        Utils.generateBucketEntityId(profileSummary.getProjectId(), profileSummary.getBucketName());
 
     logger.logInfoWithTracker(
         request.getTrackingId(),
         bucketResourceName,
-        String.format("Computed profile summary: %s ", profileSummary.toString()));
+        String.format("Computed profile summary: %s ", profileSummary));
 
     Map<String, InfoTypeInfo> detectedInfoTypesWithMetadata =
         filterInfoTypesMetadataMap(profileSummary.getInfoTypes(), config.infoTypeMap());
@@ -184,44 +218,5 @@ public class GcsTagger {
     logger.logFunctionEnd(request.getTrackingId(), bucketResourceName);
 
     return detectedInfoTypesWithMetadata;
-  }
-
-  /**
-   * @param infoTypes A list of info types names
-   * @param infoTypeMetadataMap A Map<info type name, info type metadata>
-   * @return A subset of map infoTypeMetadataMap with only the info type entries/keys that are found
-   *     in infoTypes
-   */
-  public static Map<String, InfoTypeInfo> filterInfoTypesMetadataMap(
-      Set<String> infoTypes, Map<String, InfoTypeInfo> infoTypeMetadataMap) {
-
-    return infoTypeMetadataMap.entrySet().stream()
-        .filter(entry -> infoTypes.contains(entry.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  /**
-   * @param infoTypesFindings A list of info types names that are detected by DLP in a bucket
-   * @param infoTypeMetadataMap A Map<info type name, info type metadata> used as master data for
-   *     lookup
-   * @return A map of label key, label value pairs that are configured for all info types in the
-   *     infoTypesFindings list
-   */
-  public static Map<String, String> generateBucketLabelsFromDlpFindings(
-      Set<String> infoTypesFindings, Map<String, InfoTypeInfo> infoTypeMetadataMap) {
-    Map<String, String> bucketLabels = new HashMap<>();
-    // loop on all InfoTyps found in that bucket
-    for (String infoType : infoTypesFindings) {
-      // lookup the labels associated with that info type based on the classification taxonomy (in
-      // Terraform)
-      // add each label to the map. Duplicate labels across InfoTypes will be overwritten.
-      InfoTypeInfo infoTypeInfo = infoTypeMetadataMap.get(infoType);
-      if (infoTypeInfo != null){
-        for (ResourceLabel infoTypeLabel : infoTypeInfo.labels()) {
-          bucketLabels.put(infoTypeLabel.key().toLowerCase(), infoTypeLabel.value().toLowerCase());
-        }
-      }
-    }
-    return bucketLabels;
   }
 }

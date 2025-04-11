@@ -20,6 +20,8 @@
 package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
 
 /**
+ *
+ *
  * <pre>
  * The message that will be published to a Pub/Sub topic.
  * To receive a message of protocol buffer schema type, convert the message data
@@ -27,47 +29,174 @@ package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
  * https://cloud.google.com/pubsub/docs/samples/pubsub-subscribe-proto-messages
  * </pre>
  *
- * Protobuf type {@code com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage}
+ * Protobuf type {@code
+ * com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage}
  */
-public final class DataProfilePubSubMessage extends
-    com.google.protobuf.GeneratedMessage implements
+public final class DataProfilePubSubMessage extends com.google.protobuf.GeneratedMessage
+    implements
     // @@protoc_insertion_point(message_implements:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage)
     DataProfilePubSubMessageOrBuilder {
-private static final long serialVersionUID = 0L;
+  public static final int PROFILE_FIELD_NUMBER = 1;
+  public static final int EVENT_FIELD_NUMBER = 2;
+  public static final int FILE_STORE_PROFILE_FIELD_NUMBER = 3;
+  private static final long serialVersionUID = 0L;
+  // @@protoc_insertion_point(class_scope:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage)
+  private static final DataProfilePubSubMessage DEFAULT_INSTANCE;
+  private static final com.google.protobuf.Parser<DataProfilePubSubMessage> PARSER =
+      new com.google.protobuf.AbstractParser<DataProfilePubSubMessage>() {
+        @java.lang.Override
+        public DataProfilePubSubMessage parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
   static {
     com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-      com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-      /* major= */ 4,
-      /* minor= */ 29,
-      /* patch= */ 3,
-      /* suffix= */ "",
-      DataProfilePubSubMessage.class.getName());
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 29,
+        /* patch= */ 3,
+        /* suffix= */ "",
+        DataProfilePubSubMessage.class.getName());
   }
+
+  static {
+    DEFAULT_INSTANCE = new DataProfilePubSubMessage();
+  }
+
+  private int bitField0_;
+  private TableDataProfile profile_;
+  private int event_ = 0;
+  private FileStoreDataProfile fileStoreProfile_;
+  private byte memoizedIsInitialized = -1;
+
   // Use DataProfilePubSubMessage.newBuilder() to construct.
   private DataProfilePubSubMessage(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
     super(builder);
   }
+
   private DataProfilePubSubMessage() {
     event_ = 0;
   }
 
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
+  public static com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+    return Dlp
+        .internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
+  }
+
+  public static DataProfilePubSubMessage parseFrom(java.nio.ByteBuffer data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(
+      java.nio.ByteBuffer data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(com.google.protobuf.ByteString data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(
+      com.google.protobuf.ByteString data,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(byte[] data)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(
+      byte[] data, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws com.google.protobuf.InvalidProtocolBufferException {
+    return PARSER.parseFrom(data, extensionRegistry);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(java.io.InputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(
+      java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static DataProfilePubSubMessage parseDelimitedFrom(java.io.InputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(PARSER, input);
+  }
+
+  public static DataProfilePubSubMessage parseDelimitedFrom(
+      java.io.InputStream input, com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseDelimitedWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(com.google.protobuf.CodedInputStream input)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(PARSER, input);
+  }
+
+  public static DataProfilePubSubMessage parseFrom(
+      com.google.protobuf.CodedInputStream input,
+      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
+    return com.google.protobuf.GeneratedMessage.parseWithIOException(
+        PARSER, input, extensionRegistry);
+  }
+
+  public static Builder newBuilder() {
+    return DEFAULT_INSTANCE.toBuilder();
+  }
+
+  public static Builder newBuilder(DataProfilePubSubMessage prototype) {
+    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+  }
+
+  public static DataProfilePubSubMessage getDefaultInstance() {
+    return DEFAULT_INSTANCE;
+  }
+
+  public static com.google.protobuf.Parser<DataProfilePubSubMessage> parser() {
+    return PARSER;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable
+    return Dlp
+        .internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             DataProfilePubSubMessage.class, DataProfilePubSubMessage.Builder.class);
   }
 
-  private int bitField0_;
-  public static final int PROFILE_FIELD_NUMBER = 1;
-  private TableDataProfile profile_;
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
@@ -75,13 +204,17 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+   *
    * @return Whether the profile field is set.
    */
   @java.lang.Override
   public boolean hasProfile() {
     return ((bitField0_ & 0x00000001) != 0);
   }
+
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
@@ -89,13 +222,17 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+   *
    * @return The profile.
    */
   @java.lang.Override
   public TableDataProfile getProfile() {
     return profile_ == null ? TableDataProfile.getDefaultInstance() : profile_;
   }
+
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
@@ -109,79 +246,107 @@ private static final long serialVersionUID = 0L;
     return profile_ == null ? TableDataProfile.getDefaultInstance() : profile_;
   }
 
-  public static final int EVENT_FIELD_NUMBER = 2;
-  private int event_ = 0;
   /**
+   *
+   *
    * <pre>
    * The event that caused the Pub/Sub message to be sent.
    * </pre>
    *
-   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+   * <code>
+   * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+   * </code>
+   *
    * @return The enum numeric value on the wire for event.
    */
-  @java.lang.Override public int getEventValue() {
+  @java.lang.Override
+  public int getEventValue() {
     return event_;
   }
+
   /**
+   *
+   *
    * <pre>
    * The event that caused the Pub/Sub message to be sent.
    * </pre>
    *
-   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+   * <code>
+   * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+   * </code>
+   *
    * @return The event.
    */
-  @java.lang.Override public DataProfileAction.EventType getEvent() {
+  @java.lang.Override
+  public DataProfileAction.EventType getEvent() {
     DataProfileAction.EventType result = DataProfileAction.EventType.forNumber(event_);
     return result == null ? DataProfileAction.EventType.UNRECOGNIZED : result;
   }
 
-  public static final int FILE_STORE_PROFILE_FIELD_NUMBER = 3;
-  private FileStoreDataProfile fileStoreProfile_;
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
    * `file_store_path` will be populated.
    * </pre>
    *
-   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   * <code>
+   * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+   * </code>
+   *
    * @return Whether the fileStoreProfile field is set.
    */
   @java.lang.Override
   public boolean hasFileStoreProfile() {
     return ((bitField0_ & 0x00000002) != 0);
   }
+
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
    * `file_store_path` will be populated.
    * </pre>
    *
-   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   * <code>
+   * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+   * </code>
+   *
    * @return The fileStoreProfile.
    */
   @java.lang.Override
   public FileStoreDataProfile getFileStoreProfile() {
-    return fileStoreProfile_ == null ? FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+    return fileStoreProfile_ == null
+        ? FileStoreDataProfile.getDefaultInstance()
+        : fileStoreProfile_;
   }
+
   /**
+   *
+   *
    * <pre>
    * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
    * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
    * `file_store_path` will be populated.
    * </pre>
    *
-   * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+   * <code>
+   * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+   * </code>
    */
   @java.lang.Override
   public FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder() {
-    return fileStoreProfile_ == null ? FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+    return fileStoreProfile_ == null
+        ? FileStoreDataProfile.getDefaultInstance()
+        : fileStoreProfile_;
   }
 
-  private byte memoizedIsInitialized = -1;
   @java.lang.Override
-  public final boolean isInitialized() {
+  public boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
@@ -191,8 +356,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
+  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getProfile());
     }
@@ -212,16 +376,13 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) != 0)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, getProfile());
+      size += com.google.protobuf.CodedOutputStream.computeMessageSize(1, getProfile());
     }
     if (event_ != DataProfileAction.EventType.EVENT_TYPE_UNSPECIFIED.getNumber()) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(2, event_);
+      size += com.google.protobuf.CodedOutputStream.computeEnumSize(2, event_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getFileStoreProfile());
+      size += com.google.protobuf.CodedOutputStream.computeMessageSize(3, getFileStoreProfile());
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -231,26 +392,22 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public boolean equals(final java.lang.Object obj) {
     if (obj == this) {
-     return true;
+      return true;
     }
-    if (!(obj instanceof DataProfilePubSubMessage)) {
+    if (!(obj instanceof DataProfilePubSubMessage other)) {
       return super.equals(obj);
     }
-    DataProfilePubSubMessage other = (DataProfilePubSubMessage) obj;
 
-    if (hasProfile() != other.hasProfile()) return false;
+      if (hasProfile() != other.hasProfile()) return false;
     if (hasProfile()) {
-      if (!getProfile()
-          .equals(other.getProfile())) return false;
+      if (!getProfile().equals(other.getProfile())) return false;
     }
     if (event_ != other.event_) return false;
     if (hasFileStoreProfile() != other.hasFileStoreProfile()) return false;
     if (hasFileStoreProfile()) {
-      if (!getFileStoreProfile()
-          .equals(other.getFileStoreProfile())) return false;
+      if (!getFileStoreProfile().equals(other.getFileStoreProfile())) return false;
     }
-    if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-    return true;
+      return getUnknownFields().equals(other.getUnknownFields());
   }
 
   @java.lang.Override
@@ -275,99 +432,35 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static DataProfilePubSubMessage parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static DataProfilePubSubMessage parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static DataProfilePubSubMessage parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  public static DataProfilePubSubMessage parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input);
-  }
-
-  public static DataProfilePubSubMessage parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input);
-  }
-  public static DataProfilePubSubMessage parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessage
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
   @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
-  public static Builder newBuilder() {
-    return DEFAULT_INSTANCE.toBuilder();
-  }
-  public static Builder newBuilder(DataProfilePubSubMessage prototype) {
-    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
+  public Builder newBuilderForType() {
+    return newBuilder();
   }
 
   @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+  public Builder toBuilder() {
+    return this == DEFAULT_INSTANCE ? new Builder() : new Builder().mergeFrom(this);
+  }
+
+  @java.lang.Override
+  protected Builder newBuilderForType(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
+
+  @java.lang.Override
+  public com.google.protobuf.Parser<DataProfilePubSubMessage> getParserForType() {
+    return PARSER;
+  }
+
+  @java.lang.Override
+  public DataProfilePubSubMessage getDefaultInstanceForType() {
+    return DEFAULT_INSTANCE;
+  }
+
   /**
+   *
+   *
    * <pre>
    * The message that will be published to a Pub/Sub topic.
    * To receive a message of protocol buffer schema type, convert the message data
@@ -375,42 +468,56 @@ private static final long serialVersionUID = 0L;
    * https://cloud.google.com/pubsub/docs/samples/pubsub-subscribe-proto-messages
    * </pre>
    *
-   * Protobuf type {@code com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage}
+   * Protobuf type {@code
+   * com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage}
    */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+  public static final class Builder extends com.google.protobuf.GeneratedMessage.Builder<Builder>
+      implements
       // @@protoc_insertion_point(builder_implements:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage)
-          DataProfilePubSubMessageOrBuilder {
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
+      DataProfilePubSubMessageOrBuilder {
+    private int bitField0_;
+    private TableDataProfile profile_;
+    private com.google.protobuf.SingleFieldBuilder<
+            TableDataProfile, TableDataProfile.Builder, TableDataProfileOrBuilder>
+        profileBuilder_;
+    private int event_ = 0;
+    private FileStoreDataProfile fileStoreProfile_;
+    private com.google.protobuf.SingleFieldBuilder<
+            FileStoreDataProfile, FileStoreDataProfile.Builder, FileStoreDataProfileOrBuilder>
+        fileStoreProfileBuilder_;
+
+    // Construct using
+    // com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage.newBuilder()
+    private Builder() {
+      maybeForceBuilderInitialization();
+    }
+
+    private Builder(com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      super(parent);
+      maybeForceBuilderInitialization();
+    }
+
+    public static com.google.protobuf.Descriptors.Descriptor getDescriptor() {
+      return Dlp
+          .internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable
+      return Dlp
+          .internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               DataProfilePubSubMessage.class, DataProfilePubSubMessage.Builder.class);
     }
 
-    // Construct using com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage.newBuilder()
-    private Builder() {
-      maybeForceBuilderInitialization();
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      super(parent);
-      maybeForceBuilderInitialization();
-    }
     private void maybeForceBuilderInitialization() {
-      if (com.google.protobuf.GeneratedMessage
-              .alwaysUseFieldBuilders) {
+      if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         getProfileFieldBuilder();
         getFileStoreProfileFieldBuilder();
       }
     }
+
     @java.lang.Override
     public Builder clear() {
       super.clear();
@@ -430,9 +537,9 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return Dlp.internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return Dlp
+          .internal_static_com_google_cloud_pso_bq_pii_classifier_entities_dlp_DataProfilePubSubMessage_descriptor;
     }
 
     @java.lang.Override
@@ -452,7 +559,9 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public DataProfilePubSubMessage buildPartial() {
       DataProfilePubSubMessage result = new DataProfilePubSubMessage(this);
-      if (bitField0_ != 0) { buildPartial0(result); }
+      if (bitField0_ != 0) {
+        buildPartial0(result);
+      }
       onBuilt();
       return result;
     }
@@ -461,18 +570,15 @@ private static final long serialVersionUID = 0L;
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) != 0)) {
-        result.profile_ = profileBuilder_ == null
-            ? profile_
-            : profileBuilder_.build();
+        result.profile_ = profileBuilder_ == null ? profile_ : profileBuilder_.build();
         to_bitField0_ |= 0x00000001;
       }
       if (((from_bitField0_ & 0x00000002) != 0)) {
         result.event_ = event_;
       }
       if (((from_bitField0_ & 0x00000004) != 0)) {
-        result.fileStoreProfile_ = fileStoreProfileBuilder_ == null
-            ? fileStoreProfile_
-            : fileStoreProfileBuilder_.build();
+        result.fileStoreProfile_ =
+            fileStoreProfileBuilder_ == null ? fileStoreProfile_ : fileStoreProfileBuilder_.build();
         to_bitField0_ |= 0x00000002;
       }
       result.bitField0_ |= to_bitField0_;
@@ -481,7 +587,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof DataProfilePubSubMessage) {
-        return mergeFrom((DataProfilePubSubMessage)other);
+        return mergeFrom((DataProfilePubSubMessage) other);
       } else {
         super.mergeFrom(other);
         return this;
@@ -505,7 +611,7 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public final boolean isInitialized() {
+    public boolean isInitialized() {
       return true;
     }
 
@@ -525,31 +631,32 @@ private static final long serialVersionUID = 0L;
             case 0:
               done = true;
               break;
-            case 10: {
-              input.readMessage(
-                  getProfileFieldBuilder().getBuilder(),
-                  extensionRegistry);
-              bitField0_ |= 0x00000001;
-              break;
-            } // case 10
-            case 16: {
-              event_ = input.readEnum();
-              bitField0_ |= 0x00000002;
-              break;
-            } // case 16
-            case 26: {
-              input.readMessage(
-                  getFileStoreProfileFieldBuilder().getBuilder(),
-                  extensionRegistry);
-              bitField0_ |= 0x00000004;
-              break;
-            } // case 26
-            default: {
-              if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                done = true; // was an endgroup tag
-              }
-              break;
-            } // default:
+            case 10:
+              {
+                input.readMessage(getProfileFieldBuilder().getBuilder(), extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+            case 16:
+              {
+                event_ = input.readEnum();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+            case 26:
+              {
+                input.readMessage(
+                    getFileStoreProfileFieldBuilder().getBuilder(), extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+            default:
+              {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
           } // switch (tag)
         } // while (!done)
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -559,32 +666,37 @@ private static final long serialVersionUID = 0L;
       } // finally
       return this;
     }
-    private int bitField0_;
 
-    private TableDataProfile profile_;
-    private com.google.protobuf.SingleFieldBuilder<
-            TableDataProfile, TableDataProfile.Builder, TableDataProfileOrBuilder> profileBuilder_;
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
+     *
      * @return Whether the profile field is set.
      */
     public boolean hasProfile() {
       return ((bitField0_ & 0x00000001) != 0);
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
+     *
      * @return The profile.
      */
     public TableDataProfile getProfile() {
@@ -594,14 +706,18 @@ private static final long serialVersionUID = 0L;
         return profileBuilder_.getMessage();
       }
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     public Builder setProfile(TableDataProfile value) {
       if (profileBuilder_ == null) {
@@ -616,17 +732,20 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
-    public Builder setProfile(
-        TableDataProfile.Builder builderForValue) {
+    public Builder setProfile(TableDataProfile.Builder builderForValue) {
       if (profileBuilder_ == null) {
         profile_ = builderForValue.build();
       } else {
@@ -636,20 +755,24 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     public Builder mergeProfile(TableDataProfile value) {
       if (profileBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) != 0) &&
-          profile_ != null &&
-          profile_ != TableDataProfile.getDefaultInstance()) {
+        if (((bitField0_ & 0x00000001) != 0)
+            && profile_ != null
+            && profile_ != TableDataProfile.getDefaultInstance()) {
           getProfileBuilder().mergeFrom(value);
         } else {
           profile_ = value;
@@ -663,14 +786,18 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     public Builder clearProfile() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -682,78 +809,99 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     public TableDataProfile.Builder getProfileBuilder() {
       bitField0_ |= 0x00000001;
       onChanged();
       return getProfileFieldBuilder().getBuilder();
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     public TableDataProfileOrBuilder getProfileOrBuilder() {
       if (profileBuilder_ != null) {
         return profileBuilder_.getMessageOrBuilder();
       } else {
-        return profile_ == null ?
-            TableDataProfile.getDefaultInstance() : profile_;
+        return profile_ == null ? TableDataProfile.getDefaultInstance() : profile_;
       }
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `TABLE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `full_resource` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;</code>
+     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.TableDataProfile profile = 1;
+     * </code>
      */
     private com.google.protobuf.SingleFieldBuilder<
             TableDataProfile, TableDataProfile.Builder, TableDataProfileOrBuilder>
         getProfileFieldBuilder() {
       if (profileBuilder_ == null) {
-        profileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+        profileBuilder_ =
+            new com.google.protobuf.SingleFieldBuilder<
                 TableDataProfile, TableDataProfile.Builder, TableDataProfileOrBuilder>(
-                getProfile(),
-                getParentForChildren(),
-                isClean());
+                getProfile(), getParentForChildren(), isClean());
         profile_ = null;
       }
       return profileBuilder_;
     }
 
-    private int event_ = 0;
     /**
+     *
+     *
      * <pre>
      * The event that caused the Pub/Sub message to be sent.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+     * </code>
+     *
      * @return The enum numeric value on the wire for event.
      */
-    @java.lang.Override public int getEventValue() {
+    @java.lang.Override
+    public int getEventValue() {
       return event_;
     }
+
     /**
+     *
+     *
      * <pre>
      * The event that caused the Pub/Sub message to be sent.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+     * </code>
+     *
      * @param value The enum numeric value on the wire for event to set.
      * @return This builder for chaining.
      */
@@ -763,12 +911,18 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * The event that caused the Pub/Sub message to be sent.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+     * </code>
+     *
      * @return The event.
      */
     @java.lang.Override
@@ -776,12 +930,18 @@ private static final long serialVersionUID = 0L;
       DataProfileAction.EventType result = DataProfileAction.EventType.forNumber(event_);
       return result == null ? DataProfileAction.EventType.UNRECOGNIZED : result;
     }
+
     /**
+     *
+     *
      * <pre>
      * The event that caused the Pub/Sub message to be sent.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+     * </code>
+     *
      * @param value The event to set.
      * @return This builder for chaining.
      */
@@ -794,12 +954,18 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * The event that caused the Pub/Sub message to be sent.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction.EventType event = 2;
+     * </code>
+     *
      * @return This builder for chaining.
      */
     public Builder clearEvent() {
@@ -809,47 +975,62 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private FileStoreDataProfile fileStoreProfile_;
-    private com.google.protobuf.SingleFieldBuilder<
-            FileStoreDataProfile, FileStoreDataProfile.Builder, FileStoreDataProfileOrBuilder> fileStoreProfileBuilder_;
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
+     *
      * @return Whether the fileStoreProfile field is set.
      */
     public boolean hasFileStoreProfile() {
       return ((bitField0_ & 0x00000004) != 0);
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
+     *
      * @return The fileStoreProfile.
      */
     public FileStoreDataProfile getFileStoreProfile() {
       if (fileStoreProfileBuilder_ == null) {
-        return fileStoreProfile_ == null ? FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+        return fileStoreProfile_ == null
+            ? FileStoreDataProfile.getDefaultInstance()
+            : fileStoreProfile_;
       } else {
         return fileStoreProfileBuilder_.getMessage();
       }
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     public Builder setFileStoreProfile(FileStoreDataProfile value) {
       if (fileStoreProfileBuilder_ == null) {
@@ -864,17 +1045,21 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
-    public Builder setFileStoreProfile(
-        FileStoreDataProfile.Builder builderForValue) {
+    public Builder setFileStoreProfile(FileStoreDataProfile.Builder builderForValue) {
       if (fileStoreProfileBuilder_ == null) {
         fileStoreProfile_ = builderForValue.build();
       } else {
@@ -884,20 +1069,25 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     public Builder mergeFileStoreProfile(FileStoreDataProfile value) {
       if (fileStoreProfileBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) != 0) &&
-          fileStoreProfile_ != null &&
-          fileStoreProfile_ != FileStoreDataProfile.getDefaultInstance()) {
+        if (((bitField0_ & 0x00000004) != 0)
+            && fileStoreProfile_ != null
+            && fileStoreProfile_ != FileStoreDataProfile.getDefaultInstance()) {
           getFileStoreProfileBuilder().mergeFrom(value);
         } else {
           fileStoreProfile_ = value;
@@ -911,14 +1101,19 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     public Builder clearFileStoreProfile() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -930,55 +1125,70 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     public FileStoreDataProfile.Builder getFileStoreProfileBuilder() {
       bitField0_ |= 0x00000004;
       onChanged();
       return getFileStoreProfileFieldBuilder().getBuilder();
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     public FileStoreDataProfileOrBuilder getFileStoreProfileOrBuilder() {
       if (fileStoreProfileBuilder_ != null) {
         return fileStoreProfileBuilder_.getMessageOrBuilder();
       } else {
-        return fileStoreProfile_ == null ?
-            FileStoreDataProfile.getDefaultInstance() : fileStoreProfile_;
+        return fileStoreProfile_ == null
+            ? FileStoreDataProfile.getDefaultInstance()
+            : fileStoreProfile_;
       }
     }
+
     /**
+     *
+     *
      * <pre>
      * If `DetailLevel` is `FILE_STORE_PROFILE` this will be fully populated.
      * Otherwise, if `DetailLevel` is `RESOURCE_NAME`, then only `name` and
      * `file_store_path` will be populated.
      * </pre>
      *
-     * <code>.com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;</code>
+     * <code>
+     * .com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile file_store_profile = 3;
+     * </code>
      */
     private com.google.protobuf.SingleFieldBuilder<
             FileStoreDataProfile, FileStoreDataProfile.Builder, FileStoreDataProfileOrBuilder>
         getFileStoreProfileFieldBuilder() {
       if (fileStoreProfileBuilder_ == null) {
-        fileStoreProfileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+        fileStoreProfileBuilder_ =
+            new com.google.protobuf.SingleFieldBuilder<
                 FileStoreDataProfile, FileStoreDataProfile.Builder, FileStoreDataProfileOrBuilder>(
-                getFileStoreProfile(),
-                getParentForChildren(),
-                isClean());
+                getFileStoreProfile(), getParentForChildren(), isClean());
         fileStoreProfile_ = null;
       }
       return fileStoreProfileBuilder_;
@@ -986,52 +1196,4 @@ private static final long serialVersionUID = 0L;
 
     // @@protoc_insertion_point(builder_scope:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage)
   }
-
-  // @@protoc_insertion_point(class_scope:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage)
-  private static final DataProfilePubSubMessage DEFAULT_INSTANCE;
-  static {
-    DEFAULT_INSTANCE = new DataProfilePubSubMessage();
-  }
-
-  public static DataProfilePubSubMessage getDefaultInstance() {
-    return DEFAULT_INSTANCE;
-  }
-
-  private static final com.google.protobuf.Parser<DataProfilePubSubMessage>
-      PARSER = new com.google.protobuf.AbstractParser<DataProfilePubSubMessage>() {
-    @java.lang.Override
-    public DataProfilePubSubMessage parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      Builder builder = newBuilder();
-      try {
-        builder.mergeFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(builder.buildPartial());
-      } catch (com.google.protobuf.UninitializedMessageException e) {
-        throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(e)
-            .setUnfinishedMessage(builder.buildPartial());
-      }
-      return builder.buildPartial();
-    }
-  };
-
-  public static com.google.protobuf.Parser<DataProfilePubSubMessage> parser() {
-    return PARSER;
-  }
-
-  @java.lang.Override
-  public com.google.protobuf.Parser<DataProfilePubSubMessage> getParserForType() {
-    return PARSER;
-  }
-
-  @java.lang.Override
-  public DataProfilePubSubMessage getDefaultInstanceForType() {
-    return DEFAULT_INSTANCE;
-  }
-
 }
-

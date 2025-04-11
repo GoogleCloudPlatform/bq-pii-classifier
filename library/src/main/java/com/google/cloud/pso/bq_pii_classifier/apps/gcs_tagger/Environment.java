@@ -21,48 +21,41 @@ import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerConf
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
-
 import java.util.Map;
 
 public class Environment {
 
-    private final GcsService gcsService;
+  private final GcsService gcsService;
 
-    public Environment() {
-        gcsService = new GcsServiceImpl();
-    }
+  public Environment() {
+    gcsService = new GcsServiceImpl();
+  }
 
-    public GcsTaggerConfig toConfig () throws NonRetryableApplicationException {
-        return new GcsTaggerConfig(
-                getProjectId(),
-                getIsDryRunLabels(),
-                getInfoTypeMap(),
-                getExistingLabelsRegex()
-        );
-    }
+  public GcsTaggerConfig toConfig() throws NonRetryableApplicationException {
+    return new GcsTaggerConfig(
+        getProjectId(), getIsDryRunLabels(), getInfoTypeMap(), getExistingLabelsRegex());
+  }
 
-    public String getProjectId(){
-        return Utils.getConfigFromEnv("PROJECT_ID", true);
-    }
+  public String getProjectId() {
+    return Utils.getConfigFromEnv("PROJECT_ID", true);
+  }
 
-    public Boolean getIsDryRunLabels(){
-        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
-    }
+  public Boolean getIsDryRunLabels() {
+    return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
+  }
 
-    public String getGcsFlagsBucket(){
-        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-    }
+  public String getGcsFlagsBucket() {
+    return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
+  }
 
-    public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
-        String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
-        String json = gcsService.getFileContent(filePath);
+  public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
+    String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
+    String json = gcsService.getFileContent(filePath);
 
-        return InfoTypeInfo.fromJsonMap(json);
-    }
+    return InfoTypeInfo.fromJsonMap(json);
+  }
 
-    public String getExistingLabelsRegex(){
-        return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
-    }
-
-
+  public String getExistingLabelsRegex() {
+    return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
+  }
 }

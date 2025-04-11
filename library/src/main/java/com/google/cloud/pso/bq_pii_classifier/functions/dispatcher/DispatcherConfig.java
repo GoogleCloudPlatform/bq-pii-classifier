@@ -16,4 +16,4 @@
 
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
-public record DispatcherConfig(String projectId, String outputTopic) { }
+public record DispatcherConfig(String projectId, String outputTopic) {}

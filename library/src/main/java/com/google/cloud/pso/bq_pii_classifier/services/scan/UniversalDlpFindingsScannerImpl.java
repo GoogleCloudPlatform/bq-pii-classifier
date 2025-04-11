@@ -20,36 +20,33 @@ import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.pso.bq_pii_classifier.services.bq.BigQueryService;
 import com.google.common.io.Resources;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class UniversalDlpFindingsScannerImpl implements DlpFindingsScanner {
-    private final String bqQueryFile;
-    private final Map<String, String> queryParameters;
-    public final BigQueryService bqService;
+  public final BigQueryService bqService;
+  private final String bqQueryFile;
+  private final Map<String, String> queryParameters;
 
-    public UniversalDlpFindingsScannerImpl(String bqQueryFile,
-                                           Map<String, String> queryParameters,
-                                           BigQueryService bqService) {
-        this.bqQueryFile = bqQueryFile;
-        this.queryParameters = queryParameters;
-        this.bqService = bqService;
+  public UniversalDlpFindingsScannerImpl(
+      String bqQueryFile, Map<String, String> queryParameters, BigQueryService bqService) {
+    this.bqQueryFile = bqQueryFile;
+    this.queryParameters = queryParameters;
+    this.bqService = bqService;
+  }
+
+  @Override
+  public TableResult getDlpProfilesFromBigQuery(String runId)
+      throws IOException, InterruptedException {
+
+    String query = Resources.toString(Resources.getResource(bqQueryFile), StandardCharsets.UTF_8);
+
+    for (String param : queryParameters.keySet()) {
+      query = query.replace(param, queryParameters.get(param));
     }
 
-    @Override
-    public TableResult getDlpProfilesFromBigQuery(String runId)
-            throws IOException, InterruptedException {
-
-        String query = Resources.toString(Resources.getResource(bqQueryFile),
-                        StandardCharsets.UTF_8);
-
-        for(String param: queryParameters.keySet()){
-            query = query.replace(param, queryParameters.get(param));
-        }
-
-        Job dlpFindingsJob = bqService.submitJob(query);
-        return bqService.waitAndGetJobResults(dlpFindingsJob);
-    }
+    Job dlpFindingsJob = bqService.submitJob(query);
+    return bqService.waitAndGetJobResults(dlpFindingsJob);
+  }
 }

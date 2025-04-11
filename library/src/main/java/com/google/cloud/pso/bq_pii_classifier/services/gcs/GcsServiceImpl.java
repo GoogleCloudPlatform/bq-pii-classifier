@@ -6,7 +6,6 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.LabelsHelper;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,13 +17,15 @@ public class GcsServiceImpl implements GcsService {
     this.storage = StorageOptions.newBuilder().build().getService();
   }
 
-  public Map<Map.Entry<String, String>, ResourceLabelingAction> mergeLabelsToBucket(String bucketName,
-                                                                                    Map<String, String> newLabels,
-                                                                                    String existingLabelsRegex,
-                                                                                    boolean isDryRun) throws NonRetryableApplicationException {
+  public Map<Map.Entry<String, String>, ResourceLabelingAction> mergeLabelsToBucket(
+      String bucketName,
+      Map<String, String> newLabels,
+      String existingLabelsRegex,
+      boolean isDryRun)
+      throws NonRetryableApplicationException {
 
-    if (newLabels == null || newLabels.isEmpty()){
-     return new HashMap<>();
+    if (newLabels == null || newLabels.isEmpty()) {
+      return new HashMap<>();
     }
 
     Bucket bucket = storage.get(bucketName);
@@ -35,23 +36,26 @@ public class GcsServiceImpl implements GcsService {
 
     // create a mutable map for existing bucket labels
     Map<String, String> bucketLabels;
-    if (bucket.getLabels() == null){
+    if (bucket.getLabels() == null) {
       bucketLabels = new HashMap<>();
-    }else{
+    } else {
       bucketLabels = new HashMap<>(bucket.getLabels());
     }
 
-    Map<Map.Entry<String, String>, ResourceLabelingAction> finalLabelsWithActions = LabelsHelper.computeLabelsActions(bucketLabels, newLabels, existingLabelsRegex);
+    Map<Map.Entry<String, String>, ResourceLabelingAction> finalLabelsWithActions =
+        LabelsHelper.computeLabelsActions(bucketLabels, newLabels, existingLabelsRegex);
 
-    Map<String, String> labelsToAttach = LabelsHelper.removeToBeDeletedLabels(finalLabelsWithActions);
+    Map<String, String> labelsToAttach =
+        LabelsHelper.removeToBeDeletedLabels(finalLabelsWithActions);
 
-    if (!isDryRun){
+    if (!isDryRun) {
       Bucket updatedBucket = bucket.toBuilder().setLabels(labelsToAttach).build();
       storage.update(updatedBucket);
     }
 
     return finalLabelsWithActions;
   }
+
   @Override
   public String getFileContent(String gcsFilePath) throws NonRetryableApplicationException {
 
@@ -60,13 +64,17 @@ public class GcsServiceImpl implements GcsService {
     }
 
     if (!gcsFilePath.startsWith("gs://")) {
-      throw new NonRetryableApplicationException(String.format("Invalid GCS File Path: %s. It should start with gs://", gcsFilePath));
+      throw new NonRetryableApplicationException(
+          String.format("Invalid GCS File Path: %s. It should start with gs://", gcsFilePath));
     }
 
     String[] parts = gcsFilePath.substring(5).split("/", 2);
 
     if (parts.length != 2) {
-      throw new NonRetryableApplicationException(String.format("Invalid GCS File Path: %s. It should be in the format gs://<bucket>/<path>", gcsFilePath));
+      throw new NonRetryableApplicationException(
+          String.format(
+              "Invalid GCS File Path: %s. It should be in the format gs://<bucket>/<path>",
+              gcsFilePath));
     }
 
     String bucketName = parts[0];
@@ -74,5 +82,4 @@ public class GcsServiceImpl implements GcsService {
 
     return new String(storage.readAllBytes(bucketName, objectName));
   }
-
 }

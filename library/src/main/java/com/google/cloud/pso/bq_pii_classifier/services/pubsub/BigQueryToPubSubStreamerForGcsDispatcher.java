@@ -6,7 +6,6 @@ import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequ
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
-
 import java.util.HashSet;
 
 public class BigQueryToPubSubStreamerForGcsDispatcher extends BigQueryToPubSubStreamerAbstract {

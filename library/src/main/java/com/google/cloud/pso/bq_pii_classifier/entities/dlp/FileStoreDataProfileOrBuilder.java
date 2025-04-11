@@ -19,47 +19,60 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
 
-public interface FileStoreDataProfileOrBuilder extends
+public interface FileStoreDataProfileOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:com.google.cloud.pso.bq_pii_classifier.entities.dlp.FileStoreDataProfile)
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   *
+   *
    * <pre>
    * The name of the profile.
    * </pre>
    *
    * <code>string name = 1;</code>
+   *
    * @return The name.
    */
   java.lang.String getName();
+
   /**
+   *
+   *
    * <pre>
    * The name of the profile.
    * </pre>
    *
    * <code>string name = 1;</code>
+   *
    * @return The bytes for name.
    */
-  com.google.protobuf.ByteString
-      getNameBytes();
+  com.google.protobuf.ByteString getNameBytes();
 
   /**
+   *
+   *
    * <pre>
    * The path of the file store.
    * </pre>
    *
    * <code>string file_store_path = 6;</code>
+   *
    * @return The fileStorePath.
    */
   java.lang.String getFileStorePath();
+
   /**
+   *
+   *
    * <pre>
    * The path of the file store.
    * </pre>
    *
    * <code>string file_store_path = 6;</code>
+   *
    * @return The bytes for fileStorePath.
    */
-  com.google.protobuf.ByteString
-      getFileStorePathBytes();
+  com.google.protobuf.ByteString getFileStorePathBytes();
 }

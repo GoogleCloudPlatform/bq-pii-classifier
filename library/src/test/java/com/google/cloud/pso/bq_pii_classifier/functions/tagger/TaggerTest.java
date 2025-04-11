@@ -1,16 +1,15 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.tagger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.google.cloud.Tuple;
 import com.google.cloud.pso.bq_pii_classifier.entities.*;
-import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
 
 public class TaggerTest {
   @Test
@@ -27,15 +26,15 @@ public class TaggerTest {
     Map<DatasetDomainMapKey, String> datasetDomainMapKeyStringMap =
         Map.of(new DatasetDomainMapKey("p", "d"), "domain_test");
 
-    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue>
-        infoTypePolicyTagMap =
-            Map.of(
-                new InfoTypePolicyTagMapKey("EMAIL", "eu", "domain_test"),
-                new InfoTypePolicyTagMapValue("policy_tag_email", "pii"),
-                new InfoTypePolicyTagMapKey("PHONE", "eu", "domain_test"),
-                new InfoTypePolicyTagMapValue("policy_tag_phone", "pii"));
+    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> infoTypePolicyTagMap =
+        Map.of(
+            new InfoTypePolicyTagMapKey("EMAIL", "eu", "domain_test"),
+            new InfoTypePolicyTagMapValue("policy_tag_email", "pii"),
+            new InfoTypePolicyTagMapKey("PHONE", "eu", "domain_test"),
+            new InfoTypePolicyTagMapValue("policy_tag_phone", "pii"));
 
-    Tuple<Map<String, PolicyTagInfo>, TableColumnsInfoTypes> actual = Tagger.lookupPolicyTags(
+    Tuple<Map<String, PolicyTagInfo>, TableColumnsInfoTypes> actual =
+        Tagger.lookupPolicyTags(
             tableColumnsInfoTypes,
             "EU",
             datasetDomainMapKeyStringMap,
@@ -48,10 +47,9 @@ public class TaggerTest {
             "email_field", new PolicyTagInfo("EMAIL", "policy_tag_email", "pii"),
             "phone_field", new PolicyTagInfo("PHONE", "policy_tag_phone", "pii"));
 
-    TableColumnsInfoTypes expectedNoMatches = new TableColumnsInfoTypes(
-            TableSpec.fromSqlString("p.d.t"),
-            Map.of("address_field", "STREET_ADDRESS")
-            );
+    TableColumnsInfoTypes expectedNoMatches =
+        new TableColumnsInfoTypes(
+            TableSpec.fromSqlString("p.d.t"), Map.of("address_field", "STREET_ADDRESS"));
 
     assertEquals(expectedMatches, actual.x());
     assertEquals(expectedNoMatches, actual.y());
@@ -70,13 +68,12 @@ public class TaggerTest {
     Map<DatasetDomainMapKey, String> datasetDomainMapKeyStringMap =
         Map.of(new DatasetDomainMapKey("ppp", "ddd"), "domain_test");
 
-    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue>
-        infoTypePolicyTagMap =
-            Map.of(
-                new InfoTypePolicyTagMapKey("EMAIL", "eu", "default_domain"),
-                new InfoTypePolicyTagMapValue("policy_tag_email", "pii"),
-                new InfoTypePolicyTagMapKey("PHONE", "eu", "default_domain"),
-                new InfoTypePolicyTagMapValue("policy_tag_phone", "pii"));
+    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> infoTypePolicyTagMap =
+        Map.of(
+            new InfoTypePolicyTagMapKey("EMAIL", "eu", "default_domain"),
+            new InfoTypePolicyTagMapValue("policy_tag_email", "pii"),
+            new InfoTypePolicyTagMapKey("PHONE", "eu", "default_domain"),
+            new InfoTypePolicyTagMapValue("policy_tag_phone", "pii"));
 
     Tuple<Map<String, PolicyTagInfo>, TableColumnsInfoTypes> actual =
         Tagger.lookupPolicyTags(
@@ -97,99 +94,80 @@ public class TaggerTest {
     // no no-matches expected
     assertEquals(0, actual.y().columnsInfoType().size());
   }
+
   @Test
-  public void testComputeFinalInfoType (){
+  public void testComputeFinalInfoType() {
 
     // Without other info types
-    Assert.assertEquals(
-            "EMAIL",
-            Tagger.computeFinalInfoType("EMAIL",
-                    List.of(),
-                    false));
-    assertEquals(
-            "EMAIL",
-            Tagger.computeFinalInfoType("EMAIL",
-                    List.of(),
-                    true));
-    assertEquals(
-            "EMAIL",
-            Tagger.computeFinalInfoType("EMAIL",
-                    null,
-                    true));
-    assertEquals(
-            null,
-            Tagger.computeFinalInfoType(null,
-                    null,
-                    true));
+    Assert.assertEquals("EMAIL", Tagger.computeFinalInfoType("EMAIL", List.of(), false));
+    assertEquals("EMAIL", Tagger.computeFinalInfoType("EMAIL", List.of(), true));
+    assertEquals("EMAIL", Tagger.computeFinalInfoType("EMAIL", null, true));
+    assertNull(Tagger.computeFinalInfoType(null, null, true));
 
     // With 1 other info types and main info type
     assertEquals(
-            "EMAIL",
-            Tagger.computeFinalInfoType("EMAIL",
-                    List.of(new DlpOtherInfoTypeMatch("PHONE", 100)),
-                    false));
+        "EMAIL",
+        Tagger.computeFinalInfoType(
+            "EMAIL", List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), false));
     assertEquals(
-            "EMAIL",
-            Tagger.computeFinalInfoType("EMAIL",
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100)),
-                    true));
+        "EMAIL",
+        Tagger.computeFinalInfoType(
+            "EMAIL", List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), true));
 
     // With 1 other info types and no main info type with promoteDlpOtherMatches
     assertEquals(
-            "PHONE",
-            Tagger.computeFinalInfoType("",
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100)),
-                    true));
+        "PHONE",
+        Tagger.computeFinalInfoType("", List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), true));
     assertEquals(
-            "PHONE",
-            Tagger.computeFinalInfoType(null,
-                    List.of(new DlpOtherInfoTypeMatch("PHONE", 100)),
-                    true));
+        "PHONE",
+        Tagger.computeFinalInfoType(null, List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), true));
 
     // With 1 other info types and no main info type without promoteDlpOtherMatches
     assertEquals(
-            "",
-            Tagger.computeFinalInfoType("",
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100)),
-                    false));
-    assertEquals(
-            null,
-            Tagger.computeFinalInfoType(null,
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100)),
-                    false));
+        "",
+        Tagger.computeFinalInfoType("", List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), false));
+    assertNull(Tagger.computeFinalInfoType(null, List.of(new DlpOtherInfoTypeMatch("PHONE", 100)), false));
 
     // With 2 other info types and no main info type with promoteDlpOtherMatches
     assertEquals(
-            "MIXED",
-            Tagger.computeFinalInfoType("",
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100), new DlpOtherInfoTypeMatch("IP",100)),
-                    true));
+        "MIXED",
+        Tagger.computeFinalInfoType(
+            "",
+            List.of(new DlpOtherInfoTypeMatch("PHONE", 100), new DlpOtherInfoTypeMatch("IP", 100)),
+            true));
     assertEquals(
-            "MIXED",
-            Tagger.computeFinalInfoType(null,
-                    List.of(new DlpOtherInfoTypeMatch("PHONE",100), new DlpOtherInfoTypeMatch("IP",100)),
-                    true));
-
-
+        "MIXED",
+        Tagger.computeFinalInfoType(
+            null,
+            List.of(new DlpOtherInfoTypeMatch("PHONE", 100), new DlpOtherInfoTypeMatch("IP", 100)),
+            true));
   }
 
   @Test
-  public void testComputeLabels(){
+  public void testComputeLabels() {
 
-    TablePolicyTags tablePolicyTags = new TablePolicyTags(
+    TablePolicyTags tablePolicyTags =
+        new TablePolicyTags(
             TableSpec.fromSqlString("p.d.t"),
-            Map.of("email", new PolicyTagInfo("EMAIL", "email_policy_id", "PII"))
-    );
+            Map.of("email", new PolicyTagInfo("EMAIL", "email_policy_id", "PII")));
 
-    Map<String, InfoTypeInfo> infoTypeMap = Map.of(
-            "EMAIL", new InfoTypeInfo("PII", List.of(new ResourceLabel("dg_pii", "yes"), new ResourceLabel("dg_high", "yes"))),
-            "ADDRESS", new InfoTypeInfo("Location", List.of(new ResourceLabel("dg_location", "yes"), new ResourceLabel("dg_low", "yes")))
-    );
+    Map<String, InfoTypeInfo> infoTypeMap =
+        Map.of(
+            "EMAIL",
+                new InfoTypeInfo(
+                    "PII",
+                    List.of(
+                        new ResourceLabel("dg_pii", "yes"), new ResourceLabel("dg_high", "yes"))),
+            "ADDRESS",
+                new InfoTypeInfo(
+                    "Location",
+                    List.of(
+                        new ResourceLabel("dg_location", "yes"),
+                        new ResourceLabel("dg_low", "yes"))));
 
-    Map<String, String> actual = Tagger.generateTableLabelsFromDlpFindings(tablePolicyTags, infoTypeMap);
-    Map<String, String> expected = Map.of("dg_pii", "yes",
-            "dg_high", "yes"
-            );
+    Map<String, String> actual =
+        Tagger.generateTableLabelsFromDlpFindings(tablePolicyTags, infoTypeMap);
+    Map<String, String> expected = Map.of("dg_pii", "yes", "dg_high", "yes");
 
     assertEquals(expected, actual);
   }

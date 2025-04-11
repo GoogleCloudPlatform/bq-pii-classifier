@@ -17,12 +17,11 @@
 package com.google.cloud.pso.bq_pii_classifier.functions.dispatcher;
 
 import com.google.cloud.bigquery.*;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamer;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpFindingsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.set.PersistentSet;
-import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -38,12 +37,12 @@ public class Dispatcher {
   private final String runId;
 
   public Dispatcher(
-          DispatcherConfig config,
-          BigQueryToPubSubStreamer bigQueryToPubSubStreamer,
-          DlpFindingsScanner scanner,
-          PersistentSet persistentSet,
-          String persistentSetObjectPrefix,
-          String runId) {
+      DispatcherConfig config,
+      BigQueryToPubSubStreamer bigQueryToPubSubStreamer,
+      DlpFindingsScanner scanner,
+      PersistentSet persistentSet,
+      String persistentSetObjectPrefix,
+      String runId) {
 
     this.config = config;
     this.bigQueryToPubSubStreamer = bigQueryToPubSubStreamer;
@@ -53,12 +52,14 @@ public class Dispatcher {
     this.runId = runId;
 
     logger =
-            new LoggingHelper(
-                    Dispatcher.class.getSimpleName(), functionNumber, config.projectId());
+        new LoggingHelper(Dispatcher.class.getSimpleName(), functionNumber, config.projectId());
   }
 
   public void execute(String pubSubMessageId)
-          throws IOException, NonRetryableApplicationException, InterruptedException, ExecutionException {
+      throws IOException,
+          NonRetryableApplicationException,
+          InterruptedException,
+          ExecutionException {
 
     /**
      * Check if we already processed this pubSubMessageId before to avoid re-running the dispatcher
@@ -70,21 +71,21 @@ public class Dispatcher {
     if (persistentSet.contains(flagFileName)) {
       // log error and ACK and return
       String msg =
-              String.format(
-                      "PubSub message ID '%s' has been processed before. "
-                              + "This is probably retried by PubSub due to it's subscription_ack_deadline_seconds being"
-                              + " 10min or less (max) while the dispatcher process is taking more. The message is not "
-                              + "going to be re-processed and ignored instead.",
-                      pubSubMessageId);
+          String.format(
+              "PubSub message ID '%s' has been processed before. "
+                  + "This is probably retried by PubSub due to it's subscription_ack_deadline_seconds being"
+                  + " 10min or less (max) while the dispatcher process is taking more. The message is not "
+                  + "going to be re-processed and ignored instead.",
+              pubSubMessageId);
 
       logger.logWarnWithTracker(runId, null, msg);
       return;
 
     } else {
       logger.logInfoWithTracker(
-              runId,
-              null,
-              String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
+          runId,
+          null,
+          String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
       persistentSet.add(flagFileName);
     }
 
@@ -93,16 +94,12 @@ public class Dispatcher {
     TableResult dlpFindingsQueryResults = scanner.getDlpProfilesFromBigQuery(runId);
 
     logger.logInfoWithTracker(
-            runId,
-            null,
-            String.format("BigQuery query returned %s rows", dlpFindingsQueryResults.getTotalRows()));
+        runId,
+        null,
+        String.format("BigQuery query returned %s rows", dlpFindingsQueryResults.getTotalRows()));
 
-    bigQueryToPubSubStreamer.publishBigQueryTableResults(dlpFindingsQueryResults,
-            config.projectId(),
-            config.outputTopic(),
-            runId,
-            logger,
-            1000);
+    bigQueryToPubSubStreamer.publishBigQueryTableResults(
+        dlpFindingsQueryResults, config.projectId(), config.outputTopic(), runId, logger, 1000);
 
     logger.logFunctionEnd(runId, null);
   }

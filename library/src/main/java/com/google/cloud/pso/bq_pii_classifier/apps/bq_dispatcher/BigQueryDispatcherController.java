@@ -16,6 +16,7 @@
 package com.google.cloud.pso.bq_pii_classifier.apps.bq_dispatcher;
 
 import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.BigQueryDlpScope;
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.Dispatcher;
 import com.google.cloud.pso.bq_pii_classifier.helpers.LoggingHelper;
@@ -26,28 +27,24 @@ import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubSt
 import com.google.cloud.pso.bq_pii_classifier.services.scan.DlpFindingsScanner;
 import com.google.cloud.pso.bq_pii_classifier.services.scan.UniversalDlpFindingsScannerImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
+import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import com.google.gson.Gson;
-import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
 public class BigQueryDispatcherController {
 
-  private final LoggingHelper logger;
-
   private static final Integer functionNumber = 1;
-
+  private final LoggingHelper logger;
   private final Gson gson;
   private final Environment environment;
 
@@ -60,6 +57,10 @@ public class BigQueryDispatcherController {
             BigQueryDispatcherController.class.getSimpleName(),
             functionNumber,
             environment.getProjectId());
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(BigQueryDispatcherController.class, args);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -81,7 +82,8 @@ public class BigQueryDispatcherController {
       // remove any escape characters (e.g. from Terraform
       requestJsonString = requestJsonString.replace("\\", "");
 
-      logger.logInfoWithTracker(runId, null, String.format("Received payload: %s", requestJsonString));
+      logger.logInfoWithTracker(
+          runId, null, String.format("Received payload: %s", requestJsonString));
 
       BigQueryDlpScope bigQueryDlpScope = gson.fromJson(requestJsonString, BigQueryDlpScope.class);
 
@@ -105,7 +107,7 @@ public class BigQueryDispatcherController {
 
       DlpFindingsScanner dlpFindingsScanner =
           new UniversalDlpFindingsScannerImpl(
-                  "sql/dispatcher_bq.tpl", sqlParamsMap, bigQueryService);
+              "sql/dispatcher_bq.tpl", sqlParamsMap, bigQueryService);
 
       Dispatcher dispatcher =
           new Dispatcher(
@@ -128,9 +130,5 @@ public class BigQueryDispatcherController {
     // unnecessary runs and costs
     return new ResponseEntity(
         String.format("Process completed with state = %s", state), HttpStatus.OK);
-  }
-
-  public static void main(String[] args) {
-    SpringApplication.run(BigQueryDispatcherController.class, args);
   }
 }

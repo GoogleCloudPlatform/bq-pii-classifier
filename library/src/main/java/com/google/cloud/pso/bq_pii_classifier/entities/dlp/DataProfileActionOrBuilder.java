@@ -19,7 +19,7 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.entities.dlp;
 
-public interface DataProfileActionOrBuilder extends
+public interface DataProfileActionOrBuilder
+    extends
     // @@protoc_insertion_point(interface_extends:com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfileAction)
-    com.google.protobuf.MessageOrBuilder {
-}
+    com.google.protobuf.MessageOrBuilder {}

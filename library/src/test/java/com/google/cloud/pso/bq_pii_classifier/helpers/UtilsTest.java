@@ -16,117 +16,132 @@
 
 package com.google.cloud.pso.bq_pii_classifier.helpers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.HashMap;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 import org.junit.Test;
 
 public class UtilsTest {
 
-    @Test
-    public void extractTaxonomyIdFromPolicyTagId() {
+  @Test
+  public void extractTaxonomyIdFromPolicyTagId() {
 
-        String input = "projects/<project>/locations/<location>/taxonomies/<taxonomyID>/policyTags/<policyTagID";
-        String expected = "projects/<project>/locations/<location>/taxonomies/<taxonomyID>";
-        String actual = Utils.extractTaxonomyIdFromPolicyTagId(input);
+    String input =
+        "projects/<project>/locations/<location>/taxonomies/<taxonomyID>/policyTags/<policyTagID";
+    String expected = "projects/<project>/locations/<location>/taxonomies/<taxonomyID>";
+    String actual = Utils.extractTaxonomyIdFromPolicyTagId(input);
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getConfigFromEnv_Required() {
-        Utils.getConfigFromEnv("NA_VAR", true);
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void getConfigFromEnv_Required() {
+    Utils.getConfigFromEnv("NA_VAR", true);
+  }
 
-    @Test
-    public void getConfigFromEnv_NotRequired() {
-        // should not fail because the VAR is not required
-        Utils.getConfigFromEnv("NA_VAR", false);
-    }
+  @Test
+  public void getConfigFromEnv_NotRequired() {
+    // should not fail because the VAR is not required
+    Utils.getConfigFromEnv("NA_VAR", false);
+  }
 
-    @Test
-    public void testParseJsonToMap() {
-        String jsonString = "[{\"ids\":[\"projects/p/locations/europe/inspectTemplates/1\", \"projects/p/locations/europe/inspectTemplates/2\"],\"region\":\"eu\"},{\"ids\":[\"projects/p/locations/europe-west3/inspectTemplates/1\"],\"region\":\"europe-west3\"}]";
+  @Test
+  public void testParseJsonToMap() {
+    String jsonString =
+        "[{\"ids\":[\"projects/p/locations/europe/inspectTemplates/1\", \"projects/p/locations/europe/inspectTemplates/2\"],\"region\":\"eu\"},{\"ids\":[\"projects/p/locations/europe-west3/inspectTemplates/1\"],\"region\":\"europe-west3\"}]";
 
-        HashMap<String, List<String>> actual = Utils.parseJsonToMap(jsonString, "region", "ids");
+    HashMap<String, List<String>> actual = Utils.parseJsonToMap(jsonString, "region", "ids");
 
-        HashMap<String, List<String>> expected = new HashMap<>();
-        expected.put("eu", List.of("projects/p/locations/europe/inspectTemplates/1", "projects/p/locations/europe/inspectTemplates/2"));
-        expected.put("europe-west3", List.of("projects/p/locations/europe-west3/inspectTemplates/1"));
+    HashMap<String, List<String>> expected = new HashMap<>();
+    expected.put(
+        "eu",
+        List.of(
+            "projects/p/locations/europe/inspectTemplates/1",
+            "projects/p/locations/europe/inspectTemplates/2"));
+    expected.put("europe-west3", List.of("projects/p/locations/europe-west3/inspectTemplates/1"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testExtractDLPRegionFromJobNameToBQRegion() {
+  @Test
+  public void testExtractDLPRegionFromJobNameToBQRegion() {
 
-        assertEquals("eu", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe/dlpJobs/job"));
-        assertEquals("europe-west3", Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe-west3/dlpJobs/job"));
-    }
+    assertEquals(
+        "eu",
+        Utils.extractDLPRegionFromJobNameToBQRegion("projects/p/locations/europe/dlpJobs/job"));
+    assertEquals(
+        "europe-west3",
+        Utils.extractDLPRegionFromJobNameToBQRegion(
+            "projects/p/locations/europe-west3/dlpJobs/job"));
+  }
 
-    @Test
-    public void testStripLeadingAndTrailingSlashes(){
+  @Test
+  public void testStripLeadingAndTrailingSlashes() {
 
-        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource"));
-        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource/"));
-        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource"));
-        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource/"));
-        assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("//path/to/resource//"));
+    assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource"));
+    assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource/"));
+    assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("/path/to/resource"));
+    assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("path/to/resource/"));
+    assertEquals("path/to/resource", Utils.stripLeadingAndTrailingSlashes("//path/to/resource//"));
 
-        assertEquals("resource", Utils.stripLeadingAndTrailingSlashes("resource"));
+    assertEquals("resource", Utils.stripLeadingAndTrailingSlashes("resource"));
 
-       assertThrows(IllegalArgumentException.class, () -> {
-            Utils.stripLeadingAndTrailingSlashes(null);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Utils.stripLeadingAndTrailingSlashes(null);
         });
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            Utils.stripLeadingAndTrailingSlashes("");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Utils.stripLeadingAndTrailingSlashes("");
         });
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            Utils.stripLeadingAndTrailingSlashes(" ");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Utils.stripLeadingAndTrailingSlashes(" ");
         });
 
-        assertEquals("", Utils.stripLeadingAndTrailingSlashes("/"));
-        assertEquals("", Utils.stripLeadingAndTrailingSlashes("//"));
+    assertEquals("", Utils.stripLeadingAndTrailingSlashes("/"));
+    assertEquals("", Utils.stripLeadingAndTrailingSlashes("//"));
+  }
 
+  @Test
+  public void testParseBoolean() {
+    assertEquals(false, Utils.parseBooleanOrFail("FALSE"));
+    assertEquals(false, Utils.parseBooleanOrFail("False"));
+    assertEquals(false, Utils.parseBooleanOrFail("false"));
+
+    assertEquals(true, Utils.parseBooleanOrFail("TRUE"));
+    assertEquals(true, Utils.parseBooleanOrFail("True"));
+    assertEquals(true, Utils.parseBooleanOrFail("true"));
+
+    try {
+      Utils.parseBooleanOrFail(null);
+      // shouldn't reach this
+      assertEquals(1, 0);
+    } catch (Exception ex) {
+      assertEquals(1, 1);
     }
 
-    @Test
-    public void testParseBoolean (){
-        assertEquals(false, Utils.parseBooleanOrFail("FALSE"));
-        assertEquals(false, Utils.parseBooleanOrFail("False"));
-        assertEquals(false, Utils.parseBooleanOrFail("false"));
-
-        assertEquals(true, Utils.parseBooleanOrFail("TRUE"));
-        assertEquals(true, Utils.parseBooleanOrFail("True"));
-        assertEquals(true, Utils.parseBooleanOrFail("true"));
-
-        try{
-            Utils.parseBooleanOrFail(null);
-            // shouldn't reach this
-            assertEquals(1,0);
-        }catch (Exception ex){
-            assertEquals(1,1);
-        }
-
-        try{
-            Utils.parseBooleanOrFail("not boolean");
-            // shouldn't reach this
-            assertEquals(1,0);
-        }catch (Exception ex){
-            assertEquals(1,1);
-        }
+    try {
+      Utils.parseBooleanOrFail("not boolean");
+      // shouldn't reach this
+      assertEquals(1, 0);
+    } catch (Exception ex) {
+      assertEquals(1, 1);
     }
+  }
 
-    @Test
-    public void testExtractParentFromDlpProfile(){
-        assertEquals("organizations/123/locations/europe",
-                Utils.extractDlpParentFromProfile(
-                        "organizations/123/locations/europe/tableDataProfiles/456"));
-    }
-
+  @Test
+  public void testExtractParentFromDlpProfile() {
+    assertEquals(
+        "organizations/123/locations/europe",
+        Utils.extractDlpParentFromProfile(
+            "organizations/123/locations/europe/tableDataProfiles/456"));
+  }
 }

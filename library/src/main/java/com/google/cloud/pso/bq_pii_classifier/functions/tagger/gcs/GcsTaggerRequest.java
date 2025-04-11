@@ -22,34 +22,37 @@ import com.google.common.base.Objects;
 
 public class GcsTaggerRequest extends Operation {
 
-    private final GcsDlpProfileSummary gcsDlpProfileSummary;
+  private final GcsDlpProfileSummary gcsDlpProfileSummary;
 
-    public GcsTaggerRequest(String runId, String trackingId, GcsDlpProfileSummary gcsDlpProfileSummary) {
-        super(runId, trackingId);
-        this.gcsDlpProfileSummary = gcsDlpProfileSummary;
-    }
+  public GcsTaggerRequest(
+      String runId, String trackingId, GcsDlpProfileSummary gcsDlpProfileSummary) {
+    super(runId, trackingId);
+    this.gcsDlpProfileSummary = gcsDlpProfileSummary;
+  }
 
-    public GcsDlpProfileSummary getGcsDlpProfileSummary() {
-        return gcsDlpProfileSummary;
-    }
+  public GcsDlpProfileSummary getGcsDlpProfileSummary() {
+    return gcsDlpProfileSummary;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GcsTaggerRequest that = (GcsTaggerRequest) o;
-        return Objects.equal(gcsDlpProfileSummary, that.gcsDlpProfileSummary);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    GcsTaggerRequest that = (GcsTaggerRequest) o;
+    return Objects.equal(gcsDlpProfileSummary, that.gcsDlpProfileSummary);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(gcsDlpProfileSummary);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(gcsDlpProfileSummary);
+  }
 
-    @Override
-    public String toString() {
-        return "GcsTaggerRequest{" +
-                "gcsDlpProfileSummary=" + gcsDlpProfileSummary +
-                "} " + super.toString();
-    }
+  @Override
+  public String toString() {
+    return "GcsTaggerRequest{"
+        + "gcsDlpProfileSummary="
+        + gcsDlpProfileSummary
+        + "} "
+        + super.toString();
+  }
 }

@@ -18,48 +18,51 @@ package com.google.cloud.pso.bq_pii_classifier.entities;
 
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
-
-import javax.annotation.Nullable;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public record TableSpec(@Nullable String folder, String project, String dataset, String table) {
 
-    public TableSpec(String project, String dataset, String table){
-        this(null, project, dataset, table);
-    }
-    public String toSqlString(){
-        return String.format("%s.%s.%s", project, dataset, table);
-    }
+  public TableSpec(String project, String dataset, String table) {
+    this(null, project, dataset, table);
+  }
 
-    public TableId toTableId(){ return TableId.of(project, dataset, table); }
+  // parse from "project.dataset.table" format
+  public static TableSpec fromSqlString(String sqlTableId) {
+    List<String> targetTableSpecs = Utils.tokenize(sqlTableId, ".", true);
+    return new TableSpec(targetTableSpecs.get(0), targetTableSpecs.get(1), targetTableSpecs.get(2));
+  }
 
-    @Override
-    public String toString() {
-        return "TableSpec{" +
-                "folder='" + folder + '\'' +
-                ", project='" + project + '\'' +
-                ", dataset='" + dataset + '\'' +
-                ", table='" + table + '\'' +
-                '}';
-    }
+  // parse from
+  // "//bigquery.googleapis.com/projects/#project_name/datasets/#dataset_name/tables/#table_name>"
+  public static TableSpec fromFullResource(String fullResource) {
+    List<String> tokens = Utils.tokenize(fullResource, "/", true);
+    return new TableSpec(tokens.get(2), tokens.get(4), tokens.get(6));
+  }
 
-    // parse from "project.dataset.table" format
-    public static TableSpec fromSqlString(String sqlTableId){
-        List<String> targetTableSpecs = Utils.tokenize(sqlTableId, ".", true);
-        return new TableSpec(
-                targetTableSpecs.get(0),
-                targetTableSpecs.get(1),
-                targetTableSpecs.get(2)
-        );
-    }
+  public String toSqlString() {
+    return String.format("%s.%s.%s", project, dataset, table);
+  }
 
-    // parse from "//bigquery.googleapis.com/projects/#project_name/datasets/#dataset_name/tables/#table_name>"
-    public static TableSpec fromFullResource(String fullResource){
-        List<String> tokens = Utils.tokenize(fullResource, "/", true);
-        return new TableSpec(
-                tokens.get(2),
-                tokens.get(4),
-                tokens.get(6)
-        );
-    }
+  public TableId toTableId() {
+    return TableId.of(project, dataset, table);
+  }
+
+  @Override
+  public String toString() {
+    return "TableSpec{"
+        + "folder='"
+        + folder
+        + '\''
+        + ", project='"
+        + project
+        + '\''
+        + ", dataset='"
+        + dataset
+        + '\''
+        + ", table='"
+        + table
+        + '\''
+        + '}';
+  }
 }

@@ -15,6 +15,9 @@
  */
 package com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger;
 
+import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
+import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
+import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.cloud.pso.bq_pii_classifier.entities.dlp.DataProfilePubSubMessage;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTagger;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.gcs.GcsTaggerRequest;
@@ -25,9 +28,6 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 import com.google.cloud.pso.bq_pii_classifier.services.findings.DlpFindingsReaderImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.cloud.pso.bq_pii_classifier.services.set.GCSPersistentSetImpl;
-import com.google.cloud.pso.bq_pii_classifier.entities.GcsDlpProfileSummary;
-import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationException;
-import com.google.cloud.pso.bq_pii_classifier.entities.PubSubEvent;
 import com.google.gson.Gson;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GcsTaggerController {
 
-  private final LoggingHelper logger;
   private static final Integer functionNumber = 3;
+  private final LoggingHelper logger;
   private final Gson gson;
   private final Environment environment;
 
@@ -55,6 +55,14 @@ public class GcsTaggerController {
         new LoggingHelper(
             GcsTaggerController.class.getSimpleName(), functionNumber, environment.getProjectId());
   }
+
+  public static void main(String[] args) {
+    SpringApplication.run(GcsTaggerController.class, args);
+  }
+
+  // The pubsub message could come from different sources with different formats
+  // 1. From GCS Tagging Dispatcher as GcsTaggerRequest serialized json
+  // 2. From GCS Auto DLP notification as "DataProfilePubSubMessage" proto
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
   public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
@@ -84,14 +92,13 @@ public class GcsTaggerController {
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {
 
-      String trackingId = taggerRequest == null ? TrackingHelper.DEFAULT_TRACKING_ID : taggerRequest.getTrackingId();
+      String trackingId =
+          taggerRequest == null
+              ? TrackingHelper.DEFAULT_TRACKING_ID
+              : taggerRequest.getTrackingId();
       return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
   }
-
-  // The pubsub message could come from different sources with different formats
-  // 1. From GCS Tagging Dispatcher as GcsTaggerRequest serialized json
-  // 2. From GCS Auto DLP notification as "DataProfilePubSubMessage" proto
 
   private GcsTaggerRequest parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
 
@@ -128,11 +135,11 @@ public class GcsTaggerController {
           String trackingId = TrackingHelper.generateTrackingId(runId);
 
           logger.logInfoWithTracker(
-                  trackingId,
-                  null,
-                  String.format(
-                          "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
-                          dataProfilePubSubMessage.toString()));
+              trackingId,
+              null,
+              String.format(
+                  "Parsed message from Auto DLP DataProfilePubSubMessage= '%s'",
+                  dataProfilePubSubMessage));
 
           // CASE 2: GcsTaggerRequest computed from GCS Auto DLP PubSub message proto
           return new GcsTaggerRequest(
@@ -150,9 +157,5 @@ public class GcsTaggerController {
                 ex2.getClass().getSimpleName(), ex2.getMessage()));
       }
     }
-  }
-
-  public static void main(String[] args) {
-    SpringApplication.run(GcsTaggerController.class, args);
   }
 }

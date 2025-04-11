@@ -20,33 +20,36 @@ import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
 
 public class Environment {
 
-    public DispatcherConfig toConfig(){
+  public DispatcherConfig toConfig() {
 
-        return new DispatcherConfig(
-                getProjectId(),
-                getTaggerTopic()
-        );
-    }
+    return new DispatcherConfig(getProjectId(), getTaggerTopic());
+  }
 
-    public String getProjectId(){
-        return Utils.getConfigFromEnv("PROJECT_ID", true);
-    }
+  public String getProjectId() {
+    return Utils.getConfigFromEnv("PROJECT_ID", true);
+  }
 
-    public String getPublishingProjectId(){
-        return Utils.getConfigFromEnv("PUBLISHING_PROJECT_ID", true);
-    }
+  public String getPublishingProjectId() {
+    return Utils.getConfigFromEnv("PUBLISHING_PROJECT_ID", true);
+  }
 
-    public String getTaggerTopic() { return Utils.getConfigFromEnv("TAGGER_TOPIC", true); }
+  public String getTaggerTopic() {
+    return Utils.getConfigFromEnv("TAGGER_TOPIC", true);
+  }
 
-    public String getGcsFlagsBucket(){
-        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-    }
+  public String getGcsFlagsBucket() {
+    return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
+  }
 
-    public String getDlpResultsDataset(){
-        return Utils.getConfigFromEnv("DLP_RESULTS_DATASET", true);
-    }
+  public String getDlpResultsDataset() {
+    return Utils.getConfigFromEnv("DLP_RESULTS_DATASET", true);
+  }
 
-    public String getDlpResultsTable () {return Utils.getConfigFromEnv("DLP_RESULTS_TABLE", true);}
+  public String getDlpResultsTable() {
+    return Utils.getConfigFromEnv("DLP_RESULTS_TABLE", true);
+  }
 
-    public String getDispatcherRunsTable () {return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);}
+  public String getDispatcherRunsTable() {
+    return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);
+  }
 }

@@ -19,20 +19,26 @@ package com.google.cloud.pso.bq_pii_classifier.entities;
 import com.google.cloud.pso.bq_pii_classifier.functions.tagger.ColumnTaggingAction;
 import org.slf4j.event.Level;
 
-public record TagHistoryLogEntry(TableSpec tableSpec, String fieldName, String existingPolicyTagId, String newPolicyTagId,
-                                 ColumnTaggingAction columnTaggingAction, String description, Level logLevel) {
+public record TagHistoryLogEntry(
+    TableSpec tableSpec,
+    String fieldName,
+    String existingPolicyTagId,
+    String newPolicyTagId,
+    ColumnTaggingAction columnTaggingAction,
+    String description,
+    Level logLevel) {
 
-    public String toLogString() {
+  public String toLogString() {
 
-        return String.format("%s | %s | %s | %s | %s | %s | %s | %s",
-                tableSpec.project(),
-                tableSpec.dataset(),
-                tableSpec.table(),
-                fieldName,
-                existingPolicyTagId,
-                newPolicyTagId,
-                columnTaggingAction,
-                description
-        );
-    }
+    return String.format(
+        "%s | %s | %s | %s | %s | %s | %s | %s",
+        tableSpec.project(),
+        tableSpec.dataset(),
+        tableSpec.table(),
+        fieldName,
+        existingPolicyTagId,
+        newPolicyTagId,
+        columnTaggingAction,
+        description);
+  }
 }

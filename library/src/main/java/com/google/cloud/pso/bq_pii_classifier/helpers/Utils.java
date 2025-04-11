@@ -21,7 +21,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -174,24 +173,26 @@ public class Utils {
     }
   }
 
-  public static String generateBucketEntityId(String project, String bucketName){
-    return String.format("projects/%s/buckets/%s",
-            project == null? "NA": project,
-            bucketName == null? "NA": bucketName);
+  public static String generateBucketEntityId(String project, String bucketName) {
+    return String.format(
+        "projects/%s/buckets/%s",
+        project == null ? "NA" : project, bucketName == null ? "NA" : bucketName);
   }
 
   /**
-   * From: organizations/123/locations/europe/tableDataProfiles/456 -> extracts organizations/123/locations/europe
+   * From: organizations/123/locations/europe/tableDataProfiles/456 -> extracts
+   * organizations/123/locations/europe
+   *
    * @param profileName: dlp discovery service profile name
    * @return dlp profile parent
    */
-  public static String extractDlpParentFromProfile(String profileName){
+  public static String extractDlpParentFromProfile(String profileName) {
     if (profileName == null || profileName.isEmpty()) {
       return null; // Or throw an exception, depending on your error handling policy
     }
 
-    String[] parts =profileName.split("/");
+    String[] parts = profileName.split("/");
 
-    return String.join("/", Arrays.copyOfRange(parts,0,4));
+    return String.join("/", Arrays.copyOfRange(parts, 0, 4));
   }
 }

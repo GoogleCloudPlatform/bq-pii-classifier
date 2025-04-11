@@ -26,131 +26,121 @@ import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsService;
 import com.google.cloud.pso.bq_pii_classifier.services.gcs.GcsServiceImpl;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-
 import java.lang.reflect.Type;
 import java.util.*;
 
 public class Environment {
 
-    private final GcsService gcsService;
+  private final GcsService gcsService;
 
-    public Environment() {
-        gcsService = new GcsServiceImpl();
+  public Environment() {
+    gcsService = new GcsServiceImpl();
+  }
+
+  public TaggerConfig toConfig() throws NonRetryableApplicationException {
+    return new TaggerConfig(
+        getProjectId(),
+        new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
+        getIsDryRunTags(),
+        getIsDryRunLabels(),
+        getInfoTypeMap(),
+        getExistingLabelsRegex(),
+        getPromoteDlpOtherMatches(),
+        getInfoTypePolicyTagMap(),
+        getProjectDomainMap(),
+        getDatasetDomainMap(),
+        getDefaultDomainName());
+  }
+
+  public String getProjectId() {
+    return Utils.getConfigFromEnv("PROJECT_ID", true);
+  }
+
+  public String getTaxonomies() {
+    return Utils.getConfigFromEnv("TAXONOMIES", true);
+  }
+
+  public Boolean getIsDryRunTags() {
+    return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
+  }
+
+  public Boolean getIsDryRunLabels() {
+    return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
+  }
+
+  public String getGcsFlagsBucket() {
+    return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
+  }
+
+  public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
+
+    String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
+    String json = gcsService.getFileContent(filePath);
+
+    return InfoTypeInfo.fromJsonMap(json);
+  }
+
+  public String getDefaultDomainName() {
+    return Utils.getConfigFromEnv("DEFAULT_DOMAIN_NAME", true);
+  }
+
+  public String getExistingLabelsRegex() {
+    return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
+  }
+
+  public Boolean getPromoteDlpOtherMatches() {
+    return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
+  }
+
+  public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap()
+      throws NonRetryableApplicationException {
+
+    String filePath = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);
+    String json = gcsService.getFileContent(filePath);
+
+    Gson gson = new Gson();
+    Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+    List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+    Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> resultMap = new HashMap<>();
+
+    for (Map<String, String> item : dataList) {
+      resultMap.put(
+          new InfoTypePolicyTagMapKey(
+              item.get("info_type"), item.get("region"), item.get("domain")),
+          new InfoTypePolicyTagMapValue(item.get("policy_tag_id"), item.get("classification")));
     }
+    return resultMap;
+  }
 
-    public TaggerConfig toConfig () throws NonRetryableApplicationException {
-        return new TaggerConfig(
-                getProjectId(),
-                new HashSet<>(Utils.tokenize(getTaxonomies(), ",", true)),
-                getIsDryRunTags(),
-                getIsDryRunLabels(),
-                getInfoTypeMap(),
-                getExistingLabelsRegex(),
-                getPromoteDlpOtherMatches(),
-                getInfoTypePolicyTagMap(),
-                getProjectDomainMap(),
-                getDatasetDomainMap(),
-                getDefaultDomainName()
-        );
+  public Map<String, String> getProjectDomainMap() {
+    String json = Utils.getConfigFromEnv("PROJECT_DOMAIN_MAP", true);
+
+    Gson gson = new Gson();
+    Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+    List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+    Map<String, String> resultMap = new HashMap<>();
+
+    for (Map<String, String> item : dataList) {
+      resultMap.put(item.get("project"), item.get("domain"));
     }
+    return resultMap;
+  }
 
-    public String getProjectId(){
-        return Utils.getConfigFromEnv("PROJECT_ID", true);
+  public Map<DatasetDomainMapKey, String> getDatasetDomainMap() {
+    String json = Utils.getConfigFromEnv("DATASET_DOMAIN_MAP", true);
+
+    Gson gson = new Gson();
+    Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+    List<Map<String, String>> dataList = gson.fromJson(json, listType);
+
+    Map<DatasetDomainMapKey, String> resultMap = new HashMap<>();
+
+    for (Map<String, String> item : dataList) {
+      resultMap.put(
+          new DatasetDomainMapKey(item.get("project"), item.get("dataset")), item.get("domain"));
     }
-
-    public String getTaxonomies(){
-        return Utils.getConfigFromEnv("TAXONOMIES", true);
-    }
-
-    public Boolean getIsDryRunTags(){
-        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_TAGS", true));
-    }
-
-    public Boolean getIsDryRunLabels(){
-        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
-    }
-
-    public String getGcsFlagsBucket(){
-        return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-    }
-
-    public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
-
-        String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);
-        String json = gcsService.getFileContent(filePath);
-
-        return InfoTypeInfo.fromJsonMap(json);
-    }
-
-    public String getDefaultDomainName(){
-        return Utils.getConfigFromEnv("DEFAULT_DOMAIN_NAME", true);
-    }
-
-    public String getExistingLabelsRegex(){
-        return Utils.getConfigFromEnv("EXISTING_LABELS_REGEX", true);
-    }
-
-    public Boolean getPromoteDlpOtherMatches () {
-        return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("PROMOTE_DLP_OTHER_MATCHES", true));
-    }
-
-    public Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> getInfoTypePolicyTagMap() throws NonRetryableApplicationException {
-
-        String filePath = Utils.getConfigFromEnv("INFO_TYPE_POLICY_TAG_MAP", true);
-        String json = gcsService.getFileContent(filePath);
-
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
-        List<Map<String, String>> dataList = gson.fromJson(json, listType);
-
-        Map<InfoTypePolicyTagMapKey, InfoTypePolicyTagMapValue> resultMap = new HashMap<>();
-
-        for (Map<String, String> item : dataList) {
-            resultMap.put(new InfoTypePolicyTagMapKey(
-                    item.get("info_type"),
-                    item.get("region"),
-                    item.get("domain")
-            ), new InfoTypePolicyTagMapValue(
-                    item.get("policy_tag_id"),
-                    item.get("classification")
-            ));
-        }
-        return  resultMap;
-    }
-
-    public Map<String, String> getProjectDomainMap(){
-        String json = Utils.getConfigFromEnv("PROJECT_DOMAIN_MAP", true);
-
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
-        List<Map<String, String>> dataList = gson.fromJson(json, listType);
-
-        Map<String, String> resultMap = new HashMap<>();
-
-        for (Map<String, String> item : dataList) {
-            resultMap.put(item.get("project"), item.get("domain"));
-        }
-        return  resultMap;
-    }
-
-    public Map<DatasetDomainMapKey, String> getDatasetDomainMap(){
-        String json = Utils.getConfigFromEnv("DATASET_DOMAIN_MAP", true);
-
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
-        List<Map<String, String>> dataList = gson.fromJson(json, listType);
-
-        Map<DatasetDomainMapKey, String> resultMap = new HashMap<>();
-
-        for (Map<String, String> item : dataList) {
-            resultMap.put(
-                    new DatasetDomainMapKey(
-                            item.get("project"),
-                            item.get("dataset")),
-                    item.get("domain"));
-        }
-        return  resultMap;
-    }
+    return resultMap;
+  }
 }
-
-
