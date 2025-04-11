@@ -58,14 +58,13 @@ public class BigQueryTaggerController {
   @RequestMapping(value = "/tagging-dispatcher-handler", method = RequestMethod.POST)
   public ResponseEntity taggingDispatcherHandler(@RequestBody PubSubEvent requestBody) {
 
-    String defaultTrackingId = "0000000000000-z";
     TaggerRequest taggerRequest = null;
 
     try {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(defaultTrackingId, null, msg);
+        logger.logSevereWithTracker(TrackingHelper.DEFAULT_TRACKING_ID, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -75,16 +74,16 @@ public class BigQueryTaggerController {
       requestJsonString = requestJsonString.replace("\\", "");
 
       logger.logInfoWithTracker(
-          defaultTrackingId,
+          TrackingHelper.DEFAULT_TRACKING_ID,
           null,
           String.format("Received payload: %s", requestJsonString));
 
       taggerRequest = gson.fromJson(requestJsonString, TaggerRequest.class);
 
       logger.logInfoWithTracker(
-              taggerRequest.getTrackingId(),
-              taggerRequest.getTargetTable().toSqlString(),
-              String.format("Parsed Tagger Request from Dispatcher: %s", taggerRequest));
+          taggerRequest.getTrackingId(),
+          taggerRequest.getTargetTable().toSqlString(),
+          String.format("Parsed Tagger Request from Dispatcher: %s", taggerRequest));
 
       Tagger tagger =
           new Tagger(
@@ -99,7 +98,10 @@ public class BigQueryTaggerController {
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {
 
-      String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
+      String trackingId =
+          taggerRequest == null
+              ? TrackingHelper.DEFAULT_TRACKING_ID
+              : taggerRequest.getTrackingId();
       return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
   }
@@ -107,7 +109,7 @@ public class BigQueryTaggerController {
   @RequestMapping(value = "/dlp-discovery-service-handler", method = RequestMethod.POST)
   public ResponseEntity dlpDiscoveryServiceHandler(@RequestBody PubSubEvent requestBody) {
 
-    String trackingId = "0000000000000-z";
+    String trackingId = TrackingHelper.DEFAULT_TRACKING_ID;
 
     try {
 
@@ -130,7 +132,7 @@ public class BigQueryTaggerController {
       DataProfilePubSubMessage dataProfilePubSubMessage = DataProfilePubSubMessage.parseFrom(data);
 
       TableSpec targetTable =
-              TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
+          TableSpec.fromFullResource(dataProfilePubSubMessage.getProfile().getFullResource());
 
       String runId = TrackingHelper.generateOneTimeTaggingSuffixForBigQuery();
       trackingId = TrackingHelper.generateTrackingId(runId);

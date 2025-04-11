@@ -20,6 +20,8 @@ import java.util.UUID;
 
 public class TrackingHelper {
 
+    public static final String DEFAULT_TRACKING_ID = "0000000000000-z";
+
     private static final String taggingRunSuffix = "-T";
     private static final String oneTimeTaggingSuffix = "-A";
     private static final String gcsSuffix = "-GS";

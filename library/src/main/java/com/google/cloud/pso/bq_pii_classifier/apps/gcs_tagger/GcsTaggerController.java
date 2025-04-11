@@ -59,14 +59,13 @@ public class GcsTaggerController {
   @RequestMapping(value = "/", method = RequestMethod.POST)
   public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
 
-    String defaultTrackingId = "0000000000000-z";
     GcsTaggerRequest taggerRequest = null;
 
     try {
 
       if (requestBody == null || requestBody.getMessage() == null) {
         String msg = "Bad Request: invalid message format";
-        logger.logSevereWithTracker(defaultTrackingId, null, msg);
+        logger.logSevereWithTracker(TrackingHelper.DEFAULT_TRACKING_ID, null, msg);
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
@@ -85,7 +84,7 @@ public class GcsTaggerController {
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {
 
-      String trackingId = taggerRequest == null ? defaultTrackingId : taggerRequest.getTrackingId();
+      String trackingId = taggerRequest == null ? TrackingHelper.DEFAULT_TRACKING_ID : taggerRequest.getTrackingId();
       return ControllerExceptionHelper.handleException(e, logger, trackingId);
     }
   }
@@ -95,8 +94,6 @@ public class GcsTaggerController {
   // 2. From GCS Auto DLP notification as "DataProfilePubSubMessage" proto
 
   private GcsTaggerRequest parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
-
-    String defaultTrackingId = "0000000000000-z";
 
     String requestJsonString = event.getMessage().dataToUtf8String();
 
