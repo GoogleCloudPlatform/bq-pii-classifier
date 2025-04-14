@@ -177,7 +177,7 @@ variable "dlp_bq_discovery_configurations" {
     # How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
     reprofile_frequency_on_inspection_template_update = optional(string, "UPDATE_FREQUENCY_NEVER")
 
-    # The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
+    # The type of events to consider when deciding if the tables schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
     reprofile_types_on_schema_update = optional(list(string), ["SCHEMA_NEW_COLUMNS"])
 
     # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP

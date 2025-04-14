@@ -85,8 +85,8 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
           frequency = var.dlp_gcs_reprofile_on_inspection_template_update
         }
 
-        // (Optional) If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
-        refresh_frequency = var.dlp_gcs_reprofile_on_data_change
+        // (Optional) If you set this field, profiles are refreshed at this frequency regardless of whether the underlying data have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
+        refresh_frequency = var.dlp_gcs_reprofile_frequency
       }
     }
   }

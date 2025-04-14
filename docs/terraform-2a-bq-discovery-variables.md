@@ -1,30 +1,61 @@
+### Configure DLP Discovery Scope for BigQuery
 
-### Configure DLP Discovery scope
-
-Set the following variables to control which BigQuery tables will be scanned
-by DLP.
-
-```terraform
-# folder ids to be scanned by the org-level config
-dlp_bq_scan_folder_id_list = [0]
-
-# regex for project names to be scanned. Omit to use default that scans all
-dlp_bq_project_id_regex = "^project_xyz$"
-
-# regex for dataset names to be scanned. Omit to use default that scans all
-dlp_bq_dataset_regex = "^dataset_xyz$"
-
-# regex for table names to be scanned. Omit to use default that scans all
-dlp_bq_table_regex = "^table_xyz$"
-```
-
-### Configure DLP Discovery Config State
-
-Set to `true` to create the BigQuery discovery config in paused state (e.g. for manual verification, etc)
+Set the `dlp_bq_discovery_configurations` list to control which GCP folders and underlying datasets and tables will be scanned
+by DLP. For example:
 
 ```terraform
-dlp_bq_create_configuration_in_paused_state = false
+dlp_gcs_discovery_configurations = [
+  {
+    folder_id = 123,
+    project_id_regex = "^project_name$"
+    dataset_regex = "^dataset_name$"
+    table_regex = ".*"
+    apply_tags = true
+    create_configuration_in_paused_state = false
+    table_types = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
+    reprofile_frequency_on_table_schema_update = "UPDATE_FREQUENCY_NEVER"
+    reprofile_frequency_on_table_data_update = "UPDATE_FREQUENCY_NEVER"
+    reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_NEVER"
+    reprofile_types_on_schema_update = ["SCHEMA_NEW_COLUMNS"]
+    reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
+  },
+  {
+    folder_id = 456
+    # all other fields are set to their defaults
+  }
+]
 ```
+
+The full list of fields and descriptions are below:
+
+| Field                                               | Required | Description                                                                                                                                                                                                                                                                 |
+|-----------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `folder_id`                                         | Yes      | GCP folder to be scanned by DLP                                                                                                                                                                                                                                             |
+| `project_id_regex`                                  | No       | Regex for project ids to be covered by the DLP scan. If unset, it will match all projects in the folder.                                                                                                                                                                    |
+| `dataset_regex`                                     | No       | Regex for datasets to be covered by the DLP scan. If unset, it will match all datasets in the folder.                                                                                                                                                                       |
+| `table_regex`                                       | No       | Regex for tables to be covered by the DLP scan. If unset, it will match all tables in the folder.                                                                                                                                                                           |
+| `apply_tags`                                        | No       | When set to `True`, DLP discovery service will attach pre-existing data sensitivity levels tags to buckets. Defaults to `False`                                                                                                                                             |
+| `create_configuration_in_paused_state`              | No       | When set to `True`, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to `False`, the discovery scan will start running upon creation. |
+| `table_types`                                       | No         | Restrict dlp discovery service for BigQuery to specific table types. Defaults to `["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]`                                                                                                                 |
+| `reprofile_frequency_on_table_schema_update`                                      | No         | How frequently data profiles can be updated when a table schema is modified (i.e. columns). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                  |
+| `reprofile_frequency_on_table_data_update`                                       | No         | How frequently data profiles can be updated when a table data is modified (i.e. rows). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                       |
+| `reprofile_frequency_on_inspection_template_update` | No         | How frequently data profiles can be updated when the inspection template is modified. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                        |
+| `reprofile_types_on_schema_update` | No         | A list of type of events to consider when deciding if the tables schema has been modified and should have the profile updated. Each value may be one of: `SCHEMA_NEW_COLUMNS` (default), `SCHEMA_REMOVED_COLUMNS`                                                           |
+| `reprofile_types_on_table_data_update` | No         | A list type of events to consider when deciding if the table has been modified and should have the profile updated. Each value may be one of: `TABLE_MODIFIED_TIMESTAMP` (default)                                                                                          |
+
+
+### Configure data sensitivity tags
+
+Previously we set the `dlp_bq_discovery_configurations.apply_tags` field to control whether to apply custom resource tags to the scanned tables according to
+the DLP data sensitivity score (High, Moderate, Low). If needed, the default names for the sensitivity tag key and values could be overridden via:
+
+```terraform
+dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level"
+dlp_tag_high_sensitivity_value_name = "high"
+dlp_tag_moderate_sensitivity_value_name = "moderate"
+dlp_tag_low_sensitivity_value_name = "low"
+```
+
 
 ### Configure overwriting labels (Optional)
 
@@ -156,22 +187,6 @@ and this variable controls which approach the solution uses at runtime.
 
 ```
 promote_dlp_other_matches = false
-```
-
-### Configure tags
-
-Set the following variable to `true` to let DLP discovery service attach sensitivity levels tags to BigQuery tables
-
-```terraform
-dlp_bq_apply_tags = true
-```
-
-In needed, the default names for the sensitivity tag key and values could be overridden via:
-```terraform
-dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level"
-dlp_tag_high_sensitivity_value_name = "high"
-dlp_tag_moderate_sensitivity_value_name = "moderate"
-dlp_tag_low_sensitivity_value_name = "low"
 ```
 
 ### Run Terraform

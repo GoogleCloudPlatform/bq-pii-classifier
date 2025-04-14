@@ -39,9 +39,9 @@ variable "dlp_gcs_reprofile_on_inspection_template_update" {
   description = "How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY."
 }
 
-variable "dlp_gcs_reprofile_on_data_change" {
+variable "dlp_gcs_reprofile_frequency" {
   type = string
-  description = "If you set this field, profiles are refreshed at this frequency regardless of whether the underlying tables have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY"
+  description = "If you set this field, profiles are refreshed at this frequency regardless of whether the underlying data have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY"
 }
 
 variable "dlp_gcs_create_configuration_in_paused_state" {

@@ -333,7 +333,7 @@ module "gcs_dlp_configs" {
   dlp_gcs_project_id_regex                        = var.dlp_gcs_discovery_configurations[count.index].project_id_regex
   dlp_gcs_apply_tags                              = var.dlp_gcs_discovery_configurations[count.index].apply_tags
   dlp_gcs_create_configuration_in_paused_state    = var.dlp_gcs_discovery_configurations[count.index].create_configuration_in_paused_state
-  dlp_gcs_reprofile_on_data_change                = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_data_change
+  dlp_gcs_reprofile_frequency               = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency
   dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_inspection_template_update
   dlp_gcs_included_bucket_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_bucket_attributes
   dlp_gcs_included_object_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_object_attributes
