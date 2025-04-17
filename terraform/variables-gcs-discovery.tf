@@ -48,16 +48,6 @@ variable "sa_tagging_dispatcher_gcs" {
   default = "tag-dispatcher-gcs"
 }
 
-variable "sa_tagging_dispatcher_gcs_tasks" {
-  type = string
-  default = "tag-dispatcher-gcs-tasks"
-}
-
-variable "tagging_dispatcher_gcs_service_name" {
-  type = string
-  default = "s1a-tagging-dispatcher-gcs"
-}
-
 variable "sa_workflows_gcs" {
   type = string
   default = "workflows-gcs"
@@ -72,17 +62,6 @@ variable "workflows_gcs_description" {
   type = string
   default = "Trigger (re)annotation process for Cloud Storage buckets based on DLP findings"
 }
-
-variable "tagging_dispatcher_gcs_pubsub_topic" {
-  type = string
-  default = "tagging_dispatcher_gcs_topic"
-}
-
-variable "tagging_dispatcher_gcs_pubsub_sub" {
-  type = string
-  default = "tagging_dispatcher_gcs_push_sub"
-}
-
 
 
 ##### GCS Tagger Service ######
@@ -128,4 +107,31 @@ variable "gcs_existing_labels_regex" {
   description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
 }
 
+# Tagger Scalability params
 
+# Discovery Tagging:
+#   GCS Tagger hits the DLP API (get file store profile), and Cloud Storage API (update bucket)
+#   DLP API: 600 requests per minute
+#   Storage API: NA
+# Dispatcher Tagging:
+#   Only hits the Storage API to add labels to buckets
+
+variable "tagger_gcs_service_max_containers" {
+  type = number
+  default = 1
+}
+
+variable "tagger_gcs_service_max_requests_per_container" {
+  type = number
+  default = 80
+}
+
+variable "tagger_gcs_service_max_cpu" {
+  type = number
+  default = 2
+}
+
+variable "tagger_gcs_service_max_memory" {
+  type = string
+  default = "4Gi"
+}

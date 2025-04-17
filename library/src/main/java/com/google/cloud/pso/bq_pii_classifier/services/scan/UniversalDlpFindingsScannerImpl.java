@@ -26,27 +26,27 @@ import java.util.Map;
 
 public class UniversalDlpFindingsScannerImpl implements DlpFindingsScanner {
   public final BigQueryService bqService;
-  private final String bqQueryFile;
-  private final Map<String, String> queryParameters;
+  private final String finalQuery;
 
   public UniversalDlpFindingsScannerImpl(
-      String bqQueryFile, Map<String, String> queryParameters, BigQueryService bqService) {
-    this.bqQueryFile = bqQueryFile;
-    this.queryParameters = queryParameters;
-    this.bqService = bqService;
+      String bqQueryFile, Map<String, String> queryParameters, BigQueryService bqService) throws IOException {
+      this.bqService = bqService;
+
+    String query = Resources.toString(Resources.getResource(bqQueryFile), StandardCharsets.UTF_8);
+    for (String param : queryParameters.keySet()) {
+      query = query.replace(param, queryParameters.get(param));
+    }
+    finalQuery = query;
   }
 
   @Override
   public TableResult getDlpProfilesFromBigQuery(String runId)
-      throws IOException, InterruptedException {
-
-    String query = Resources.toString(Resources.getResource(bqQueryFile), StandardCharsets.UTF_8);
-
-    for (String param : queryParameters.keySet()) {
-      query = query.replace(param, queryParameters.get(param));
-    }
-
-    Job dlpFindingsJob = bqService.submitJob(query);
+      throws InterruptedException {
+    Job dlpFindingsJob = bqService.submitJob(finalQuery);
     return bqService.waitAndGetJobResults(dlpFindingsJob);
+  }
+
+  public String getFinalQuery() {
+    return finalQuery;
   }
 }

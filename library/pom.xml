@@ -132,11 +132,6 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.google.cloud.pso.bq_pii_classifier.apps.EntryPoint</mainClass>
-                        </manifest>
-                    </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -174,7 +169,7 @@
                     <container>
                         <!-- this is overridden in cloud run (in Terraform) to select which service -->
                         <mainClass>
-                            com.google.cloud.pso.bq_pii_classifier.apps.gcs_dispatcher.GcsDispatcherController
+                            com.google.cloud.pso.bq_pii_classifier.apps.EntryPoint
                         </mainClass>
                     </container>
                     <from>

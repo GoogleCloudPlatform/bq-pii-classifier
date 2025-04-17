@@ -37,8 +37,11 @@ public class BigQueryServiceImpl implements BigQueryService {
   private final com.google.api.services.bigquery.Bigquery bqAPI;
   private final BigQuery bqAPIWrapper;
 
-  public BigQueryServiceImpl() throws IOException {
-    bqAPIWrapper = BigQueryOptions.getDefaultInstance().getService();
+  public BigQueryServiceImpl(String projectId) throws IOException {
+    bqAPIWrapper = BigQueryOptions.newBuilder()
+            .setProjectId(projectId)
+            .build().
+            getService();
 
     // direct API calls are needed for some operations
     // TODO: follow up on the missing/faulty wrapper calls and stop using direct API calls
@@ -53,10 +56,8 @@ public class BigQueryServiceImpl implements BigQueryService {
   }
 
   @Override
-  public String getDatasetLocation(String projectId, String datasetId) throws IOException {
-    // calling dataset.getLocation always returns null --> seems like a bug in the SDK
-    // instead, use the underlying API call to get dataset info
-    return bqAPI.datasets().get(projectId, datasetId).execute().getLocation();
+  public String getDatasetLocation(String projectId, String datasetId){
+    return bqAPIWrapper.getDataset(DatasetId.of(projectId, datasetId)).getLocation();
   }
 
   @Override

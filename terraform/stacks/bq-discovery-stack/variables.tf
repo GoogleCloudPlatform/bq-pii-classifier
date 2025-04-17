@@ -44,10 +44,6 @@ variable "sa_tagging_dispatcher" {
   type = string
 }
 
-variable "sa_tagging_dispatcher_tasks" {
-  type = string
-}
-
 variable "sa_tagger" {
   type = string
 }
@@ -72,10 +68,6 @@ variable "sa_bq_remote_func_get_policy_tags" {
   type = string
 }
 
-variable "tagging_dispatcher_service_name" {
-  type = string
-}
-
 variable "tagger_service_name" {
   type = string
 }
@@ -84,14 +76,6 @@ variable "bq_remote_func_get_policy_tags_name" {
   type = string
 }
 
-
-variable "tagging_dispatcher_pubsub_topic" {
-  type = string
-}
-
-variable "tagging_dispatcher_pubsub_sub" {
-  type = string
-}
 
 variable "tagger_pubsub_topic" {
   type = string
@@ -168,22 +152,6 @@ variable "gcs_flags_bucket_name" {
   type = string
 }
 
-# Dispatcher settings.
-variable "dispatcher_service_timeout_seconds" {
-  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
-  type = number
-}
-
-variable "dispatcher_subscription_ack_deadline_seconds" {
-  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
-  type = number
-}
-
-variable "dispatcher_subscription_message_retention_duration" {
-  description = "How long to retain unacknowledged messages in the subscription's backlog"
-  type = string
-}
-
 # Tagger settings.
 variable "tagger_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
@@ -226,15 +194,6 @@ variable "default_domain_name" {
 variable "bq_existing_labels_regex" {
   type = string
   description = "A regex used to match existing bucket labels to be deleted and re-created based on the newest DLP findings and info type mapping"
-}
-
-
-variable "dispatcher_service_max_cpu" {
-  type = number
-}
-
-variable "dispatcher_service_max_memory" {
-  type = string
 }
 
 variable "promote_dlp_other_matches" {
@@ -321,5 +280,33 @@ variable "dlp_bq_discovery_configurations" {
 }
 
 variable "publishing_project" {
+  type = string
+}
+
+variable "dispatcher_cloud_batch_memory_mib" {
+  type = number
+}
+
+variable "dispatcher_cloud_batch_cpu_millis" {
+  type = number
+}
+
+variable "dispatcher_cloud_batch_max_run_duration_seconds" {
+  type = number
+}
+
+variable "tagger_service_max_containers" {
+  type = number
+}
+
+variable "tagger_service_max_requests_per_container" {
+  type = number
+}
+
+variable "tagger_service_max_cpu" {
+  type = number
+}
+
+variable "tagger_service_max_memory" {
   type = string
 }

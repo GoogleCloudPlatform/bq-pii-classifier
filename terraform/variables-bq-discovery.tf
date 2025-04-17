@@ -10,19 +10,14 @@ variable "sa_tagging_dispatcher" {
   default = "tag-dispatcher"
 }
 
-variable "sa_tagging_dispatcher_tasks" {
-  type = string
-  default = "tag-dispatcher-tasks"
-}
-
 variable "sa_tagger" {
   type = string
-  default = "tagger"
+  default = "tagger-bq"
 }
 
 variable "sa_tagger_tasks" {
   type = string
-  default = "tagger-tasks"
+  default = "tagger-bq-tasks"
 }
 
 variable "sa_workflows_bq" {
@@ -45,15 +40,9 @@ variable "sa_bq_remote_func_get_policy_tags" {
   default = "sa-func-get-policy-tags"
 }
 
-
-variable "tagging_dispatcher_service_name" {
-  type = string
-  default = "s1a-tagging-dispatcher"
-}
-
 variable "tagger_service_name" {
   type = string
-  default = "s3-tagger"
+  default = "tagger-bq"
 }
 
 variable "bq_remote_func_get_policy_tags_name" {
@@ -61,25 +50,14 @@ variable "bq_remote_func_get_policy_tags_name" {
   default = "get_table_policy_tags"
 }
 
-
-variable "tagging_dispatcher_pubsub_topic" {
-  type = string
-  default = "tagging_dispatcher_topic"
-}
-
-variable "tagging_dispatcher_pubsub_sub" {
-  type = string
-  default = "tagging_dispatcher_push_sub"
-}
-
 variable "tagger_pubsub_topic" {
   type = string
-  default = "tagger_topic"
+  default = "tagger_bq_topic"
 }
 
 variable "tagger_pubsub_sub" {
   type = string
-  default = "tagger_push_sub"
+  default = "tagger_bq_push_sub"
 }
 
 variable "domain_mapping" {
@@ -183,4 +161,33 @@ variable "dlp_bq_discovery_configurations" {
     # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP
     reprofile_types_on_table_data_update = optional(list(string), ["TABLE_MODIFIED_TIMESTAMP"])
   }))
+}
+
+# Tagger Scalability params
+
+# Discovery Tagging:
+#   BQ Tagger hits the DLP API (get data profile), and BQ API (update table)
+#   DLP API: 600 requests per minute
+#   BQ API: NA
+# Dispatcher Tagging:
+#   Only hits the BQ API to add labels to buckets
+
+variable "tagger_bq_service_max_containers" {
+  type = number
+  default = 1
+}
+
+variable "tagger_bq_service_max_requests_per_container" {
+  type = number
+  default = 80
+}
+
+variable "tagger_bq_service_max_cpu" {
+  type = number
+  default = 2
+}
+
+variable "tagger_bq_service_max_memory" {
+  type = string
+  default = "4Gi"
 }

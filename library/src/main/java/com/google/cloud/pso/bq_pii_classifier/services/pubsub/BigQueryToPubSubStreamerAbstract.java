@@ -45,7 +45,6 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
   private final FlowControlSettings flowControlSettings;
   private final BatchingSettings batchingSettings;
   private final RetrySettings retrySettings;
-
   private final ExecutorProvider executorProvider;
 
   public BigQueryToPubSubStreamerAbstract() {

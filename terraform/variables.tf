@@ -47,8 +47,6 @@ variable "log_sink_name" {
   default = "sc_bigquery_log_sink"
 }
 
-
-
 # Images
 variable "gar_docker_repo_name" {
   type = string
@@ -110,33 +108,6 @@ variable "gcs_flags_bucket_name" {
   default = "bq-pii-classifier-flags"
 }
 
-# Dispatcher settings.
-variable "dispatcher_service_timeout_seconds" {
-  description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
-  type = number
-  # Dispatcher might need relatively long time to process large BigQuery scan scopes
-  default = 3600 # 60m  # 540 # 9m
-
-}
-
-variable "dispatcher_subscription_ack_deadline_seconds" {
-  description = "This value is the maximum time after a subscriber receives a message before the subscriber should acknowledge the message. If it timeouts without ACK PubSub will retry the message."
-  type = number
-  // This should be higher than the service_timeout_seconds to avoid retrying messages that are still processing
-  // range is 10 to 600
-  default = 600
-  # 10m
-}
-
-variable "dispatcher_subscription_message_retention_duration" {
-  description = "How long to retain unacknowledged messages in the subscription's backlog"
-  type = string
-  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
-  # min value must be at least equal to the ack_deadline_seconds
-  # Dispatcher should have the shortest retention possible because we want to avoid retries (on the app level as well)
-  default = "600s"
-  # 10m
-}
 
 # Tagger settings.
 variable "tagger_service_timeout_seconds" {
@@ -184,16 +155,6 @@ variable "deploy_dlp_inspection_template_to_global_region" {
   description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
 }
 
-variable "dispatcher_service_max_cpu" {
-  type = number
-  default = 8
-}
-
-variable "dispatcher_service_max_memory" {
-  type = string
-  default = "16Gi"
-}
-
 variable "image_name" {
   type = string
   default = "bq-pii-classifier-services:latest"
@@ -208,7 +169,7 @@ variable "org_id" {
 
 variable "dlp_tag_sensitivity_level_key_name" {
   type = string
-  default = "dlp_sensitivity_level_2"
+  default = "dlp_sensitivity_level"
 }
 
 variable "dlp_tag_high_sensitivity_value_name" {
@@ -225,3 +186,21 @@ variable "dlp_tag_low_sensitivity_value_name" {
   type = string
   default = "low"
 }
+
+# Dispatcher Scalability params
+
+variable "dispatcher_cloud_batch_memory_mib" {
+  type = number
+  default = 1000
+}
+
+variable "dispatcher_cloud_batch_cpu_millis" {
+  type = number
+  default = 2000
+}
+
+variable "dispatcher_cloud_batch_max_run_duration_seconds" {
+  type = number
+  default = 60*60*1 # 1 hour
+}
+

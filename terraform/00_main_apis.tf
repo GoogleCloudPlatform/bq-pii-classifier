@@ -7,7 +7,8 @@ locals {
     "firestore.googleapis.com",
     "workflows.googleapis.com",
     "datacatalog.googleapis.com",
-    "dlp.googleapis.com"
+    "dlp.googleapis.com",
+    "batch.googleapis.com"
   ]
 
   apis_list_publishing_project = [

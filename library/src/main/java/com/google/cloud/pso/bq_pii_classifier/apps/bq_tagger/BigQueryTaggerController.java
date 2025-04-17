@@ -92,7 +92,7 @@ public class BigQueryTaggerController {
       Tagger tagger =
           new Tagger(
               environment.toConfig(),
-              new BigQueryServiceImpl(),
+              new BigQueryServiceImpl(environment.getProjectId()),
               new DlpFindingsReaderImpl(),
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "tagger-flags");
@@ -149,7 +149,7 @@ public class BigQueryTaggerController {
       Tagger tagger =
           new Tagger(
               environment.toConfig(),
-              new BigQueryServiceImpl(),
+              new BigQueryServiceImpl(environment.getProjectId()),
               new DlpFindingsReaderImpl(),
               new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
               "tagger-flags");

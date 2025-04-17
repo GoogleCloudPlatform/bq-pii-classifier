@@ -13,15 +13,12 @@ module "gcs-discovery-stack" {
   bq_results_dataset = google_bigquery_dataset.results_dataset.dataset_id
   compute_region = var.compute_region
   data_region = var.data_region
-  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
   gar_docker_repo_name = var.gar_docker_repo_name
   gcs_flags_bucket_name = google_storage_bucket.gcs_flags_bucket.name
   project = var.application_project
   publishing_project = var.publishing_project
   tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
-  dispatcher_subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds
-  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
   info_type_map                                      = local.info_types_map
   is_dry_run_labels                                  = var.is_dry_run_labels
   tagger_subscription_ack_deadline_seconds           = var.tagger_subscription_ack_deadline_seconds
@@ -31,18 +28,12 @@ module "gcs-discovery-stack" {
   sa_tagger_gcs = var.sa_tagger_gcs
   sa_tagger_gcs_tasks = var.sa_tagger_gcs_tasks
   sa_tagging_dispatcher_gcs = var.sa_tagging_dispatcher_gcs
-  sa_tagging_dispatcher_gcs_tasks = var.sa_tagging_dispatcher_gcs_tasks
   tagger_gcs_pubsub_sub = var.tagger_gcs_pubsub_sub
   tagger_gcs_pubsub_topic = var.tagger_gcs_pubsub_topic
   tagger_gcs_service_name = var.tagger_gcs_service_name
-  tagging_dispatcher_gcs_pubsub_sub = var.tagging_dispatcher_gcs_pubsub_sub
-  tagging_dispatcher_gcs_pubsub_topic = var.tagging_dispatcher_gcs_pubsub_topic
-  tagging_dispatcher_gcs_service_name = var.tagging_dispatcher_gcs_service_name
   bq_remote_func_get_buckets_metadata = var.bq_remote_func_get_buckets_metadata
   sa_bq_remote_func_get_buckets_metadata = var.sa_bq_remote_func_get_buckets_metadata
   gcs_existing_labels_regex = var.gcs_existing_labels_regex
-  dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
-  dispatcher_service_max_memory = var.dispatcher_service_max_memory
   retain_dlp_tagger_pubsub_messages = var.retain_dlp_tagger_pubsub_messages
   sa_workflows_gcs = var.sa_workflows_gcs
   workflows_gcs_description = var.workflows_gcs_description
@@ -57,6 +48,17 @@ module "gcs-discovery-stack" {
   dlp_tag_high_sensitivity_id = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+
+  # Dispatcher Cloud Batch scalability settings
+  dispatcher_cloud_batch_cpu_millis   = var.dispatcher_cloud_batch_cpu_millis
+  dispatcher_cloud_batch_memory_mib   = var.dispatcher_cloud_batch_memory_mib
+  dispatcher_cloud_batch_max_run_duration_seconds = var.dispatcher_cloud_batch_max_run_duration_seconds
+
+  # Tagger Cloud Run scalability settings
+  tagger_service_max_containers             = var.tagger_gcs_service_max_containers
+  tagger_service_max_cpu                    = var.tagger_gcs_service_max_cpu
+  tagger_service_max_memory                 = var.tagger_gcs_service_max_memory
+  tagger_service_max_requests_per_container = var.tagger_gcs_service_max_requests_per_container
 
   depends_on = [google_project_service.enable_apis,
     google_project_service.enable_apis_on_publishing_project,

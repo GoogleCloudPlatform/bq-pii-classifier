@@ -18,11 +18,6 @@ module "bq-discovery-stack" {
   data_region = var.data_region
   datastore_database_name = var.datastore_database_name
   default_domain_name = var.default_domain_name
-  dispatcher_service_max_cpu = var.dispatcher_service_max_cpu
-  dispatcher_service_max_memory = var.dispatcher_service_max_memory
-  dispatcher_service_timeout_seconds = var.dispatcher_service_timeout_seconds
-  dispatcher_subscription_ack_deadline_seconds = var.dispatcher_subscription_ack_deadline_seconds
-  dispatcher_subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
   dlp_bq_scan_org_id = var.org_id
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
   domain_mapping = var.domain_mapping
@@ -40,7 +35,6 @@ module "bq-discovery-stack" {
   sa_tagger = var.sa_tagger
   sa_tagger_tasks = var.sa_tagger_tasks
   sa_tagging_dispatcher = var.sa_tagging_dispatcher
-  sa_tagging_dispatcher_tasks = var.sa_tagging_dispatcher_tasks
   sa_workflows_bq = var.sa_workflows_bq
   source_data_regions = var.source_data_regions
   tagger_pubsub_sub = var.tagger_pubsub_sub
@@ -49,9 +43,6 @@ module "bq-discovery-stack" {
   tagger_service_timeout_seconds = var.tagger_service_timeout_seconds
   tagger_subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
   tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
-  tagging_dispatcher_pubsub_sub = var.tagging_dispatcher_pubsub_sub
-  tagging_dispatcher_pubsub_topic = var.tagging_dispatcher_pubsub_topic
-  tagging_dispatcher_service_name = var.tagging_dispatcher_service_name
   taxonomy_name_suffix = var.taxonomy_name_suffix
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
   workflows_bq_description = var.workflows_bq_description
@@ -65,12 +56,21 @@ module "bq-discovery-stack" {
   dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
   dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
 
+  # Dispatcher Cloud Batch settings
+  dispatcher_cloud_batch_cpu_millis   = var.dispatcher_cloud_batch_cpu_millis
+  dispatcher_cloud_batch_memory_mib   = var.dispatcher_cloud_batch_memory_mib
+  dispatcher_cloud_batch_max_run_duration_seconds = var.dispatcher_cloud_batch_max_run_duration_seconds
+
+  # Tagger Cloud Run scalability settings
+  tagger_service_max_containers             = var.tagger_bq_service_max_containers
+  tagger_service_max_cpu                    = var.tagger_bq_service_max_cpu
+  tagger_service_max_memory                 = var.tagger_bq_service_max_memory
+  tagger_service_max_requests_per_container = var.tagger_bq_service_max_requests_per_container
+
   depends_on = [google_project_service.enable_apis,
     google_project_service.enable_apis_on_publishing_project,
     google_bigquery_table.logging_table
   ]
-
-
 }
 
 // This module creates granular custom roles and assigns roles and permissions to service accounts used in this solution on ORG levels (and not the host project)

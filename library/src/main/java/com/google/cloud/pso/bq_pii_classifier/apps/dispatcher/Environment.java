@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.cloud.pso.bq_pii_classifier.apps.bq_dispatcher;
+package com.google.cloud.pso.bq_pii_classifier.apps.dispatcher;
 
 import com.google.cloud.pso.bq_pii_classifier.functions.dispatcher.DispatcherConfig;
 import com.google.cloud.pso.bq_pii_classifier.helpers.Utils;
@@ -41,12 +41,12 @@ public class Environment {
     return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
   }
 
-  public String getSolutionDataset() {
-    return Utils.getConfigFromEnv("SOLUTION_DATASET", true);
+  public String getDlpResultsDataset() {
+    return Utils.getConfigFromEnv("DLP_RESULTS_DATASET", true);
   }
 
-  public String getDlpTableAuto() {
-    return Utils.getConfigFromEnv("DLP_TABLE_AUTO", true);
+  public String getDlpResultsTable() {
+    return Utils.getConfigFromEnv("DLP_RESULTS_TABLE", true);
   }
 
   public String getDispatcherRunsTable() {

@@ -26,17 +26,6 @@ variable "bq_results_dataset" {
   type = string
 }
 
-variable "dispatcher_service_timeout_seconds" {
-  type = number
-}
-
-variable "dispatcher_subscription_ack_deadline_seconds" {
-  type = number
-}
-
-variable "dispatcher_subscription_message_retention_duration" {
-  type = string
-}
 
 variable "tagger_service_timeout_seconds" {
   type = number
@@ -93,24 +82,6 @@ variable "sa_tagging_dispatcher_gcs" {
   type = string
 }
 
-variable "sa_tagging_dispatcher_gcs_tasks" {
-  type = string
-}
-
-variable "tagging_dispatcher_gcs_service_name" {
-  type = string
-}
-
-variable "tagging_dispatcher_gcs_pubsub_topic" {
-  type = string
-}
-
-variable "tagging_dispatcher_gcs_pubsub_sub" {
-  type = string
-}
-
-
-
 ##### GCS Tagger Service ######
 
 variable "sa_tagger_gcs" {
@@ -142,14 +113,6 @@ variable "sa_bq_remote_func_get_buckets_metadata" {
 }
 
 variable "gcs_existing_labels_regex" {
-  type = string
-}
-
-variable "dispatcher_service_max_cpu" {
-  type = number
-}
-
-variable "dispatcher_service_max_memory" {
   type = string
 }
 
@@ -234,5 +197,33 @@ variable "dlp_gcs_discovery_configurations" {
 }
 
 variable "publishing_project" {
+  type = string
+}
+
+variable "dispatcher_cloud_batch_memory_mib" {
+  type = number
+}
+
+variable "dispatcher_cloud_batch_cpu_millis" {
+  type = number
+}
+
+variable "dispatcher_cloud_batch_max_run_duration_seconds" {
+  type = number
+}
+
+variable "tagger_service_max_containers" {
+  type = number
+}
+
+variable "tagger_service_max_requests_per_container" {
+  type = number
+}
+
+variable "tagger_service_max_cpu" {
+  type = number
+}
+
+variable "tagger_service_max_memory" {
   type = string
 }
