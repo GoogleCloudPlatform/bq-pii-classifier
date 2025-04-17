@@ -263,12 +263,27 @@ main:
                     maxRunDuration: ${var.dispatcher_cloud_batch_max_run_duration_seconds}s
                   taskEnvironments:
                     - variables:
-                        PROJECT_ID: ${var.project}
-                        PUBLISHING_PROJECT_ID: ${var.publishing_project}
-                        TAGGER_TOPIC: ${module.pubsub-tagger-gcs-for-dispatcher.topic-name}
-                        DLP_RESULTS_DATASET: ${var.bq_results_dataset}
-                        DLP_RESULTS_TABLE: ${local.auto_dlp_results_latest_view}
-                        DISPATCHER_RUNS_TABLE: ${google_bigquery_table.dispatcher_runs_gcs_table.table_id}
+                        PROJECT_ID: "${var.project}"
+                        PUBLISHING_PROJECT_ID: "${var.publishing_project}"
+                        TAGGER_TOPIC: "${module.pubsub-tagger-gcs-for-dispatcher.topic-name}"
+                        DLP_RESULTS_DATASET: "${var.bq_results_dataset}"
+                        DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
+                        DISPATCHER_RUNS_TABLE: "${google_bigquery_table.dispatcher_runs_gcs_table.table_id}"
+
+                        PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_REQUESTS_BYTES : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_request_bytes}"
+                        PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_ELEMENT_COUNT : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_element_count}"
+                        PUBSUB_BATCHING_ELEMENT_COUNT_THRESHOLD           : "${var.dispatcher_pubsub_client_config.pubsub_batching_element_count_threshold}"
+                        PUBSUB_BATCHING_REQUEST_BYTE_THRESHOLD            : "${var.dispatcher_pubsub_client_config.pubsub_batching_request_byte_threshold}"
+                        PUBSUB_BATCHING_DELAY_THRESHOLD_MILLIS            : "${var.dispatcher_pubsub_client_config.pubsub_batching_delay_threshold_millis}"
+                        PUBSUB_RETRY_INITIAL_RETRY_DELAY_MILLIS            : "${var.dispatcher_pubsub_client_config.pubsub_retry_initial_retry_delay_millis}"
+                        PUBSUB_RETRY_RETRY_DELAY_MULTIPLIER              : "${var.dispatcher_pubsub_client_config.pubsub_retry_retry_delay_multiplier}"
+                        PUBSUB_RETRY_MAX_RETRY_DELAY_SECONDS              : "${var.dispatcher_pubsub_client_config.pubsub_retry_max_retry_delay_seconds}"
+                        PUBSUB_RETRY_INITIAL_RPC_TIMEOUT_SECONDS          : "${var.dispatcher_pubsub_client_config.pubsub_retry_initial_rpc_timeout_seconds}"
+                        PUBSUB_RETRY_RPC_TIMEOUT_MULTIPLIER                : "${var.dispatcher_pubsub_client_config.pubsub_retry_rpc_timeout_multiplier}"
+                        PUBSUB_RETRY_MAX_RPC_TIMEOUT_SECONDS              : "${var.dispatcher_pubsub_client_config.pubsub_retry_max_rpc_timeout_seconds}"
+                        PUBSUB_RETRY_TOTAL_TIMEOUT_SECONDS                : "${var.dispatcher_pubsub_client_config.pubsub_retry_total_timeout_seconds}"
+                        PUBSUB_EXECUTOR_THREAD_COUNT_MULTIPLIER            : "${var.dispatcher_pubsub_client_config.pubsub_executor_thread_count_multiplier}"
+
             allocationPolicy:
               serviceAccount:
                 email: ${google_service_account.sa_tagging_dispatcher_gcs.email}

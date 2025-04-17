@@ -42,61 +42,126 @@ import org.threeten.bp.Duration;
 
 public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubSubStreamer {
 
-  private final FlowControlSettings flowControlSettings;
-  private final BatchingSettings batchingSettings;
-  private final RetrySettings retrySettings;
-  private final ExecutorProvider executorProvider;
+  private FlowControlSettings flowControlSettings;
+  private BatchingSettings batchingSettings;
+  private RetrySettings retrySettings;
+  private ExecutorProvider executorProvider;
+
+  private final Long flowControlMaxOutstandingRequestBytes;
+  private final Long flowControlMaxOutstandingElementCount;
+  private final Long batchingElementCountThreshold;
+  private final Long batchingRequestByteThreshold;
+  private final Long batchingDelayThresholdMillis;
+  private final Long retryInitialRetryDelayMillis;
+  private final Double retryRetryDelayMultiplier;
+  private final Long retryMaxRetryDelaySeconds;
+  private final Long retryInitialRpcTimeoutSeconds;
+  private final Double retryRpcTimeoutMultiplier;
+  private final Long retryMaxRpcTimeoutSeconds;
+  private final Long retryTotalTimeoutSeconds;
+  private final Integer executorThreadCountMultiplier;
 
   public BigQueryToPubSubStreamerAbstract() {
+    flowControlMaxOutstandingRequestBytes = 10 * 1024 * 1024L; // 10 MiB
+    flowControlMaxOutstandingElementCount = 1000L;
+    batchingElementCountThreshold = 100L; // default: 100 messages, max 1000
+    batchingRequestByteThreshold = 1000000L;
+    batchingDelayThresholdMillis = 1L; // default: 1 ms
+    retryInitialRetryDelayMillis = 100L;
+    retryRetryDelayMultiplier = 2.0;
+    retryMaxRetryDelaySeconds = 60L;
+    retryInitialRpcTimeoutSeconds = 1L;
+    retryRpcTimeoutMultiplier = 1.0;
+    retryMaxRpcTimeoutSeconds = 600L;
+    retryTotalTimeoutSeconds = 600L;
+    executorThreadCountMultiplier = 5;
+
+    init();
+  }
+
+  public BigQueryToPubSubStreamerAbstract(
+          Long flowControlMaxOutstandingRequestBytes,
+          Long flowControlMaxOutstandingElementCount,
+          Long batchingElementCountThreshold,
+          Long batchingRequestByteThreshold,
+          Long batchingDelayThresholdMillis,
+          Long retryInitialRetryDelayMillis,
+          Double retryRetryDelayMultiplier,
+          Long retryMaxRetryDelaySeconds,
+          Long retryInitialRpcTimeoutSeconds,
+          Double retryRpcTimeoutMultiplier,
+          Long retryMaxRpcTimeoutSeconds,
+          Long retryTotalTimeoutSeconds,
+          Integer executorThreadCountMultiplier) {
+
+    this.flowControlMaxOutstandingRequestBytes = flowControlMaxOutstandingRequestBytes;
+    this.flowControlMaxOutstandingElementCount = flowControlMaxOutstandingElementCount;
+    this.batchingElementCountThreshold =
+            batchingElementCountThreshold; // default: 100 messages, max 1000
+    this.batchingRequestByteThreshold = batchingRequestByteThreshold;
+    this.batchingDelayThresholdMillis = batchingDelayThresholdMillis;
+    this.retryInitialRetryDelayMillis = retryInitialRetryDelayMillis;
+    this.retryRetryDelayMultiplier = retryRetryDelayMultiplier;
+    this.retryMaxRetryDelaySeconds = retryMaxRetryDelaySeconds;
+    this.retryInitialRpcTimeoutSeconds = retryInitialRpcTimeoutSeconds;
+    this.retryRpcTimeoutMultiplier = retryRpcTimeoutMultiplier;
+    this.retryMaxRpcTimeoutSeconds = retryMaxRpcTimeoutSeconds;
+    this.retryTotalTimeoutSeconds = retryTotalTimeoutSeconds;
+    this.executorThreadCountMultiplier = executorThreadCountMultiplier;
+
+    init();
+  }
+
+  public void init() {
     // Configure how many messages the publisher client can hold in memory
     // and what to do when messages exceed the limit.
     flowControlSettings =
-        FlowControlSettings.newBuilder()
-            // Block more messages from being published when the limit is reached. The other
-            // options are Ignore (or continue publishing) and ThrowException (or error out).
-            .setLimitExceededBehavior(FlowController.LimitExceededBehavior.Block)
-            .setMaxOutstandingRequestBytes(10 * 1024 * 1024L) // 10 MiB
-            .setMaxOutstandingElementCount(1000L) // 100 messages
-            .build();
+            FlowControlSettings.newBuilder()
+                    // Block more messages from being published when the limit is reached. The other
+                    // options are Ignore (or continue publishing) and ThrowException (or error out).
+                    .setLimitExceededBehavior(FlowController.LimitExceededBehavior.Block)
+                    .setMaxOutstandingRequestBytes(this.flowControlMaxOutstandingRequestBytes)
+                    .setMaxOutstandingElementCount(this.flowControlMaxOutstandingElementCount)
+                    .build();
 
     // Configure batching settings
     batchingSettings =
-        BatchingSettings.newBuilder()
-            .setElementCountThreshold(100L) // default: 100 messages, max 1000
-            .setRequestByteThreshold(
-                1000000L) // default: 1000 bytes // max 10mb this makes it faster
-            .setDelayThreshold(Duration.ofMillis(1)) // default: 1 ms
-            .setFlowControlSettings(flowControlSettings)
-            .build();
+            BatchingSettings.newBuilder()
+                    .setElementCountThreshold(this.batchingElementCountThreshold)
+                    .setRequestByteThreshold(this.batchingRequestByteThreshold)
+                    .setDelayThreshold(Duration.ofMillis(this.batchingDelayThresholdMillis))
+                    .setFlowControlSettings(flowControlSettings)
+                    .build();
 
     // Configure retry settings
     retrySettings =
-        RetrySettings.newBuilder()
-            .setInitialRetryDelay(Duration.ofMillis(100)) // default: 100 ms
-            .setRetryDelayMultiplier(2.0) // default: 1.3
-            .setMaxRetryDelay(Duration.ofSeconds(60)) // default: 60 seconds
-            .setInitialRpcTimeout(Duration.ofSeconds(1)) // default: 5 seconds
-            .setRpcTimeoutMultiplier(1.0) // default: 1.0
-            .setMaxRpcTimeout(Duration.ofSeconds(600)) // default: 600 seconds
-            .setTotalTimeout(Duration.ofSeconds(600)) // default: 600 seconds
-            .build();
+            RetrySettings.newBuilder()
+                    .setInitialRetryDelay(Duration.ofMillis(this.retryInitialRetryDelayMillis))
+                    .setRetryDelayMultiplier(this.retryRetryDelayMultiplier)
+                    .setMaxRetryDelay(Duration.ofSeconds(this.retryMaxRetryDelaySeconds))
+                    .setInitialRpcTimeout(Duration.ofSeconds(this.retryInitialRpcTimeoutSeconds))
+                    .setRpcTimeoutMultiplier(this.retryRpcTimeoutMultiplier)
+                    .setMaxRpcTimeout(Duration.ofSeconds(this.retryMaxRpcTimeoutSeconds))
+                    .setTotalTimeout(Duration.ofSeconds(this.retryTotalTimeoutSeconds))
+                    .build();
 
     // Provides an executor service for processing messages. The default
     // `executorProvider` used by the publisher has a default thread count of
     // 5 * the number of processors available to the Java virtual machine.
     executorProvider =
-        InstantiatingExecutorProvider.newBuilder()
-            .setExecutorThreadCount(5 * Runtime.getRuntime().availableProcessors())
-            .build();
+            InstantiatingExecutorProvider.newBuilder()
+                    .setExecutorThreadCount(
+                            this.executorThreadCountMultiplier * Runtime.getRuntime().availableProcessors())
+                    .build();
   }
 
   private Publisher createPublisher(String projectId, String topicId) throws IOException {
     // Create a publisher instance with batching and retry settings
     return Publisher.newBuilder(TopicName.of(projectId, topicId))
-        .setBatchingSettings(batchingSettings)
-        .setRetrySettings(retrySettings)
-        .setExecutorProvider(executorProvider)
-        .build();
+            .setBatchingSettings(batchingSettings)
+            .setRetrySettings(retrySettings)
+            .setExecutorProvider(executorProvider)
+            .build();
   }
 
   public FlowControlSettings getFlowControlSettings() {
@@ -116,18 +181,18 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
   }
 
   public void publishBigQueryTableResults(
-      TableResult bqTableResults,
-      String pubSubProjectId,
-      String pubSubTopicId,
-      String runId,
-      LoggingHelper logger,
-      long successMessagesIntervalForLogging)
-      throws IOException,
+          TableResult bqTableResults,
+          String pubSubProjectId,
+          String pubSubTopicId,
+          String runId,
+          LoggingHelper logger,
+          long successMessagesIntervalForLogging)
+          throws IOException,
           ExecutionException,
           InterruptedException,
           NonRetryableApplicationException {
 
-    long startTimeMilis = System.currentTimeMillis();
+    long startTimeMillis = System.currentTimeMillis();
 
     // Create a publisher instance with batching and retry settings
     Publisher publisher = createPublisher(pubSubProjectId, pubSubTopicId);
@@ -147,31 +212,31 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
 
       // Add a callback to handle publish result and stream to BigQuery
       ApiFutures.addCallback(
-          future,
-          new ApiFutureCallback<>() {
-            @Override
-            public void onFailure(Throwable throwable) {
-              failedPublishes.incrementAndGet();
-              // System.err.println("Error publishing message: " + throwable.getMessage());
-              // Handle error, e.g., log or store in an error table
-              logger.logWarnWithTracker(
-                  runId, runId, "Failed to publish PubSub message: " + throwable.getMessage());
-            }
+              future,
+              new ApiFutureCallback<>() {
+                @Override
+                public void onFailure(Throwable throwable) {
+                  failedPublishes.incrementAndGet();
+                  // System.err.println("Error publishing message: " + throwable.getMessage());
+                  // Handle error, e.g., log or store in an error table
+                  logger.logWarnWithTracker(
+                          runId, runId, "Failed to publish PubSub message: " + throwable.getMessage());
+                }
 
-            @Override
-            public void onSuccess(String messageId) {
-              successfulPublishes.incrementAndGet();
-              if (successfulPublishes.get() % successMessagesIntervalForLogging == 0) {
-                long elapsedSeconds = (System.currentTimeMillis() - startTimeMilis) / 1000;
-                logger.logInfoWithTracker(
-                    runId,
-                    runId,
-                    String.format(
-                        "PubSub successful messages count so far: %s after %s seconds ( %s mins)",
-                        successfulPublishes.get(), elapsedSeconds, elapsedSeconds / 60));
-              }
-            }
-          });
+                @Override
+                public void onSuccess(String messageId) {
+                  successfulPublishes.incrementAndGet();
+                  if (successfulPublishes.get() % successMessagesIntervalForLogging == 0) {
+                    long elapsedSeconds = (System.currentTimeMillis() - startTimeMillis) / 1000;
+                    logger.logInfoWithTracker(
+                            runId,
+                            runId,
+                            String.format(
+                                    "PubSub successful messages count so far: %s after %s seconds ( %s mins)",
+                                    successfulPublishes.get(), elapsedSeconds, elapsedSeconds / 60));
+                  }
+                }
+              });
 
       futures.add(future);
     }
@@ -186,25 +251,25 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
     long endTimeMilis = System.currentTimeMillis();
 
     logger.logInfoWithTracker(
-        runId,
-        runId,
-        String.format(
-            "Total profiles fetched and processed from BigQuery : %s", bqRowsCounter.get()));
+            runId,
+            runId,
+            String.format(
+                    "Total profiles fetched and processed from BigQuery : %s", bqRowsCounter.get()));
 
     logger.logInfoWithTracker(
-        runId,
-        runId,
-        String.format("Total PubSub successful messages : %s", successfulPublishes.get()));
+            runId,
+            runId,
+            String.format("Total PubSub successful messages : %s", successfulPublishes.get()));
 
     logger.logInfoWithTracker(
-        runId, runId, String.format("Total PubSub failed messages : %s", failedPublishes.get()));
+            runId, runId, String.format("Total PubSub failed messages : %s", failedPublishes.get()));
 
     logger.logInfoWithTracker(
-        runId,
-        runId,
-        String.format("Total duration in seconds : %s", (endTimeMilis - startTimeMilis) / 1000));
+            runId,
+            runId,
+            String.format("Total duration in seconds : %s", (endTimeMilis - startTimeMillis) / 1000));
   }
 
   protected abstract PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row)
-      throws NonRetryableApplicationException;
+          throws NonRetryableApplicationException;
 }

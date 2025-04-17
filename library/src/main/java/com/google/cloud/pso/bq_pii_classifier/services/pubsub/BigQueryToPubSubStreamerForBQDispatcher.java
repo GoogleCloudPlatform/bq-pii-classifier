@@ -15,6 +15,39 @@ import java.util.Map;
 
 public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStreamerAbstract {
 
+  public BigQueryToPubSubStreamerForBQDispatcher(){
+    super();
+  }
+
+  public BigQueryToPubSubStreamerForBQDispatcher(
+          Long flowControlMaxOutstandingRequestBytes,
+          Long flowControlMaxOutstandingElementCount,
+          Long batchingElementCountThreshold,
+          Long batchingRequestByteThreshold,
+          Long batchingDelayThresholdMillis,
+          Long retryInitialRetryDelayMillis,
+          Double retryRetryDelayMultiplier,
+          Long retryMaxRetryDelaySeconds,
+          Long retryInitialRpcTimeoutSeconds,
+          Double retryRpcTimeoutMultiplier,
+          Long retryMaxRpcTimeoutSeconds,
+          Long retryTotalTimeoutSeconds,
+          Integer executorThreadCountMultiplier) {
+    super(
+            flowControlMaxOutstandingRequestBytes,
+            flowControlMaxOutstandingElementCount,
+            batchingElementCountThreshold,
+            batchingRequestByteThreshold,
+            batchingDelayThresholdMillis,
+            retryInitialRetryDelayMillis,
+            retryRetryDelayMultiplier,
+            retryMaxRetryDelaySeconds,
+            retryInitialRpcTimeoutSeconds,
+            retryRpcTimeoutMultiplier,
+            retryMaxRpcTimeoutSeconds,
+            retryTotalTimeoutSeconds,
+            executorThreadCountMultiplier);
+  }
   public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row) {
 
     String runId = row.get("run_id").getStringValue();

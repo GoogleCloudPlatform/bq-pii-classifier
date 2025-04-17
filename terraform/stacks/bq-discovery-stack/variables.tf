@@ -310,3 +310,21 @@ variable "tagger_service_max_cpu" {
 variable "tagger_service_max_memory" {
   type = string
 }
+
+variable "dispatcher_pubsub_client_config" {
+  type = object({
+    pubsub_flow_control_max_outstanding_request_bytes = number    # 10 MiB (10 * 1024 * 1024)
+    pubsub_flow_control_max_outstanding_element_count = number
+    pubsub_batching_element_count_threshold           = number
+    pubsub_batching_request_byte_threshold            = number
+    pubsub_batching_delay_threshold_millis            = number
+    pubsub_retry_initial_retry_delay_millis           = number
+    pubsub_retry_retry_delay_multiplier               = number
+    pubsub_retry_max_retry_delay_seconds              = number
+    pubsub_retry_initial_rpc_timeout_seconds          = number
+    pubsub_retry_rpc_timeout_multiplier               = number
+    pubsub_retry_max_rpc_timeout_seconds              = number
+    pubsub_retry_total_timeout_seconds                = number
+    pubsub_executor_thread_count_multiplier           = number
+  })
+}

@@ -52,4 +52,58 @@ public class Environment {
   public String getDispatcherRunsTable() {
     return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);
   }
+
+  // PubSub
+  public Long getPubSubFlowControlMaxOutstandingRequestBytes() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_REQUESTS_BYTES", true));
+  }
+
+  public Long getPubSubFlowControlMaxOutstandingElementCount() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_ELEMENT_COUNT", true));
+  }
+
+  public Long getPubSubBatchingElementCountThreshold() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_BATCHING_ELEMENT_COUNT_THRESHOLD", true));
+  }
+
+  public Long getPubSubBatchingRequestByteThreshold() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_BATCHING_REQUEST_BYTE_THRESHOLD", true));
+  }
+
+  public Long getPubSubBatchingDelayThresholdMillis() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_BATCHING_DELAY_THRESHOLD_MILLIS", true));
+  }
+
+  public Long getPubSubRetryInitialRetryDelayMillis() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_RETRY_INITIAL_RETRY_DELAY_MILLIS", true));
+  }
+
+  public Double getPubSubRetryRetryDelayMultiplier() {
+    return Double.parseDouble(Utils.getConfigFromEnv("PUBSUB_RETRY_RETRY_DELAY_MULTIPLIER", true));
+  }
+
+  public Long getPubSubRetryMaxRetryDelaySeconds() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_RETRY_MAX_RETRY_DELAY_SECONDS", true));
+  }
+
+  public Long getPubSubRetryInitialRpcTimeoutSeconds() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_RETRY_INITIAL_RPC_TIMEOUT_SECONDS", true));
+  }
+
+  public Double getPubSubRetryRpcTimeoutMultiplier() {
+    return Double.parseDouble(Utils.getConfigFromEnv("PUBSUB_RETRY_RPC_TIMEOUT_MULTIPLIER", true));
+  }
+
+  public Long getPubSubRetryMaxRpcTimeoutSeconds() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_RETRY_MAX_RPC_TIMEOUT_SECONDS", true));
+  }
+
+  public Long getPubSubRetryTotalTimeoutSeconds() {
+    return Long.parseLong(Utils.getConfigFromEnv("PUBSUB_RETRY_TOTAL_TIMEOUT_SECONDS", true));
+  }
+
+  public Integer getPubSubExecutorThreadCountMultiplier() {
+    return Integer.parseInt(Utils.getConfigFromEnv("PUBSUB_EXECUTOR_THREAD_COUNT_MULTIPLIER", true));
+  }
+
 }

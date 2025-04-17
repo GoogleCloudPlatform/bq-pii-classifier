@@ -204,3 +204,23 @@ variable "dispatcher_cloud_batch_max_run_duration_seconds" {
   default = 60*60*1 # 1 hour
 }
 
+# Pubsub client configurations used by the dispatcher
+variable "dispatcher_pubsub_client_config" {
+  description = "Pub/Sub configuration parameters."
+  type = object({
+    pubsub_flow_control_max_outstanding_request_bytes = optional(number, 10485760)    # 10 MiB (10 * 1024 * 1024)
+    pubsub_flow_control_max_outstanding_element_count = optional(number, 1000)
+    pubsub_batching_element_count_threshold           = optional(number, 100)
+    pubsub_batching_request_byte_threshold            = optional(number, 1000000)
+    pubsub_batching_delay_threshold_millis            = optional(number, 1)
+    pubsub_retry_initial_retry_delay_millis           = optional(number, 100)
+    pubsub_retry_retry_delay_multiplier               = optional(number, 2.0)
+    pubsub_retry_max_retry_delay_seconds              = optional(number, 60)
+    pubsub_retry_initial_rpc_timeout_seconds          = optional(number, 1)
+    pubsub_retry_rpc_timeout_multiplier               = optional(number, 1.0)
+    pubsub_retry_max_rpc_timeout_seconds              = optional(number, 600)
+    pubsub_retry_total_timeout_seconds                = optional(number, 600)
+    pubsub_executor_thread_count_multiplier           = optional(number, 5)
+  })
+  default = {}
+}

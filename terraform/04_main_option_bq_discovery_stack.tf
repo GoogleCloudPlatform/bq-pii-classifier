@@ -60,6 +60,7 @@ module "bq-discovery-stack" {
   dispatcher_cloud_batch_cpu_millis   = var.dispatcher_cloud_batch_cpu_millis
   dispatcher_cloud_batch_memory_mib   = var.dispatcher_cloud_batch_memory_mib
   dispatcher_cloud_batch_max_run_duration_seconds = var.dispatcher_cloud_batch_max_run_duration_seconds
+  dispatcher_pubsub_client_config = var.dispatcher_pubsub_client_config
 
   # Tagger Cloud Run scalability settings
   tagger_service_max_containers             = var.tagger_bq_service_max_containers

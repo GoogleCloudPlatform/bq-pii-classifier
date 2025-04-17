@@ -5,6 +5,7 @@ import com.google.cloud.pso.bq_pii_classifier.entities.NonRetryableApplicationEx
 import com.google.cloud.pso.bq_pii_classifier.helpers.TrackingHelper;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamer;
 import com.google.cloud.pso.bq_pii_classifier.services.pubsub.BigQueryToPubSubStreamerForBQDispatcher;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +33,20 @@ public class BigQueryDispatcher extends BaseDispatcher {
 
     @Override
     protected BigQueryToPubSubStreamer getBigQueryToPubSubStreamer() {
-        return new BigQueryToPubSubStreamerForBQDispatcher();
+        return new BigQueryToPubSubStreamerForBQDispatcher(
+                environment.getPubSubFlowControlMaxOutstandingRequestBytes(),
+                environment.getPubSubFlowControlMaxOutstandingElementCount(),
+                environment.getPubSubBatchingElementCountThreshold(),
+                environment.getPubSubBatchingRequestByteThreshold(),
+                environment.getPubSubBatchingDelayThresholdMillis(),
+                environment.getPubSubRetryInitialRetryDelayMillis(),
+                environment.getPubSubRetryRetryDelayMultiplier(),
+                environment.getPubSubRetryMaxRetryDelaySeconds(),
+                environment.getPubSubRetryInitialRpcTimeoutSeconds(),
+                environment.getPubSubRetryRpcTimeoutMultiplier(),
+                environment.getPubSubRetryMaxRpcTimeoutSeconds(),
+                environment.getPubSubRetryTotalTimeoutSeconds(),
+                environment.getPubSubExecutorThreadCountMultiplier());
     }
 
     @Override
