@@ -26,7 +26,7 @@ module "bq-discovery-stack" {
   iam_mapping = var.iam_mapping
   is_dry_run_labels = var.is_dry_run_labels
   is_dry_run_tags = var.is_dry_run_tags
-  logging_table_name = google_bigquery_table.logging_table.table_id
+  logging_table_name = google_bigquery_table.logging_table_cloud_run.table_id
   project = var.application_project
   publishing_project = var.publishing_project
   promote_dlp_other_matches = var.promote_dlp_other_matches
@@ -70,7 +70,7 @@ module "bq-discovery-stack" {
 
   depends_on = [google_project_service.enable_apis,
     google_project_service.enable_apis_on_publishing_project,
-    google_bigquery_table.logging_table
+    google_bigquery_table.logging_table_cloud_run
   ]
 }
 

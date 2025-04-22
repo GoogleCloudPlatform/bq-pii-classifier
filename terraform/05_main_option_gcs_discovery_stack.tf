@@ -39,7 +39,7 @@ module "gcs-discovery-stack" {
   workflows_gcs_description = var.workflows_gcs_description
   workflows_gcs_name = var.workflows_gcs_name
   bq_view_run_summary = google_bigquery_table.view_run_summary.table_id
-  logging_table_name = google_bigquery_table.logging_table.table_id
+  logging_table_name = google_bigquery_table.logging_table_cloud_run.table_id
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
   info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
   resources_bucket_name   = google_storage_bucket.gcs_solution_resources.name
@@ -63,7 +63,7 @@ module "gcs-discovery-stack" {
 
   depends_on = [google_project_service.enable_apis,
     google_project_service.enable_apis_on_publishing_project,
-    google_bigquery_table.logging_table
+    google_bigquery_table.logging_table_cloud_run
   ]
 
 }

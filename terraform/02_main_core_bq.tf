@@ -38,7 +38,7 @@ resource "google_bigquery_dataset_iam_member" "results_dataset_iam_editors_bindi
 #                                    Tables
 ##############################################################
 
-resource "google_bigquery_table" "logging_table" {
+resource "google_bigquery_table" "logging_table_cloud_run" {
   project = var.publishing_project
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   # don't change the name so that cloud logging can find it
@@ -49,7 +49,23 @@ resource "google_bigquery_table" "logging_table" {
     #expiration_ms = 604800000 # 7 days
   }
 
-  schema = file("schema/run_googleapis_com_stdout.json")
+  schema = file("schema/cloud_logging_export.json")
+
+  deletion_protection = var.terraform_data_deletion_protection
+}
+
+resource "google_bigquery_table" "logging_table_cloud_batch" {
+  project = var.publishing_project
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  # don't change the name so that cloud logging can find it
+  table_id = "batch_task_logs"
+
+  time_partitioning {
+    type = "DAY"
+    #expiration_ms = 604800000 # 7 days
+  }
+
+  schema = file("schema/cloud_logging_export.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }
@@ -71,7 +87,7 @@ resource "google_bigquery_table" "logging_view_steps" {
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
   }
@@ -110,7 +126,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
         project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
         v_service_calls = google_bigquery_table.view_service_calls.table_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
   }
@@ -130,7 +146,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
   }
@@ -149,7 +165,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.results_dataset.dataset_id
-        logging_table = google_bigquery_table.logging_table.table_id
+        logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
   }
