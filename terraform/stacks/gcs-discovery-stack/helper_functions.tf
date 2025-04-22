@@ -20,3 +20,7 @@ module "bq-remote-func-get-buckets-metadata" {
   deployment_procedure_path = "modules/bq-remote-function/procedures/deploy_get_buckets_metadata_remote_func.tpl"
   cloud_functions_sa_extra_roles = []
 }
+
+output "func_get_buckets_metadata_sa_email" {
+  value = module.bq-remote-func-get-buckets-metadata.cloud_function_sa_email
+}

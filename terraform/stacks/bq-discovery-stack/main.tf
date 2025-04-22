@@ -74,6 +74,10 @@ locals {
   workflows_sa_roles = [
     "roles/batch.jobsEditor"
   ]
+
+  sa_tagger_email = "${var.sa_tagger}@${var.project}.iam.gserviceaccount.com"
+
+  sa_tagger_resource_name = "projects/${var.project}/serviceAccounts/${var.sa_tagger}@${var.project}.iam.gserviceaccount.com"
 }
 
 data google_project "gcp_project" {
@@ -95,7 +99,7 @@ module "cloud-run-tagger" {
   service_image                 = local.service_image_uri
   container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.bq_tagger.BigQueryTaggerController"]
   service_name                  = var.tagger_service_name
-  service_account_email         = google_service_account.sa_tagger.email
+  service_account_email         = local.sa_tagger_email
   invoker_service_account_email = google_service_account.sa_tagger_tasks.email
   max_containers                = var.tagger_service_max_containers
   max_requests_per_container    = var.tagger_service_max_requests_per_container
@@ -214,12 +218,6 @@ resource "google_service_account" "sa_tagging_dispatcher" {
   display_name = "Runtime SA for Tagging Dispatcher service"
 }
 
-resource "google_service_account" "sa_tagger" {
-  project = var.project
-  account_id = var.sa_tagger
-  display_name = "Runtime SA for Tagger service"
-}
-
 resource "google_service_account" "sa_tagger_tasks" {
   project = var.project
   account_id = var.sa_tagger_tasks
@@ -270,7 +268,7 @@ resource "google_project_iam_member" "sa_workflows_roles_binding" {
 #### Tagger Tasks SA Permissions ###
 
 resource "google_service_account_iam_member" "sa_tagger_account_user_sa_tagger_tasks" {
-  service_account_id = google_service_account.sa_tagger.name
+  service_account_id = local.sa_tagger_resource_name
   role = "roles/iam.serviceAccountUser"
   member = "serviceAccount:${google_service_account.sa_tagger_tasks.email}"
 }
@@ -281,7 +279,7 @@ resource "google_project_iam_member" "sa_tagger_roles_binding" {
   count = length(local.tagger_sa_roles)
   project = var.project
   role = local.tagger_sa_roles[count.index]
-  member = "serviceAccount:${google_service_account.sa_tagger.email}"
+  member = "serviceAccount:${local.sa_tagger_email}"
 }
 
 ############## DLP Service Account ################################################
@@ -350,13 +348,13 @@ resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagg
 resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagger" {
   bucket = var.gcs_flags_bucket_name
   role = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.sa_tagger.email}"
+  member = "serviceAccount:${local.sa_tagger_email}"
 }
 
 resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
   bucket = var.resources_bucket_name
   role = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_service_account.sa_tagger.email}"
+  member = "serviceAccount:${local.sa_tagger_email}"
 }
 
 

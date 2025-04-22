@@ -41,6 +41,10 @@ locals {
   }
 
   created_dlp_inspection_templates = module.dlp[*].created_inspection_templates
+
+  sa_tagger_gcs_email = "${var.sa_tagger_gcs}@${var.application_project}.iam.gserviceaccount.com"
+
+  sa_tagger_bq_email = "${var.sa_tagger_bq}@${var.application_project}.iam.gserviceaccount.com"
 }
 
 ### GCS RESOURCES ####

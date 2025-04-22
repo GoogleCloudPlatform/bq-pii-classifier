@@ -29,3 +29,7 @@ module "bq-remote-func-get-table-policy-tags" {
   deployment_procedure_path      = "modules/bq-remote-function/procedures/deploy_get_policy_tags_remote_func.tpl"
   cloud_functions_sa_extra_roles = ["roles/datastore.user"]
 }
+
+output "sa_bq_remote_func_get_policy_tags_email" {
+  value = module.bq-remote-func-get-table-policy-tags.cloud_function_sa_email
+}

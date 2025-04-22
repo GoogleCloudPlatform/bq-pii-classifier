@@ -32,7 +32,7 @@ module "bq-discovery-stack" {
   promote_dlp_other_matches                      = var.promote_dlp_other_matches
   retain_dlp_tagger_pubsub_messages              = var.retain_dlp_tagger_pubsub_messages
   sa_bq_remote_func_get_policy_tags              = var.sa_bq_remote_func_get_policy_tags
-  sa_tagger                                      = var.sa_tagger
+  sa_tagger                                      = var.sa_tagger_bq
   sa_tagger_tasks                                = var.sa_tagger_tasks
   sa_tagging_dispatcher                          = var.sa_tagging_dispatcher
   sa_workflows_bq                                = var.sa_workflows_bq
@@ -85,8 +85,8 @@ module "bq-discovery-stack-org-permissions" {
   count = length(var.dlp_bq_discovery_configurations) == 0 ? 0 : 1
 
   org_id = var.org_id
-  # default: tagger@<host project id>.iam.gserviceaccount.com
-  tagger_sa_email = module.bq-discovery-stack[0].sa_tagger_email
+  # default: tagger-bq@<host project id>.iam.gserviceaccount.com
+  tagger_sa_email = local.sa_tagger_bq_email
 
   depends_on = [module.bq-discovery-stack]
 }
@@ -107,7 +107,7 @@ module "bq-discovery-stack-folder-permissions" {
   # default: sa-func-get-policy-tags@<host project id>.iam.gserviceaccount.com
   sa_bq_remote_func_get_policy_tags_email = module.bq-discovery-stack[0].sa_bq_remote_func_get_policy_tags_email
   # <var.sa_tagger_bq>@<host project name>.iam.gserviceaccount.com. Default: tagger@<host project name>.iam.gserviceaccount.com
-  sa_tagger_email       = module.bq-discovery-stack[0].sa_tagger_email
+  sa_tagger_email       = local.sa_tagger_bq_email
   tagger_custom_role_id = module.bq-discovery-stack-org-permissions[0].tagger_custom_role_id
 
   depends_on = [module.gcs-discovery-stack-org-permissions]

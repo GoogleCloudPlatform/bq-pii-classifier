@@ -10,9 +10,8 @@ variable "sa_tagging_dispatcher" {
   default = "dispatcher-bq"
 }
 
-variable "sa_tagger" {
+variable "sa_tagger_bq" {
   type = string
-  default = "tagger-bq"
 }
 
 variable "sa_tagger_tasks" {

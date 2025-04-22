@@ -21,6 +21,10 @@ locals {
   ]
 
   auto_dlp_results_latest_view = "${var.dlp_gcs_bq_results_table_name}_latest_v1"
+  
+  sa_tagger_email = "${var.sa_tagger_gcs}@${var.project}.iam.gserviceaccount.com"
+  
+  sa_tagger_resource_name = "projects/${var.project}/serviceAccounts/${var.sa_tagger_gcs}@${var.project}.iam.gserviceaccount.com"
 }
 
 ########################################################################################################################
@@ -40,12 +44,6 @@ resource "google_service_account" "sa_tagging_dispatcher_gcs" {
   project      = var.project
   account_id   = var.sa_tagging_dispatcher_gcs
   display_name = "Runtime SA for Tagging Dispatcher GCS service"
-}
-
-resource "google_service_account" "sa_tagger_gcs" {
-  project      = var.project
-  account_id   = var.sa_tagger_gcs
-  display_name = "Runtime SA for the Tagger GCS Service"
 }
 
 resource "google_service_account" "sa_tagger_gcs_tasks" {
@@ -72,7 +70,7 @@ resource "google_storage_bucket_iam_member" "sa_tagging_dispatcher_gcs_flags_buc
 resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
   bucket = var.gcs_flags_bucket_name
   role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+  member = "serviceAccount:${local.sa_tagger_email}"
 }
 
 ### Permissions on resources bucket
@@ -80,7 +78,7 @@ resource "google_storage_bucket_iam_member" "sa_tagger_gcs_flags_bucket_admin" {
 resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
   bucket = var.resources_bucket_name
   role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+  member = "serviceAccount:${local.sa_tagger_email}"
 }
 
 resource "google_project_iam_member" "sa_tagging_dispatcher_roles_binding" {
@@ -96,7 +94,7 @@ resource "google_project_iam_member" "sa_tagger_roles_binding" {
   count = length(local.tagger_sa_roles)
   project = var.project
   role    = local.tagger_sa_roles[count.index]
-  member  = "serviceAccount:${google_service_account.sa_tagger_gcs.email}"
+  member  = "serviceAccount:${local.sa_tagger_email}"
 }
 
 resource "google_project_iam_member" "sa_workflows_roles_binding" {
@@ -110,7 +108,7 @@ resource "google_project_iam_member" "sa_workflows_roles_binding" {
 
 # push subscription SA needs to push to tagger SA
 resource "google_service_account_iam_member" "sa_tagger_gcs_account_user_sa_tagger_gcs_tasks" {
-  service_account_id = google_service_account.sa_tagger_gcs.name
+  service_account_id = local.sa_tagger_resource_name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.sa_tagger_gcs_tasks.email}"
 }
@@ -135,7 +133,7 @@ module "cloud-run-tagger-gcs" {
     "-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.gcs_tagger.GcsTaggerController"
   ]
   service_name               = var.tagger_gcs_service_name
-  service_account_email      = google_service_account.sa_tagger_gcs.email
+  service_account_email      = local.sa_tagger_email
   invoker_service_account_email = google_service_account.sa_tagger_gcs_tasks.email
   # Dispatcher could take time to list large number of tables
   timeout_seconds            = var.tagger_service_timeout_seconds

@@ -79,7 +79,7 @@ module "gcs-discovery-stack-org-permissions" {
   count = length(var.dlp_gcs_discovery_configurations) == 0 ? 0 : 1
 
   org_id          = var.org_id
-  tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
+  tagger_sa_email = local.sa_tagger_gcs_email
 
   depends_on = [module.gcs-discovery-stack]
 }
@@ -97,7 +97,7 @@ module "gcs-discovery-stack-folder-permissions" {
   dlp_config_folder_id = var.dlp_gcs_discovery_configurations[count.index].folder_id
 
   # <var.sa_tagger_gcs>@<host project name>.iam.gserviceaccount.com. Default: tagger-gcs@<host project name>.iam.gserviceaccount.com
-  tagger_sa_email = module.gcs-discovery-stack[0].tagger_sa_email
+  tagger_sa_email = local.sa_tagger_gcs_email
   # "service-${dlp scan config host project number}@dlp-api.iam.gserviceaccount.com"
   dlp_service_sa_email = local.dlp_service_account_email
   # <var.sa_bq_remote_func_get_buckets_metadata>@<host project name>.iam.gserviceaccount.com. Default: sa-func-get-buckets-metadata@<host project name>.iam.gserviceaccount.com

@@ -68,7 +68,6 @@ variable "workflows_gcs_description" {
 
 variable "sa_tagger_gcs" {
   type = string
-  default = "tagger-gcs"
 }
 
 variable "sa_tagger_gcs_tasks" {
