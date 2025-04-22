@@ -66,13 +66,8 @@ variable "workflows_gcs_description" {
 
 ##### GCS Tagger Service ######
 
-variable "sa_tagger_gcs" {
+variable "tagger_gcs_service_account_name" {
   type = string
-}
-
-variable "sa_tagger_gcs_tasks" {
-  type = string
-  default = "tagger-gcs-tasks"
 }
 
 variable "tagger_gcs_service_name" {

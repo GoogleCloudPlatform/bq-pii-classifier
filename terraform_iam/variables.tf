@@ -5,14 +5,29 @@ variable "terraform_service_account_email" {
 
 variable "application_project" {
   type = string
+  description = "GCP project name to deploy application components to"
 }
 
-variable "sa_tagger_gcs_name" {
+variable "publishing_project" {
   type = string
-  default = "tagger-gcs"
+  description = "GCP project to host external/shared resources such as DLP results and monitoring views"
 }
 
-variable "sa_tagger_bq_name" {
+
+variable "application_service_account_name" {
   type = string
-  default = "tagger-bq"
+  default = "annotations-app"
+  description = "Name of the service account to run the application components"
+}
+
+variable "tagger_gcs_service_account_name" {
+  type = string
+  default = "annotations-gcs"
+  description = "Name of the service account to run the GCS annotations service"
+}
+
+variable "tagger_bq_service_account_name" {
+  type = string
+  default = "annotations-bq"
+  description = "Name of the service account to run the BigQuery annotations service"
 }

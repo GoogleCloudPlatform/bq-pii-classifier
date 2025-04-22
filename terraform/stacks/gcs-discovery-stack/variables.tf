@@ -84,14 +84,6 @@ variable "sa_tagging_dispatcher_gcs" {
 
 ##### GCS Tagger Service ######
 
-variable "sa_tagger_gcs" {
-  type = string
-}
-
-variable "sa_tagger_gcs_tasks" {
-  type = string
-}
-
 variable "tagger_gcs_service_name" {
   type = string
 }
@@ -118,10 +110,6 @@ variable "gcs_existing_labels_regex" {
 
 variable "retain_dlp_tagger_pubsub_messages" {
   type = bool
-}
-
-variable "sa_workflows_gcs" {
-  type = string
 }
 
 variable "workflows_gcs_name" {
@@ -158,10 +146,6 @@ variable "dlp_tag_low_sensitivity_id" {
 }
 
 variable "info_type_map_file_path" {
-  type = string
-}
-
-variable "resources_bucket_name" {
   type = string
 }
 
@@ -244,4 +228,12 @@ variable "dispatcher_pubsub_client_config" {
     pubsub_retry_total_timeout_seconds                = number
     pubsub_executor_thread_count_multiplier           = number
   })
+}
+
+variable "application_service_account_name" {
+  type = string
+}
+
+variable "tagger_gcs_service_account_name" {
+  type = string
 }

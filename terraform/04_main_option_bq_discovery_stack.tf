@@ -32,10 +32,8 @@ module "bq-discovery-stack" {
   promote_dlp_other_matches                      = var.promote_dlp_other_matches
   retain_dlp_tagger_pubsub_messages              = var.retain_dlp_tagger_pubsub_messages
   sa_bq_remote_func_get_policy_tags              = var.sa_bq_remote_func_get_policy_tags
-  sa_tagger                                      = var.sa_tagger_bq
-  sa_tagger_tasks                                = var.sa_tagger_tasks
-  sa_tagging_dispatcher                          = var.sa_tagging_dispatcher
-  sa_workflows_bq                                = var.sa_workflows_bq
+  tagger_bq_service_account_name                 = var.tagger_bq_service_account_name
+  application_service_account_name               = var.application_service_account_name
   source_data_regions                            = var.source_data_regions
   tagger_pubsub_sub                              = var.tagger_pubsub_sub
   tagger_pubsub_topic                            = var.tagger_pubsub_topic

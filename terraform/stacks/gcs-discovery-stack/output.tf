@@ -2,7 +2,3 @@ output "bq_get_buckets_metadata_remote_function_deployment_status" {
   value = module.bq-remote-func-get-buckets-metadata.deploy_job_status
 }
 
-output "dispatcher_sa_email" {
-  value = google_service_account.sa_tagging_dispatcher_gcs.email
-}
-

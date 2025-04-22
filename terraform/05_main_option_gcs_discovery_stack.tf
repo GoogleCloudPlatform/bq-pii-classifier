@@ -23,10 +23,7 @@ module "gcs-discovery-stack" {
   is_dry_run_labels                              = var.is_dry_run_labels
   tagger_subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
-  dlp_service_account_email                      = local.dlp_service_account_email
   dlp_gcs_bq_results_table_name                  = var.dlp_gcs_bq_results_table_name
-  sa_tagger_gcs                                  = var.sa_tagger_gcs
-  sa_tagger_gcs_tasks                            = var.sa_tagger_gcs_tasks
   sa_tagging_dispatcher_gcs                      = var.sa_tagging_dispatcher_gcs
   tagger_gcs_pubsub_sub                          = var.tagger_gcs_pubsub_sub
   tagger_gcs_pubsub_topic                        = var.tagger_gcs_pubsub_topic
@@ -35,14 +32,17 @@ module "gcs-discovery-stack" {
   sa_bq_remote_func_get_buckets_metadata         = var.sa_bq_remote_func_get_buckets_metadata
   gcs_existing_labels_regex                      = var.gcs_existing_labels_regex
   retain_dlp_tagger_pubsub_messages              = var.retain_dlp_tagger_pubsub_messages
-  sa_workflows_gcs                               = var.sa_workflows_gcs
   workflows_gcs_description                      = var.workflows_gcs_description
   workflows_gcs_name                             = var.workflows_gcs_name
   bq_view_run_summary                            = google_bigquery_table.view_run_summary.table_id
   logging_table_name                             = google_bigquery_table.logging_table_cloud_run.table_id
   terraform_data_deletion_protection             = var.terraform_data_deletion_protection
   info_type_map_file_path                        = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
-  resources_bucket_name = google_storage_bucket.gcs_solution_resources.name
+
+  # service accounts
+  application_service_account_name               = var.application_service_account_name
+  tagger_gcs_service_account_name                = var.tagger_gcs_service_account_name
+  dlp_service_account_email                      = local.dlp_service_account_email
 
   # tags
   dlp_tag_high_sensitivity_id     = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
@@ -66,7 +66,6 @@ module "gcs-discovery-stack" {
     google_project_service.enable_apis_on_publishing_project,
     google_bigquery_table.logging_table_cloud_run
   ]
-
 }
 
 // This module creates granular custom roles and assigns roles and permissions to service accounts used in this solution on ORG levels (and not the host project)

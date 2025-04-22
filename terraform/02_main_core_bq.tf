@@ -18,21 +18,6 @@ resource "google_bigquery_dataset" "results_dataset" {
   depends_on = [google_project_service.enable_apis]
 }
 
-locals {
-  bq_app_dataset_data_editors = [
-    google_logging_project_sink.bigquery-logging-sink.writer_identity, # Logging BQ sink must be able to write data to logging table in the dataset
-    "serviceAccount:${local.dlp_service_account_email}" # Dlp writes discovery results to a table in this dataset
-  ]
-}
-
-
-resource "google_bigquery_dataset_iam_member" "results_dataset_iam_editors_bindings" {
-  count = length(local.bq_app_dataset_data_editors)
-  project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
-  role = "roles/bigquery.dataEditor"
-  member = local.bq_app_dataset_data_editors[count.index]
-}
 
 #############################################################
 #                                    Tables

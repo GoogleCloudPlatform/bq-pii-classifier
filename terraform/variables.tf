@@ -224,3 +224,8 @@ variable "dispatcher_pubsub_client_config" {
   })
   default = {}
 }
+
+variable "application_service_account_name" {
+  type = string
+  description = "Name of the service account to run the application components"
+}

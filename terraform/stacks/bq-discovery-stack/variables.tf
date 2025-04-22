@@ -44,22 +44,6 @@ variable "dlp_service_account_email" {
   type = string
 }
 
-variable "sa_tagging_dispatcher" {
-  type = string
-}
-
-variable "sa_tagger" {
-  type = string
-}
-
-variable "sa_tagger_tasks" {
-  type = string
-}
-
-variable "sa_workflows_bq" {
-  type = string
-}
-
 variable "workflows_bq_name" {
   type = string
 }
@@ -331,4 +315,12 @@ variable "dispatcher_pubsub_client_config" {
     pubsub_retry_total_timeout_seconds                = number
     pubsub_executor_thread_count_multiplier           = number
   })
+}
+
+variable "application_service_account_name" {
+  type = string
+}
+
+variable "tagger_bq_service_account_name" {
+  type = string
 }

@@ -5,23 +5,9 @@ variable "auto_dlp_results_table_name" {
   default = "dlp_discovery_services_bq_results"
 }
 
-variable "sa_tagging_dispatcher" {
-  type = string
-  default = "dispatcher-bq"
-}
 
-variable "sa_tagger_bq" {
+variable "tagger_bq_service_account_name" {
   type = string
-}
-
-variable "sa_tagger_tasks" {
-  type = string
-  default = "tagger-bq-tasks"
-}
-
-variable "sa_workflows_bq" {
-  type = string
-  default = "workflows-bq"
 }
 
 variable "workflows_bq_name" {

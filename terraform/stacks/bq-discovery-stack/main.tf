@@ -55,29 +55,9 @@ locals {
   // this return a list of lists of [[gcp_region, domain, taxonomy_number]] like [ ["europe-west3","dwh","1"], ["europe-west3","dwh","2"], ["europe-west3","marketing","1"], ["europe-west3","marketing","2"], etc ]
   taxonomies_to_be_created = setproduct(tolist(var.source_data_regions), local.domains, local.taxonomy_numbers)
 
-  tagging_dispatcher_sa_roles_on_host_project = [
-    "roles/bigquery.jobUser", # to run the query that reads DLP findings
-    "roles/batch.agentReporter", # to run Cloud Batch jobs
-    "roles/logging.logWriter", # to run Cloud Batch jobs,
-    "roles/artifactregistry.reader" # to read container image for the service
-  ]
+  sa_tagger_email = "${var.tagger_bq_service_account_name}@${var.project}.iam.gserviceaccount.com"
 
-  tagger_sa_roles = [
-    "roles/artifactregistry.reader", # to read container image for the service
-    "roles/datacatalog.viewer", # to "get" solution-owned taxonomies created in that project
-  ]
-
-  dlp_sa_roles = [
-    "roles/datacatalog.categoryFineGrainedReader", # read BigQuery columns tagged by solution-managed taxonomies
-  ]
-
-  workflows_sa_roles = [
-    "roles/batch.jobsEditor"
-  ]
-
-  sa_tagger_email = "${var.sa_tagger}@${var.project}.iam.gserviceaccount.com"
-
-  sa_tagger_resource_name = "projects/${var.project}/serviceAccounts/${var.sa_tagger}@${var.project}.iam.gserviceaccount.com"
+  sa_application_email = "${var.application_service_account_name}@${var.project}.iam.gserviceaccount.com"
 }
 
 data google_project "gcp_project" {
@@ -100,7 +80,7 @@ module "cloud-run-tagger" {
   container_entry_point_args    = ["-cp", "@/app/jib-classpath-file", "com.google.cloud.pso.bq_pii_classifier.apps.bq_tagger.BigQueryTaggerController"]
   service_name                  = var.tagger_service_name
   service_account_email         = local.sa_tagger_email
-  invoker_service_account_email = google_service_account.sa_tagger_tasks.email
+  invoker_service_account_email = local.sa_application_email
   max_containers                = var.tagger_service_max_containers
   max_requests_per_container    = var.tagger_service_max_requests_per_container
   max_cpu                       = var.tagger_service_max_cpu
@@ -156,8 +136,6 @@ module "cloud-run-tagger" {
       value = var.promote_dlp_other_matches
     }
   ]
-
-  depends_on = [google_project_iam_member.sa_tagger_roles_binding]
 }
 
 module "pubsub-tagger-for-dlp" {
@@ -165,7 +143,7 @@ module "pubsub-tagger-for-dlp" {
   project                                 = var.project
   subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/dlp-discovery-service-handler"
   subscription_name                       = "${var.tagger_pubsub_sub}_for_dlp"
-  subscription_service_account            = google_service_account.sa_tagger_tasks.email
+  subscription_service_account            = local.sa_application_email
   topic                                   = "${var.tagger_pubsub_topic}_for_dlp"
   // DLP service account must be able to publish messages to the Tagger
   topic_publishers_sa_emails              = [var.dlp_service_account_email]
@@ -182,10 +160,9 @@ module "pubsub-tagger-for-dispatcher" {
   project                                 = var.project
   subscription_endpoint                   = "${module.cloud-run-tagger.service_endpoint}/tagging-dispatcher-handler"
   subscription_name                       = "${var.tagger_pubsub_sub}_for_dispatcher"
-  subscription_service_account            = google_service_account.sa_tagger_tasks.email
+  subscription_service_account            = local.sa_application_email
   topic                                   = "${var.tagger_pubsub_topic}_for_dispatcher"
-  // DLP service account must be able to publish messages to the Tagger
-  topic_publishers_sa_emails              = [google_service_account.sa_tagging_dispatcher.email]
+  topic_publishers_sa_emails              = [local.sa_application_email]
   # 10m is max allowed
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
@@ -210,86 +187,10 @@ module "data-catalog" {
   taxonomy_name_suffix = var.taxonomy_name_suffix
 }
 
-############## Service Accounts ######################################
-
-resource "google_service_account" "sa_tagging_dispatcher" {
-  project = var.project
-  account_id = var.sa_tagging_dispatcher
-  display_name = "Runtime SA for Tagging Dispatcher service"
-}
-
-resource "google_service_account" "sa_tagger_tasks" {
-  project = var.project
-  account_id = var.sa_tagger_tasks
-  display_name = "To authorize PubSub Push requests to Tagger Service"
-}
-
-############## Service Accounts Access ################################
-
-# Use google_project_iam_member because it's Non-authoritative.
-# It Updates the IAM policy to grant a role to a new member.
-# Other members for the role for the project are preserved.
-
-
-#### Dispatcher SA Permissions ###
-
-resource "google_bigquery_dataset_iam_member" "results_dataset_iam_editors_bindings" {
-  project = var.publishing_project
-  dataset_id = var.bigquery_dataset_name
-  # to insert dispatched tracking Ids to table dispatcher_runs and read dlp findings
-  role = "roles/bigquery.dataEditor"
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher.email}"
-}
-
-resource "google_project_iam_member" "sa_dispatcher_roles_binding" {
-  count = length(local.tagging_dispatcher_sa_roles_on_host_project)
-  project = var.project
-  role = local.tagging_dispatcher_sa_roles_on_host_project[count.index]
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher.email}"
-}
-
-
-### Workflows SA permissions ####
-
-# workflows SA needs to trigger batch jobs running under dispatcher SA
-resource "google_service_account_iam_member" "sa_workflows_account_user_sa_dispatcher_gcs" {
-  service_account_id = google_service_account.sa_tagging_dispatcher.name
-  role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:${google_service_account.sa_workflows_bq.email}"
-}
-
-resource "google_project_iam_member" "sa_workflows_roles_binding" {
-  count = length(local.workflows_sa_roles)
-  project = var.project
-  role    = local.workflows_sa_roles[count.index]
-  member  = "serviceAccount:${google_service_account.sa_workflows_bq.email}"
-}
-
-#### Tagger Tasks SA Permissions ###
-
-resource "google_service_account_iam_member" "sa_tagger_account_user_sa_tagger_tasks" {
-  service_account_id = local.sa_tagger_resource_name
-  role = "roles/iam.serviceAccountUser"
-  member = "serviceAccount:${google_service_account.sa_tagger_tasks.email}"
-}
-
-#### Tagger SA Permissions ###
-
-resource "google_project_iam_member" "sa_tagger_roles_binding" {
-  count = length(local.tagger_sa_roles)
-  project = var.project
-  role = local.tagger_sa_roles[count.index]
-  member = "serviceAccount:${local.sa_tagger_email}"
-}
 
 ############## DLP Service Account ################################################
 
-resource "google_project_iam_member" "sa_dlp_roles_binding" {
-  count = length(local.dlp_sa_roles)
-  project = var.project
-  role = local.dlp_sa_roles[count.index]
-  member = "serviceAccount:${var.dlp_service_account_email}"
-}
+
 
 ## Data Catalog Taxonomies Permissions ##
 
@@ -336,39 +237,6 @@ resource "google_data_catalog_policy_tag_iam_member" "policy_tag_reader" {
 }
 
 
-
-### GCS buckets access
-
-resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagging_dispatcher" {
-  bucket = var.gcs_flags_bucket_name
-  role = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.sa_tagging_dispatcher.email}"
-}
-
-resource "google_storage_bucket_iam_member" "gcs_flags_bucket_iam_member_sa_tagger" {
-  bucket = var.gcs_flags_bucket_name
-  role = "roles/storage.objectAdmin"
-  member = "serviceAccount:${local.sa_tagger_email}"
-}
-
-resource "google_storage_bucket_iam_member" "gcs_resource_bucket_iam_member_sa_tagger" {
-  bucket = var.resources_bucket_name
-  role = "roles/storage.objectViewer"
-  member = "serviceAccount:${local.sa_tagger_email}"
-}
-
-
-
-####### Workflows
-
-
-resource "google_service_account" "sa_workflows_bq" {
-  project = var.project
-  account_id = var.sa_workflows_bq
-  display_name = "Runtime SA for Cloud Workflow for BigQuery Dispatcher"
-}
-
-
 resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
 
   project  = var.project
@@ -376,7 +244,7 @@ resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
   description = var.workflows_bq_description
   region = var.compute_region
 
-  service_account = google_service_account.sa_workflows_bq.email
+  service_account = local.sa_application_email
 
   deletion_protection = false
 
@@ -440,7 +308,7 @@ main:
                         PUBSUB_EXECUTOR_THREAD_COUNT_MULTIPLIER            : "${var.dispatcher_pubsub_client_config.pubsub_executor_thread_count_multiplier}"
             allocationPolicy:
               serviceAccount:
-                email: ${google_service_account.sa_tagging_dispatcher.email}
+                email: ${local.sa_application_email}
                 scopes:
                   - https://www.googleapis.com/auth/cloud-platform
             logsPolicy:
