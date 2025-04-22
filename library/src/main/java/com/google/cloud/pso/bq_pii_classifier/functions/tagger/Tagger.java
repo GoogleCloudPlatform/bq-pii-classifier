@@ -208,7 +208,7 @@ public class Tagger {
       // log error and ACK and return
       String msg =
           String.format(
-              "PubSub message ID '%s' has been processed before by the Tagger. The message should be ACK to PubSub to stop retries. Please investigate further why the message was retried in the first place.",
+              "PubSub message ID '%s' has been processed before by the Tagger.",
               pubSubMessageId);
       throw new NonRetryableApplicationException(msg);
     }

@@ -238,6 +238,7 @@ main:
           - foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
           - projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
           - bucketsRegex: $${default(map.get(input, "bucketsRegex"), ".*")}
+          - rowsMultiplicationFactor: $${default(map.get(input, "rowsMultiplicationFactor"), "1")}
     - create_batch_job:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
@@ -256,6 +257,7 @@ main:
                             - $${foldersRegex}
                             - $${projectsRegex}
                             - $${bucketsRegex}
+                            - $${rowsMultiplicationFactor}
                           entrypoint: java
                     computeResource:
                       memoryMib: ${var.dispatcher_cloud_batch_memory_mib}

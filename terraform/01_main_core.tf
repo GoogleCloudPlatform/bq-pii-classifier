@@ -72,8 +72,8 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
 
 resource "google_logging_project_sink" "bigquery-logging-sink" {
   name                   = var.log_sink_name
-  destination            = "bigquery.googleapis.com/projects/${var.application_project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
-  filter                 = "resource.type=cloud_run_revision jsonPayload.global_app=bq-pii-classifier"
+  destination            = "bigquery.googleapis.com/projects/${google_bigquery_dataset.results_dataset.project}/datasets/${google_bigquery_dataset.results_dataset.dataset_id}"
+  filter                 = "jsonPayload.global_app=bq-pii-classifier"
   # Use a unique writer (creates a unique service account used for writing)
   unique_writer_identity = true
   bigquery_options {

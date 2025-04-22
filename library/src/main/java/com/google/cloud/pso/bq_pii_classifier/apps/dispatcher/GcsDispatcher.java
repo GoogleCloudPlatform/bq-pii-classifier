@@ -16,7 +16,7 @@ public class GcsDispatcher extends BaseDispatcher {
 
   @Override
   protected Integer getExpectedArgumentsCount() {
-    return 3;
+    return 4;
   }
 
   @Override
@@ -53,6 +53,7 @@ public class GcsDispatcher extends BaseDispatcher {
     String foldersRegex = args[0];
     String projectsRegex = args[1];
     String bucketsRegex = args[2];
+    String rowsMultiplicationFactor = args[3];
 
     return Map.of(
         "${project}",
@@ -69,6 +70,8 @@ public class GcsDispatcher extends BaseDispatcher {
         bucketsRegex,
         "${folder_id_regex}",
         foldersRegex,
+        "${rows_multiplication_factor}",
+        rowsMultiplicationFactor,
         "${run_id}",
         this.runId);
   }

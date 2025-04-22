@@ -180,6 +180,29 @@ public abstract class BigQueryToPubSubStreamerAbstract implements BigQueryToPubS
     return executorProvider;
   }
 
+  @Override
+  public String toString() {
+    return "BigQueryToPubSubStreamerAbstract{" +
+            "flowControlSettings=" + flowControlSettings +
+            ", batchingSettings=" + batchingSettings +
+            ", retrySettings=" + retrySettings +
+            ", executorProvider=" + executorProvider +
+            ", flowControlMaxOutstandingRequestBytes=" + flowControlMaxOutstandingRequestBytes +
+            ", flowControlMaxOutstandingElementCount=" + flowControlMaxOutstandingElementCount +
+            ", batchingElementCountThreshold=" + batchingElementCountThreshold +
+            ", batchingRequestByteThreshold=" + batchingRequestByteThreshold +
+            ", batchingDelayThresholdMillis=" + batchingDelayThresholdMillis +
+            ", retryInitialRetryDelayMillis=" + retryInitialRetryDelayMillis +
+            ", retryRetryDelayMultiplier=" + retryRetryDelayMultiplier +
+            ", retryMaxRetryDelaySeconds=" + retryMaxRetryDelaySeconds +
+            ", retryInitialRpcTimeoutSeconds=" + retryInitialRpcTimeoutSeconds +
+            ", retryRpcTimeoutMultiplier=" + retryRpcTimeoutMultiplier +
+            ", retryMaxRpcTimeoutSeconds=" + retryMaxRpcTimeoutSeconds +
+            ", retryTotalTimeoutSeconds=" + retryTotalTimeoutSeconds +
+            ", executorThreadCountMultiplier=" + executorThreadCountMultiplier +
+            '}';
+  }
+
   public void publishBigQueryTableResults(
           TableResult bqTableResults,
           String pubSubProjectId,

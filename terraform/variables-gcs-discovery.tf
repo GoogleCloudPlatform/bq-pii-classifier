@@ -45,7 +45,7 @@ variable "dlp_gcs_bq_results_table_name" {
 
 variable "sa_tagging_dispatcher_gcs" {
   type = string
-  default = "tag-dispatcher-gcs"
+  default = "dispatcher-gcs"
 }
 
 variable "sa_workflows_gcs" {
@@ -78,7 +78,7 @@ variable "sa_tagger_gcs_tasks" {
 
 variable "tagger_gcs_service_name" {
   type = string
-  default = "s3-tagger-gcs"
+  default = "tagger-gcs"
 }
 
 variable "tagger_gcs_pubsub_topic" {

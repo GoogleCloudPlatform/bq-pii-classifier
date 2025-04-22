@@ -27,6 +27,8 @@ SELECT
     a.project_id,
     a.folder_id,
     a.info_types
-FROM a;
+FROM a
+-- This dummy cross join is used to generate multiples of the dataset for stress testing. Default is 1.
+CROSS JOIN UNNEST(GENERATE_ARRAY(1, ${rows_multiplication_factor})) AS dummy_row;
 
 SELECT * FROM `${project}.${dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';

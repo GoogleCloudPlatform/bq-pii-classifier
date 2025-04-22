@@ -7,7 +7,7 @@ variable "auto_dlp_results_table_name" {
 
 variable "sa_tagging_dispatcher" {
   type = string
-  default = "tag-dispatcher"
+  default = "dispatcher-bq"
 }
 
 variable "sa_tagger" {

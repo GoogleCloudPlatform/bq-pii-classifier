@@ -55,7 +55,11 @@ public class Dispatcher {
           InterruptedException,
           ExecutionException {
 
-    logger.logInfoWithTracker(runId, null, "Executing the BigQuery query..");
+    logger.logInfoWithTracker(runId, null,
+            String.format("Using BigQueryToPubSubStreamer with settings: %s", bigQueryToPubSubStreamer.toString())
+            );
+
+    logger.logInfoWithTracker(runId, null, "Executing the Dispatcher BigQuery query..");
 
     TableResult dlpFindingsQueryResults = scanner.getDlpProfilesFromBigQuery(runId);
 
