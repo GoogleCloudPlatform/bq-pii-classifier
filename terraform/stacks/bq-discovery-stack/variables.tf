@@ -40,6 +40,10 @@ variable "auto_dlp_results_table_name" {
   description = "New table name to be created to hold DLP findings in the format 'table'"
 }
 
+variable "dlp_service_account_email" {
+  type = string
+}
+
 variable "sa_tagging_dispatcher" {
   type = string
 }

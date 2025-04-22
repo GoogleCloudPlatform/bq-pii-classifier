@@ -1,8 +1,6 @@
 
 locals {
 
-  dlp_service_account_email = "service-${data.google_project.gcp_project.number}@dlp-api.iam.gserviceaccount.com"
-
   service_image_uri = "${var.compute_region}-docker.pkg.dev/${var.project}/${var.gar_docker_repo_name}/${var.image_name}"
 
   project_and_domains = distinct([
@@ -166,7 +164,7 @@ module "pubsub-tagger-for-dlp" {
   subscription_service_account            = google_service_account.sa_tagger_tasks.email
   topic                                   = "${var.tagger_pubsub_topic}_for_dlp"
   // DLP service account must be able to publish messages to the Tagger
-  topic_publishers_sa_emails              = [local.dlp_service_account_email]
+  topic_publishers_sa_emails              = [var.dlp_service_account_email]
   # 10m is max allowed
   subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
@@ -292,7 +290,7 @@ resource "google_project_iam_member" "sa_dlp_roles_binding" {
   count = length(local.dlp_sa_roles)
   project = var.project
   role = local.dlp_sa_roles[count.index]
-  member = "serviceAccount:${local.dlp_service_account_email}"
+  member = "serviceAccount:${var.dlp_service_account_email}"
 }
 
 ## Data Catalog Taxonomies Permissions ##
