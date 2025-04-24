@@ -1,13 +1,16 @@
 .vscode/*
 
-terraform/*_deployment_verification.tfvars
+*.tfvars
+terraform*/*.tfvars
+terraform*/*_deployment_verification.tfvars
+terraform*/tfvars/*
 
 no-git
 no-git/*
 
 TODO.md
 
-terraform/tfvars/*
+
 
 *.DS_Store
 
