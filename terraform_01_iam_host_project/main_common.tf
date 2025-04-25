@@ -15,6 +15,7 @@ locals {
   ]
 
   dlp_sa_roles_on_host_project = [
+    "roles/pubsub.publisher", # for dlp to publish messages to PubSub
     "roles/datacatalog.categoryFineGrainedReader", # read BigQuery columns tagged by solution-managed taxonomies
   ]
 }
