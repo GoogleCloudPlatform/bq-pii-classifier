@@ -92,11 +92,9 @@ public class GcsTaggerController {
           new GcsTagger(
               environment.toConfig(),
               new DlpFindingsReaderImpl(),
-              new GcsServiceImpl(),
-              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-              "gcs-tagger-flags");
+              new GcsServiceImpl());
 
-      gcsTagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
+      gcsTagger.execute(taggerRequest);
 
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {
@@ -129,11 +127,9 @@ public class GcsTaggerController {
               new GcsTagger(
                       environment.toConfig(),
                       new DlpFindingsReaderImpl(),
-                      new GcsServiceImpl(),
-                      new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-                      "gcs-tagger-flags");
+                      new GcsServiceImpl());
 
-      gcsTagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
+      gcsTagger.execute(taggerRequest);
 
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {

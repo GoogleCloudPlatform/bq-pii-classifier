@@ -14,7 +14,6 @@ module "bq-discovery-stack" {
   default_domain_name                            = var.default_domain_name
   domain_mapping                                 = var.domain_mapping
   gar_docker_repo_name                           = var.gar_docker_repo_name
-  gcs_flags_bucket_name                          = google_storage_bucket.gcs_flags_bucket.id
   iam_mapping                                    = var.iam_mapping
   is_dry_run_labels                              = var.is_dry_run_labels
   is_dry_run_tags                                = var.is_dry_run_tags

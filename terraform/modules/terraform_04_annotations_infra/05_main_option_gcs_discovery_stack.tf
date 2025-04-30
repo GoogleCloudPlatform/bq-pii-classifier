@@ -9,7 +9,6 @@ module "gcs-discovery-stack" {
   dlp_dataset_name                               = google_bigquery_dataset.logging_dataset.dataset_id
   compute_region                                 = var.compute_region
   gar_docker_repo_name                           = var.gar_docker_repo_name
-  gcs_flags_bucket_name                          = google_storage_bucket.gcs_flags_bucket.name
   project                                        = var.application_project
   publishing_project                             = var.publishing_project
   tagger_service_timeout_seconds                 = var.tagger_service_timeout_seconds

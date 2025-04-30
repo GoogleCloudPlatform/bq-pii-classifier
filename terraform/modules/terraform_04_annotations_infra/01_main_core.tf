@@ -10,29 +10,6 @@ locals {
   }
 }
 
-### GCS RESOURCES ####
-
-resource "google_storage_bucket" "gcs_flags_bucket" {
-  project  = var.application_project
-  name     = "${var.application_project}-${var.gcs_flags_bucket_name}"
-  # This bucket is used by the services so let's create in the same compute region
-  location = var.compute_region
-
-  force_destroy = !var.terraform_data_deletion_protection
-
-  lifecycle_rule {
-    condition {
-      # Clean up old flags to save storage and GCS operations overhead
-      age = 3 # days
-    }
-    action {
-      type = "Delete"
-    }
-  }
-
-  uniform_bucket_level_access = true
-}
-
 ### LOGGING ####
 
 resource "google_logging_project_sink" "bigquery-logging-sink" {

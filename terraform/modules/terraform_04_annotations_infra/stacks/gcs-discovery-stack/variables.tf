@@ -34,10 +34,6 @@ variable "tagger_subscription_message_retention_duration" {
   type = string
 }
 
-variable "gcs_flags_bucket_name" {
-  type = string
-}
-
 variable "is_dry_run_labels" {
   type = bool
 }

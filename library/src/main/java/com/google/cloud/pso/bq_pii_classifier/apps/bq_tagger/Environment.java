@@ -68,10 +68,6 @@ public class Environment {
     return Utils.parseBooleanOrFail(Utils.getConfigFromEnv("IS_DRY_RUN_LABELS", true));
   }
 
-  public String getGcsFlagsBucket() {
-    return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-  }
-
   public Map<String, InfoTypeInfo> getInfoTypeMap() throws NonRetryableApplicationException {
 
     String filePath = Utils.getConfigFromEnv("INFO_TYPE_MAP", true);

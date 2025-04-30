@@ -121,10 +121,6 @@ variable "data_catalog_taxonomy_activated_policy_types" {
   description = "A lis of policy types for the created taxonomy(s)"
 }
 
-variable "gcs_flags_bucket_name" {
-  type = string
-}
-
 # Tagger settings.
 variable "tagger_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"

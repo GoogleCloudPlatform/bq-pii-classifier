@@ -48,10 +48,6 @@ module "cloud-run-tagger-gcs" {
       value = var.project,
     },
     {
-      name  = "GCS_FLAGS_BUCKET",
-      value = var.gcs_flags_bucket_name,
-    },
-    {
       name  = "INFO_TYPE_MAP",
       value = var.info_type_map_file_path,
     },

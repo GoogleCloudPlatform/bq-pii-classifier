@@ -93,11 +93,9 @@ public class BigQueryTaggerController {
           new Tagger(
               environment.toConfig(),
               new BigQueryServiceImpl(environment.getProjectId()),
-              new DlpFindingsReaderImpl(),
-              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-              "tagger-flags");
+              new DlpFindingsReaderImpl());
 
-      tagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
+      tagger.execute(taggerRequest);
 
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {
@@ -150,12 +148,9 @@ public class BigQueryTaggerController {
           new Tagger(
               environment.toConfig(),
               new BigQueryServiceImpl(environment.getProjectId()),
-              new DlpFindingsReaderImpl(),
-              new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
-              "tagger-flags");
+              new DlpFindingsReaderImpl());
 
-      tagger.execute(
-          runId, trackingId, requestBody.getMessage().getMessageId(), dataProfilePubSubMessage);
+      tagger.execute(runId, trackingId, dataProfilePubSubMessage);
 
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {

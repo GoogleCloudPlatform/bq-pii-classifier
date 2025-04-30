@@ -35,22 +35,15 @@ public class GcsTagger {
   private final DlpFindingsReader findingsReader;
 
   private final GcsService gcsService;
-  private final PersistentSet persistentSet;
-  private final String persistentSetObjectPrefix;
 
   public GcsTagger(
       GcsTaggerConfig config,
       DlpFindingsReader findingsReader,
-      GcsService gcsService,
-      PersistentSet persistentSet,
-      String persistentSetObjectPrefix)
-      throws IOException {
+      GcsService gcsService) {
 
     this.config = config;
     this.findingsReader = findingsReader;
     this.gcsService = gcsService;
-    this.persistentSet = persistentSet;
-    this.persistentSetObjectPrefix = persistentSetObjectPrefix;
 
     logger = new LoggingHelper(GcsTagger.class.getSimpleName(), functionNumber, config.projectId());
   }
@@ -100,28 +93,12 @@ public class GcsTagger {
    *     exactly once processing
    * @return A map of detected InfoTypes names and the metadata configured for each one of them .
    */
-  public Map<String, InfoTypeInfo> execute(GcsTaggerRequest request, String pubSubMessageId)
+  public Map<String, InfoTypeInfo> execute(GcsTaggerRequest request)
       throws NonRetryableApplicationException, IOException {
 
     logger.logFunctionStart(request.getTrackingId(), null);
     logger.logInfoWithTracker(
         request.getTrackingId(), null, String.format("Request : %s", request));
-
-    /**
-     * Check if we already processed this pubSubMessageId before to avoid submitting BQ queries in
-     * case we have unexpected errors with PubSub re-sending the message. This is an extra measure
-     * to avoid unnecessary cost. We do that by keeping simple flag files in GCS with the
-     * pubSubMessageId as file name.
-     */
-    String flagFileName = String.format("%s/%s", persistentSetObjectPrefix, pubSubMessageId);
-    if (persistentSet.contains(flagFileName)) {
-      // log error and ACK and return
-      String msg =
-          String.format(
-              "PubSub message ID '%s' has been processed before by the Tagger.",
-              pubSubMessageId);
-      throw new NonRetryableApplicationException(msg);
-    }
 
     // get the complete profile summary, either already supplied by the dispatcher or from DLP Api
     // in case an incomplete profile is sent via the auto-dlp
@@ -204,16 +181,6 @@ public class GcsTagger {
             modifiedLabelsCount,
             unchangedLabelsCount,
             deletedLabelsCount));
-
-    // Add a flag key marking that we already completed this request and no additional runs
-    // are required in case PubSub is in a loop of retrying due to ACK timeout while the service has
-    // already processed the request
-    // This is an extra measure to avoid unnecessary cost due to config issues.
-    logger.logInfoWithTracker(
-        request.getTrackingId(),
-        bucketResourceName,
-        String.format("Persisting processing key for PubSub message ID %s", pubSubMessageId));
-    persistentSet.add(flagFileName);
 
     logger.logFunctionEnd(request.getTrackingId(), bucketResourceName);
 

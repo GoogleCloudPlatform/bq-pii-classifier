@@ -78,13 +78,6 @@ variable "is_dry_run_labels" {
   description = "Applying resource labels in the Tagger function (False) or just logging actions (True)"
 }
 
-
-variable "gcs_flags_bucket_name" {
-  type = string
-  default = "annotations-flags"
-}
-
-
 # Tagger settings.
 variable "tagger_service_timeout_seconds" {
   description = "Max period for the cloud run service to complete a request. Otherwise, it terminates with HTTP 504 and NAK to PubSub (retry)"
