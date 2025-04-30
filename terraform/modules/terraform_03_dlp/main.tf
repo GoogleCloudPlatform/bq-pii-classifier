@@ -20,7 +20,7 @@ locals {
 
 module "dlp_inspection_templates" {
   count                   = length(local.dlp_regions)
-  source                  = "../terraform_03_dlp/modules/dlp_inspection_template"
+  source                  = "ion_template"
   project                 = var.application_project
   region                  = tolist(local.dlp_regions)[count.index]
   built_in_info_types = var.built_in_info_types

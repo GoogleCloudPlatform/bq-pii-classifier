@@ -22,7 +22,7 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-cd ../terraform_07_bq_helper_functions
+cd ../terraform/modules/terraform_07_bq_helper_functions
 
 terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \

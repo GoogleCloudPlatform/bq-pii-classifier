@@ -25,6 +25,11 @@ cd "$(dirname "$0")"
 cd ..
 
 echo "#######################################################"
+echo "###  Deploying Terraform APIs                       ###"
+echo "#######################################################"
+./scripts/deploy_terraform_apis.sh
+
+echo "#######################################################"
 echo "###  Deploying Terraform IAM on host project        ###"
 echo "#######################################################"
 ./scripts/deploy_terraform_iam_host_project.sh

@@ -22,7 +22,7 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-cd ../terraform_03_dlp
+cd ../terraform/modules/terraform_03_dlp
 
 terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \

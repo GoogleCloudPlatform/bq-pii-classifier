@@ -12,7 +12,7 @@ resource "google_pubsub_topic" "dlp_bq_topic" {
 ########################################################################################################################
 
 module "bq_dlp_configs" {
-  source = "./modules/dlp-bq-discovery-config"
+  source = "modules/dlp-bq-discovery-config"
 
   count = length(var.dlp_bq_discovery_configurations)
 

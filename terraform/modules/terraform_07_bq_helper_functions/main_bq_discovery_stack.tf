@@ -70,7 +70,7 @@ resource "google_firestore_database" "datastore_mode_database" {
 
 # Helper functions for data analysis
 module "bq-remote-func-get-table-policy-tags" {
-  source                         = "./modules/bq-remote-function"
+  source                         = "modules/bq-remote-function"
   function_name                  = var.bq_remote_func_get_policy_tags_name
   cloud_function_src_dir         = "../helpers/bq-remote-functions/get-policy-tags"
   cloud_function_temp_dir        = "/tmp/get-policy-tags.zip"
