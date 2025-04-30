@@ -27,7 +27,7 @@ cd "$(dirname "$0")"
 cd ../library
 
 gcloud builds submit \
---project $PROJECT_ID \
---region $COMPUTE_REGION \
+--project "${PROJECT_ID}" \
+--region "${COMPUTE_REGION}" \
 --config cloudbuild_deploy_docker.yaml \
---substitutions _IMAGE_NAME=${IMAGE_NAME},_COMPUTE_REGION=${COMPUTE_REGION}
+--substitutions _IMAGE_NAME="${IMAGE_NAME}"

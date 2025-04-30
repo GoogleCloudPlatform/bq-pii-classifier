@@ -36,7 +36,7 @@ module "bq-discovery-stack" {
   terraform_data_deletion_protection             = var.terraform_data_deletion_protection
   workflows_bq_description                       = var.workflows_bq_description
   workflows_bq_name                              = var.workflows_bq_name
-  image_name                                     = var.image_name
+  image_name                                     = var.services_container_image_name
   resources_bucket_name                          = google_storage_bucket.gcs_solution_resources.name
   info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 

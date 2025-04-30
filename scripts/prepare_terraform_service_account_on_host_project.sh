@@ -21,7 +21,7 @@ gcloud iam service-accounts create "${TF_SA}" \
     --description="Used by Terraform to deploy GCP resources" \
     --display-name="Terraform Service Account"
 
-roles=(
+roles_on_host_project=(
   "roles/iam.roleAdmin"
   "roles/resourcemanager.projectIamAdmin"
   "roles/serviceusage.serviceUsageAdmin"
@@ -43,8 +43,8 @@ roles=(
   "roles/artifactregistry.reader"
 )
 
-for role in "${roles[@]}"; do
-  echo "Granting ${role} .."
+for role in "${roles_on_host_project[@]}"; do
+  echo "Granting ${role} on host project .."
   gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
     --member="serviceAccount:${TF_SA}@${PROJECT_ID}.iam.gserviceaccount.com" \
     --role="$role"

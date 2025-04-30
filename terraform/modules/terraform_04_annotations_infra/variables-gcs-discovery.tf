@@ -20,6 +20,7 @@ variable "workflows_gcs_description" {
 
 variable "tagger_gcs_service_account_name" {
   type = string
+  default = "annotations-gcs"
 }
 
 variable "tagger_gcs_service_name" {

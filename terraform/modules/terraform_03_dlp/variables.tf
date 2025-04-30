@@ -1,8 +1,3 @@
-variable "terraform_service_account_email" {
-  type = string
-  description = "The service account email to be used by terraform to deploy to GCP"
-}
-
 variable "org_id" {
   type = number
   description = "GCP organization ID that will host the DLP discovery service configuration"
@@ -31,7 +26,6 @@ variable "source_data_regions" {
 
 variable "dlp_tag_sensitivity_level_key_name" {
   type = string
-  default = "dlp_sensitivity_level"
 }
 
 variable "dlp_tag_high_sensitivity_value_name" {
@@ -51,7 +45,6 @@ variable "dlp_tag_low_sensitivity_value_name" {
 
 variable "deploy_dlp_inspection_template_to_global_region" {
   type = bool
-  default = false
   description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
 }
 
@@ -140,8 +133,7 @@ variable "dlp_for_bq_pubsub_topic_name" {
 
 variable "terraform_data_deletion_protection" {
   type = bool
-  # Allow destroying BQ datasets and GCS buckets. Set to true for production use
-  default = false
+  description = "When set to `True`, Terraform will not delete data assets like buckets and BQ datasets"
 }
 
 variable "dlp_bq_discovery_configurations" {

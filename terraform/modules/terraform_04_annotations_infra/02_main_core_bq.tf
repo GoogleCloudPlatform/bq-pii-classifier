@@ -32,7 +32,7 @@ resource "google_bigquery_table" "logging_table_cloud_run" {
     #expiration_ms = 604800000 # 7 days
   }
 
-  schema = file("schema/cloud_logging_export.json")
+  schema = file("../../modules/terraform_04_annotations_infra/schema/cloud_logging_export.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }
@@ -48,7 +48,7 @@ resource "google_bigquery_table" "logging_table_cloud_batch" {
     #expiration_ms = 604800000 # 7 days
   }
 
-  schema = file("schema/cloud_logging_export.json")
+  schema = file("../../modules/terraform_04_annotations_infra/schema/cloud_logging_export.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }
@@ -66,7 +66,7 @@ resource "google_bigquery_table" "logging_view_steps" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_steps.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_steps.tpl",
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.logging_dataset.dataset_id
@@ -85,7 +85,7 @@ resource "google_bigquery_table" "view_service_calls" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_service_calls.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_service_calls.tpl",
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.logging_dataset.dataset_id
@@ -104,7 +104,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_broken_steps.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_broken_steps.tpl",
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.logging_dataset.dataset_id
@@ -125,7 +125,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_errors_non_retryable.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_errors_non_retryable.tpl",
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.logging_dataset.dataset_id
@@ -144,7 +144,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_errors_retryable.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_errors_retryable.tpl",
       {
         project = var.publishing_project
         dataset = google_bigquery_dataset.logging_dataset.dataset_id
@@ -163,7 +163,7 @@ resource "google_bigquery_table" "view_run_summary" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("views/v_run_summary.tpl",
+    query = templatefile("../../modules/terraform_04_annotations_infra/views/v_run_summary.tpl",
       {
         project = var.publishing_project
         dataset = var.bigquery_dataset_name

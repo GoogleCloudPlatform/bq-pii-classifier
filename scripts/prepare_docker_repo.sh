@@ -24,4 +24,4 @@ gcloud artifacts repositories create "${DOCKER_REPO_NAME}" \
 --repository-format=docker \
 --project="${PROJECT_ID}" \
 --location="${COMPUTE_REGION}" \
---description="BQ PII Classifier Docker Repository"
+--description="Data annotations docker repository"

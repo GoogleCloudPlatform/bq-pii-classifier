@@ -8,6 +8,7 @@ variable "auto_dlp_results_table_name" {
 
 variable "tagger_bq_service_account_name" {
   type = string
+  default = "annotations-bq"
 }
 
 variable "workflows_bq_name" {
@@ -76,7 +77,7 @@ variable "is_dry_run_tags" {
 
 variable "default_domain_name" {
   type = string
-  default = "default_domain"
+  default = "annotations"
   description = "default domain to use when domain_mapping is empty. This is used in deployments where only one domain is required and/or as a fallback for projects and datasets without explicit domain mapping."
 }
 

@@ -4,11 +4,12 @@
 
 variable "tagger_bq_service_account_name" {
   type = string
+  default = "annotations-bq"
 }
 
 variable "tagger_bq_custom_role_id" {
   type        = string
-  description = "The custom role ID to be created at the organization level for the BQ Tagger service."
+  description = "Existing custom role ID for the BQ Tagger service."
   default     = "AnnotationsSolutionBQTaggerServiceRole"
 }
 

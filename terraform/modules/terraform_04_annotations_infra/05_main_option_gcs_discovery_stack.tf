@@ -3,7 +3,7 @@
 module "gcs-discovery-stack" {
   source = "./stacks/gcs-discovery-stack"
 
-  image_name                                     = var.image_name
+  image_name                                     = var.services_container_image_name
   dlp_notifications_topic_name                   = var.dlp_for_gcs_pubsub_topic_name
   logging_dataset_name                           = google_bigquery_dataset.logging_dataset.dataset_id
   dlp_dataset_name                               = google_bigquery_dataset.logging_dataset.dataset_id

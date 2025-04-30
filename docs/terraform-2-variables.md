@@ -219,7 +219,7 @@ PS: Terraform will just "link" a Cloud Run to an existing image. It will not bui
 is already done in a previous step)
 
 ```terraform
-image_name = "bq-pii-classifier-services:latest"
+image_name = "annotations-services:latest"
 ``` 
 
 ### Configure data deletion protection

@@ -4,6 +4,7 @@
 
 variable "tagger_gcs_service_account_name" {
   type = string
+  default = "annotations-gcs"
 }
 
 variable "dlp_gcs_configurations_folders" {
@@ -13,7 +14,7 @@ variable "dlp_gcs_configurations_folders" {
 
 variable "tagger_gcs_custom_role_id" {
   type        = string
-  description = "The custom role ID to be created at the organization level for the GCS Tagger service."
+  description = "Existing custom role ID for the GCS Tagger service."
   default     = "AnnotationsSolutionGcsTaggerServiceRole"
 }
 

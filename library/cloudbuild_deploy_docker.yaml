@@ -3,14 +3,11 @@ steps:
     id: deploy_services
     env:
       - 'IMAGE_NAME=${_IMAGE_NAME}'
-      - 'COMPUTE_REGION=${_COMPUTE_REGION}'
+      - 'BUILD_ID=$BUILD_ID'
     script:
 
       set -e
 
       echo "IMAGE_NAME = ${IMAGE_NAME}"
 
-      mvn install jib:build -Dimage="${IMAGE_NAME}"
-
-
-
+      mvn install jib:build -Dimage="${IMAGE_NAME}" -Djib.to.tags=${BUILD_ID},latest

@@ -30,12 +30,12 @@ export COMPUTE_REGION=< region to deploy infra resources >
 export DATA_REGION=< region to deploy data resources e.g. bigquery dataset >
 
 # GCS bucket to hold Terraform state
-export BUCKET_NAME=${PROJECT_ID}-bq-pii-classifier
+export BUCKET_NAME=${PROJECT_ID}-annotations
 export BUCKET=gs://${BUCKET_NAME}
 # Docker repo name to be created and used by the solution
-export DOCKER_REPO_NAME=bq-pii-classifier
+export DOCKER_REPO_NAME=annotations
 # Container image name that contains the services used by the solution
-export IMAGE_NAME=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/bq-pii-classifier-services:latest
+export IMAGE_NAME=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/annotations-services
 
 # to auth and run deployment scripts
 gcloud auth application-default login
@@ -64,7 +64,7 @@ gsutil mb -p $PROJECT_ID -l $COMPUTE_REGION -b on $BUCKET
 The following script creates a service account in the host project for Terraform and assigns the required project-level permissions on it:
 ```shell
 # service account name to be created for Terraform in the host project
-export TF_SA=bq-pii-classifier-terraform
+export TF_SA=terraform
 
 ./scripts/prepare_terraform_service_account_on_host_project.sh
 ```

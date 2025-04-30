@@ -39,7 +39,7 @@ variable "source_data_regions" {
 
 variable "bigquery_dataset_name" {
   type = string
-  default = "bq_pii_classifier"
+  default = "annotations"
 }
 
 variable "log_sink_name" {
@@ -50,7 +50,7 @@ variable "log_sink_name" {
 # Images
 variable "gar_docker_repo_name" {
   type = string
-  default = "bq-pii-classifier"
+  default = "annotations"
 }
 
 # for each domain in scope, these policy tags will be created in a domain-specific taxonomy
@@ -72,11 +72,6 @@ variable "classification_taxonomy" {
   }))
 }
 
-variable "terraform_service_account_email" {
-  type = string
-  description = "The service account email to be used by terraform to deploy to GCP"
-}
-
 variable "is_dry_run_labels" {
   type = bool
   default = false
@@ -86,7 +81,7 @@ variable "is_dry_run_labels" {
 
 variable "gcs_flags_bucket_name" {
   type = string
-  default = "bq-pii-classifier-flags"
+  default = "annotations-flags"
 }
 
 
@@ -120,8 +115,6 @@ variable "tagger_subscription_message_retention_duration" {
 
 variable "terraform_data_deletion_protection" {
   type = bool
-  # Allow destroying BQ datasets and GCS buckets. Set to true for production use
-  default = false
 }
 
 variable "retain_dlp_tagger_pubsub_messages" {
@@ -130,9 +123,9 @@ variable "retain_dlp_tagger_pubsub_messages" {
   description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
 }
 
-variable "image_name" {
+variable "services_container_image_name" {
   type = string
-  default = "bq-pii-classifier-services:latest"
+  description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
 ### Tags
@@ -178,9 +171,11 @@ variable "dispatcher_pubsub_client_config" {
 variable "application_service_account_name" {
   type = string
   description = "Name of the service account to run the application components"
+  default = "annotations-app"
 }
 
 variable "dlp_dataset_name" {
   type = string
   description = "Existing BigQuery dataset that contains DLP discovery service findings"
+  default = "dlp_results"
 }

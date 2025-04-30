@@ -22,11 +22,10 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-cd ../terraform/modules/terraform_06_iam_folder_level
+cd ../terraform/envs/dev
 
 terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \
-    -backend-config="prefix=terraform-iam-folder-level-state"
+    -backend-config="prefix=dev/terraform-state"
 
 terraform apply -lock=false -var-file="${VARS}" -auto-approve
-
