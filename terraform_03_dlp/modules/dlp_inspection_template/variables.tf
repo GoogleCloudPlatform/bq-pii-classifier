@@ -4,15 +4,11 @@ variable "project" {
 variable "region" {
   type = string
 }
-variable "classification_taxonomy" {
+
+variable "built_in_info_types" {
   type = list(object({
     info_type = string
-    info_type_category = string
-    # (standard | custom)
-    policy_tag = string
-    classification = string
-    inspection_template_number = number
-    taxonomy_number = number
+    inspection_template_number = optional(number, 1)
   }))
 }
 
@@ -21,6 +17,7 @@ variable "custom_info_types_dictionaries" {
     name = string
     likelihood = string
     dictionary =list(string)
+    inspection_template_number = optional(number, 1)
   }))
 }
 
@@ -29,5 +26,6 @@ variable "custom_info_types_regex" {
     name = string
     likelihood = string
     regex = string
+    inspection_template_number = optional(number, 1)
   }))
 }

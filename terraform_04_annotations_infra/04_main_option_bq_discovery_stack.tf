@@ -1,23 +1,17 @@
 module "bq-discovery-stack" {
 
-  // deploy the stack one time if the configurations list is not empty
-  count = length(var.dlp_bq_discovery_configurations) == 0 ? 0 : 1
-
   source = "./stacks/bq-discovery-stack"
 
-  dlp_bq_discovery_configurations                = var.dlp_bq_discovery_configurations
-  bigquery_dataset_name                          = google_bigquery_dataset.results_dataset.dataset_id
-  dlp_service_account_email                      = local.dlp_service_account_email
+  dlp_dataset_name                               = var.dlp_dataset_name
+  dlp_notifications_topic_name                   = var.dlp_for_bq_pubsub_topic_name
+  logging_dataset_name                           = google_bigquery_dataset.logging_dataset.dataset_id
   auto_dlp_results_table_name                    = var.auto_dlp_results_table_name
   bq_existing_labels_regex                       = var.bq_existing_labels_regex
   bq_view_run_summary                            = google_bigquery_table.view_run_summary.table_id
   classification_taxonomy                        = var.classification_taxonomy
   compute_region                                 = var.compute_region
   data_catalog_taxonomy_activated_policy_types   = var.data_catalog_taxonomy_activated_policy_types
-  data_region                                    = var.data_region
   default_domain_name                            = var.default_domain_name
-  dlp_bq_scan_org_id                             = var.org_id
-  dlp_inspection_templates_ids_list              = local.dlp_inspection_templates_ids_list
   domain_mapping                                 = var.domain_mapping
   gar_docker_repo_name                           = var.gar_docker_repo_name
   gcs_flags_bucket_name                          = google_storage_bucket.gcs_flags_bucket.id
@@ -45,11 +39,6 @@ module "bq-discovery-stack" {
   image_name                                     = var.image_name
   resources_bucket_name                          = google_storage_bucket.gcs_solution_resources.name
   info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
-
-  # tags
-  dlp_tag_high_sensitivity_id     = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
-  dlp_tag_moderate_sensitivity_id = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
-  dlp_tag_low_sensitivity_id = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
 
   # Dispatcher Cloud Batch settings
   dispatcher_cloud_batch_cpu_millis               = var.dispatcher_cloud_batch_cpu_millis

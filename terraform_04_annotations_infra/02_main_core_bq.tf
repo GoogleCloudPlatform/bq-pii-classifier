@@ -7,11 +7,11 @@
 #                                    Dataset & Permissions
 ##############################################################
 
-resource "google_bigquery_dataset" "results_dataset" {
+resource "google_bigquery_dataset" "logging_dataset" {
   project = var.publishing_project
   location = var.data_region
   dataset_id = var.bigquery_dataset_name
-  description = "To store DLP results and data for the BQ PII Classifier solution"
+  description = "To store logs and monitoring views for the GCP data annotations solution"
 
   delete_contents_on_destroy = !var.terraform_data_deletion_protection
 
@@ -25,7 +25,7 @@ resource "google_bigquery_dataset" "results_dataset" {
 
 resource "google_bigquery_table" "logging_table_cloud_run" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   # don't change the name so that cloud logging can find it
   table_id = "run_googleapis_com_stdout"
 
@@ -41,7 +41,7 @@ resource "google_bigquery_table" "logging_table_cloud_run" {
 
 resource "google_bigquery_table" "logging_table_cloud_batch" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   # don't change the name so that cloud logging can find it
   table_id = "batch_task_logs"
 
@@ -61,7 +61,7 @@ resource "google_bigquery_table" "logging_table_cloud_batch" {
 
 resource "google_bigquery_table" "logging_view_steps" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   table_id = "v_steps"
 
   deletion_protection = var.terraform_data_deletion_protection
@@ -71,7 +71,7 @@ resource "google_bigquery_table" "logging_view_steps" {
     query = templatefile("views/v_steps.tpl",
       {
         project = var.publishing_project
-        dataset = google_bigquery_dataset.results_dataset.dataset_id
+        dataset = google_bigquery_dataset.logging_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
@@ -80,7 +80,7 @@ resource "google_bigquery_table" "logging_view_steps" {
 
 resource "google_bigquery_table" "view_service_calls" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   table_id = "v_service_calls"
 
   deletion_protection = var.terraform_data_deletion_protection
@@ -90,7 +90,7 @@ resource "google_bigquery_table" "view_service_calls" {
     query = templatefile("views/v_service_calls.tpl",
       {
         project = var.publishing_project
-        dataset = google_bigquery_dataset.results_dataset.dataset_id
+        dataset = google_bigquery_dataset.logging_dataset.dataset_id
         logging_view_steps = google_bigquery_table.logging_view_steps.table_id
       }
     )
@@ -99,7 +99,7 @@ resource "google_bigquery_table" "view_service_calls" {
 
 resource "google_bigquery_table" "logging_view_broken_steps" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   table_id = "v_broken_steps"
 
   deletion_protection = var.terraform_data_deletion_protection
@@ -109,7 +109,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
     query = templatefile("views/v_broken_steps.tpl",
       {
         project = var.publishing_project
-        dataset = google_bigquery_dataset.results_dataset.dataset_id
+        dataset = google_bigquery_dataset.logging_dataset.dataset_id
         v_service_calls = google_bigquery_table.view_service_calls.table_id
         logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
@@ -120,7 +120,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
 
 resource "google_bigquery_table" "view_errors_non_retryable" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   table_id = "v_errors_non_retryable"
 
   deletion_protection = var.terraform_data_deletion_protection
@@ -130,7 +130,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
     query = templatefile("views/v_errors_non_retryable.tpl",
       {
         project = var.publishing_project
-        dataset = google_bigquery_dataset.results_dataset.dataset_id
+        dataset = google_bigquery_dataset.logging_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )
@@ -139,7 +139,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
 
 resource "google_bigquery_table" "view_errors_retryable" {
   project = var.publishing_project
-  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  dataset_id = google_bigquery_dataset.logging_dataset.dataset_id
   table_id = "v_errors_retryable"
 
   deletion_protection = var.terraform_data_deletion_protection
@@ -149,7 +149,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
     query = templatefile("views/v_errors_retryable.tpl",
       {
         project = var.publishing_project
-        dataset = google_bigquery_dataset.results_dataset.dataset_id
+        dataset = google_bigquery_dataset.logging_dataset.dataset_id
         logging_table = google_bigquery_table.logging_table_cloud_run.table_id
       }
     )

@@ -22,11 +22,11 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-cd ../terraform_07_bq_helper_functions
+cd ../terraform_03_dlp
 
 terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \
-    -backend-config="prefix=terraform-helper-functions-state"
+    -backend-config="prefix=terraform-dlp-state"
 
 terraform apply -lock=false -var-file="${VARS}" -auto-approve
 

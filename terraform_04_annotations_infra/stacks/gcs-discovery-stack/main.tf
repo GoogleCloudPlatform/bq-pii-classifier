@@ -66,29 +66,56 @@ module "cloud-run-tagger-gcs" {
 #                                            PubSub
 ########################################################################################################################
 
+# connect the dlp notifications topic to the tagger service via a push subscription
+resource "google_pubsub_subscription" "tagger-for-dlp-subscription" {
+  project = var.project
+  name = "${var.tagger_gcs_pubsub_sub}_for_dlp"
+  topic = var.dlp_notifications_topic_name
 
-module "pubsub-tagger-gcs-for-dlp" {
-  source                                  = "../../modules/pubsub"
-  project                                 = var.project
-  subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
-  subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dlp"
-  subscription_service_account            = local.sa_application_email
-  topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dlp"
-  topic_publishers_sa_emails = [var.dlp_service_account_email]
-  # use a deadline large enough to process BQ listing for large scopes
-  subscription_ack_deadline_seconds       = var.tagger_subscription_ack_deadline_seconds
-  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
-  # min value must be at equal to the ack_deadline_seconds
-  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
-  retain_acked_messages                   = var.retain_dlp_tagger_pubsub_messages
-  # to enable replays for messages published by DLP
+  # Use a relatively high value to avoid re-sending the message when the deadline expires.
+  # Especially with the dispatchers that could take few minutes to list all tables for large scopes
+  ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
 
+  # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
+  # In case of unexpected problems we want to avoid a buildup that re-trigger functions (e.g. Tagger issuing unnecessary BQ queries)
+  # It also sets how long should we keep trying to process one run
+  message_retention_duration = var.tagger_subscription_message_retention_duration
+
+  # If retain_acked_messages is true, then message_retention_duration also configures the retention of acknowledged messages, and thus configures how far back in time a subscriptions.seek can be done.
+  # Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window
+  retain_acked_messages = var.retain_dlp_tagger_pubsub_messages
+
+  enable_message_ordering  = false
+
+  # The message sent to a subscriber is guaranteed not to be resent before the message's acknowledgement deadline expires
+  enable_exactly_once_delivery = false
+
+  # Policy to delete the subscription when in-active
+  expiration_policy {
+    # Never Expires. Empty to avoid the 31 days expiration.
+    ttl = ""
+  }
+
+  retry_policy {
+    # The minimum delay between consecutive deliveries of a given message
+    minimum_backoff = "60s" #
+    # The maximum delay between consecutive deliveries of a given message
+    maximum_backoff = "600s" # 10 mins
+  }
+
+  push_config {
+    push_endpoint = "${module.cloud-run-tagger-gcs.service_endpoint}/dlp-discovery-service-handler"
+
+    oidc_token {
+      service_account_email = local.sa_application_email
+    }
+  }
 }
 
 module "pubsub-tagger-gcs-for-dispatcher" {
-  source                                  = "../../modules/pubsub"
+  source                                  = "../../../terraform_00_common_modules/pubsub"
   project                                 = var.project
-  subscription_endpoint                   = module.cloud-run-tagger-gcs.service_endpoint
+  subscription_endpoint                   = "${module.cloud-run-tagger-gcs.service_endpoint}/tagging-dispatcher-handler"
   subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dispatcher"
   subscription_service_account            = local.sa_application_email
   topic                                   = "${var.tagger_gcs_pubsub_topic}_for_dispatcher"
@@ -99,7 +126,6 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
-
 
 ########################################################################################################################
 #                                            Workflows
@@ -157,7 +183,8 @@ main:
                         PROJECT_ID: "${var.project}"
                         PUBLISHING_PROJECT_ID: "${var.publishing_project}"
                         TAGGER_TOPIC: "${module.pubsub-tagger-gcs-for-dispatcher.topic-name}"
-                        DLP_RESULTS_DATASET: "${var.bq_results_dataset}"
+                        LOGGING_DATASET: "${var.logging_dataset_name}"
+                        DLP_RESULTS_DATASET: "${var.dlp_dataset_name}"
                         DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
                         DISPATCHER_RUNS_TABLE: "${google_bigquery_table.dispatcher_runs_gcs_table.table_id}"
 
@@ -186,38 +213,4 @@ main:
     - return_result:
         return: $${create_job_result}
 EOF
-}
-
-
-########################################################################################################################
-#                                            DLP Configs
-########################################################################################################################
-
-module "gcs_dlp_configs" {
-  source = "../../modules/dlp-gcs-discovery-config"
-
-  count = length(var.dlp_gcs_discovery_configurations)
-
-  dlp_gcs_scan_org_id = var.dlp_gcs_scan_org_id
-
-  dlp_gcs_scan_folder_id                          = var.dlp_gcs_discovery_configurations[count.index].folder_id
-  dlp_gcs_bucket_name_regex                       = var.dlp_gcs_discovery_configurations[count.index].bucket_name_regex
-  dlp_gcs_project_id_regex                        = var.dlp_gcs_discovery_configurations[count.index].project_id_regex
-  dlp_gcs_apply_tags                              = var.dlp_gcs_discovery_configurations[count.index].apply_tags
-  dlp_gcs_create_configuration_in_paused_state    = var.dlp_gcs_discovery_configurations[count.index].create_configuration_in_paused_state
-  dlp_gcs_reprofile_frequency               = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency
-  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_inspection_template_update
-  dlp_gcs_included_bucket_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_bucket_attributes
-  dlp_gcs_included_object_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_object_attributes
-
-  bq_results_dataset                = var.bq_results_dataset
-  data_region                       = var.data_region
-  dlp_gcs_bq_results_table_name     = var.dlp_gcs_bq_results_table_name
-  dlp_inspection_templates_ids_list = var.dlp_inspection_templates_ids_list
-  dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_id
-  dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_id
-  dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_id
-  project                           = var.project
-  pubsub_tagger_topic_id            = module.pubsub-tagger-gcs-for-dlp.topic-id
-  publishing_project                = var.publishing_project
 }

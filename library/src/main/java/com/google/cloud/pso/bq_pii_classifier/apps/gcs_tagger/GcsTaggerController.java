@@ -64,8 +64,8 @@ public class GcsTaggerController {
   // 1. From GCS Tagging Dispatcher as GcsTaggerRequest serialized json
   // 2. From GCS Auto DLP notification as "DataProfilePubSubMessage" proto
 
-  @RequestMapping(value = "/", method = RequestMethod.POST)
-  public ResponseEntity receiveMessage(@RequestBody PubSubEvent requestBody) {
+  @RequestMapping(value = "/tagging-dispatcher-handler", method = RequestMethod.POST)
+  public ResponseEntity taggingDispatcherHandler(@RequestBody PubSubEvent requestBody) {
 
     GcsTaggerRequest taggerRequest = null;
 
@@ -77,7 +77,16 @@ public class GcsTaggerController {
         throw new NonRetryableApplicationException("Request body or message is Null.");
       }
 
-      taggerRequest = parseEvent(requestBody);
+      String requestJsonString = requestBody.getMessage().dataToUtf8String();
+      // try to parse as GcsTaggerRequest as sent from the Tagging Dispatcher Service
+      taggerRequest = gson.fromJson(requestJsonString, GcsTaggerRequest.class);
+
+      logger.logInfoWithTracker(
+              taggerRequest.getTrackingId(),
+              Utils.generateBucketEntityId(
+                      taggerRequest.getGcsDlpProfileSummary().getProjectId(),
+                      taggerRequest.getGcsDlpProfileSummary().getBucketName()),
+              String.format("Parsed Request from GCS Tagging Dispatcher: '%s'", taggerRequest));
 
       GcsTagger gcsTagger =
           new GcsTagger(
@@ -100,27 +109,45 @@ public class GcsTaggerController {
     }
   }
 
-  private GcsTaggerRequest parseEvent(PubSubEvent event) throws NonRetryableApplicationException {
+  @RequestMapping(value = "/dlp-discovery-service-handler", method = RequestMethod.POST)
+  public ResponseEntity dlpDiscoveryServiceHandler(@RequestBody PubSubEvent requestBody) {
 
-    String requestJsonString = event.getMessage().dataToUtf8String();
+    GcsTaggerRequest taggerRequest = null;
 
     try {
+
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(TrackingHelper.DEFAULT_TRACKING_ID, null, msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
+
       // try to parse as GcsTaggerRequest as sent from the Tagging Dispatcher Service
-      GcsTaggerRequest gcsTaggerRequest = gson.fromJson(requestJsonString, GcsTaggerRequest.class);
+      taggerRequest = getTaggerRequestFromDlpNotification(requestBody);
 
-      logger.logInfoWithTracker(
-          gcsTaggerRequest.getTrackingId(),
-          Utils.generateBucketEntityId(
-              gcsTaggerRequest.getGcsDlpProfileSummary().getProjectId(),
-              gcsTaggerRequest.getGcsDlpProfileSummary().getBucketName()),
-          String.format("Parsed Request from GCS Tagging Dispatcher: '%s'", gcsTaggerRequest));
+      GcsTagger gcsTagger =
+              new GcsTagger(
+                      environment.toConfig(),
+                      new DlpFindingsReaderImpl(),
+                      new GcsServiceImpl(),
+                      new GCSPersistentSetImpl(environment.getGcsFlagsBucket()),
+                      "gcs-tagger-flags");
 
-      // CASE 1: GcsTaggerRequest from Tagging Dispatcher
-      return gcsTaggerRequest;
+      gcsTagger.execute(taggerRequest, requestBody.getMessage().getMessageId());
 
-    } catch (Exception ex) {
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
 
-      // if not, try to parse it as a proto if it comes from Auto DLP
+      String trackingId =
+              taggerRequest == null
+                      ? TrackingHelper.DEFAULT_TRACKING_ID
+                      : taggerRequest.getTrackingId();
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
+    }
+  }
+
+  private GcsTaggerRequest getTaggerRequestFromDlpNotification(PubSubEvent event) throws NonRetryableApplicationException {
+
       try {
         byte[] data = event.getMessage().getData();
 
@@ -149,13 +176,12 @@ public class GcsTaggerController {
               "Auto DLP message doesn't contain a file store profile");
         }
 
-      } catch (Exception ex2) {
+      } catch (Exception ex) {
 
         throw new NonRetryableApplicationException(
             String.format(
                 "Couldn't parse PubSub event as Proto: %s : %s",
-                ex2.getClass().getSimpleName(), ex2.getMessage()));
+                ex.getClass().getSimpleName(), ex.getMessage()));
       }
     }
-  }
 }

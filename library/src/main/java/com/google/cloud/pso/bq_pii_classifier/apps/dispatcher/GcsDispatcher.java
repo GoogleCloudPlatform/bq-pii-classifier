@@ -58,8 +58,10 @@ public class GcsDispatcher extends BaseDispatcher {
     return Map.of(
         "${project}",
         this.environment.getPublishingProjectId(),
-        "${dataset}",
+        "${dlp_dataset}",
         this.environment.getDlpResultsDataset(),
+        "${logging_dataset}",
+        this.environment.getLoggingDataset(),
         "${dlp_gcs_results_table}",
         this.environment.getDlpResultsTable(),
         "${dispatcher_runs_table}",

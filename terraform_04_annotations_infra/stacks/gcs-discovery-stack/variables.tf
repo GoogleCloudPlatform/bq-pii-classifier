@@ -10,22 +10,17 @@ variable "compute_region" {
   type = string
 }
 
-variable "data_region" {
-  type = string
-}
-
 variable "gar_docker_repo_name" {
   type = string
 }
 
-variable "dlp_inspection_templates_ids_list" {
-  type = list(string)
-}
-
-variable "bq_results_dataset" {
+variable "dlp_dataset_name" {
   type = string
 }
 
+variable "logging_dataset_name" {
+  type = string
+}
 
 variable "tagger_service_timeout_seconds" {
   type = number
@@ -52,18 +47,7 @@ variable "info_type_map" {
   type = map(object({classification = string, labels = list(map(string))}))
 }
 
-variable "dlp_service_account_email" {
-  type = string
-}
-
-
-
 ### Stack specific variables - required by user
-
-variable "dlp_gcs_scan_org_id" {
-  type        = number
-  description = "GCP organization ID that will host the DLP discovery service configuration"
-}
 
 variable "image_name" {
   type = string
@@ -74,12 +58,6 @@ variable "image_name" {
 variable "dlp_gcs_bq_results_table_name" {
   type        = string
   description = "Name of the table that DLP will create to save the findings. This will be created in the solution dataset"
-}
-
-##### Tagging Dispatcher Service ######
-
-variable "sa_tagging_dispatcher_gcs" {
-  type = string
 }
 
 ##### GCS Tagger Service ######
@@ -98,10 +76,6 @@ variable "tagger_gcs_pubsub_sub" {
 
 variable "gcs_existing_labels_regex" {
   type = string
-}
-
-variable "retain_dlp_tagger_pubsub_messages" {
-  type = bool
 }
 
 variable "workflows_gcs_name" {
@@ -124,52 +98,8 @@ variable "terraform_data_deletion_protection" {
   type = bool
 }
 
-## Tags
-variable "dlp_tag_high_sensitivity_id" {
-  type = string
-}
-
-variable "dlp_tag_moderate_sensitivity_id" {
-  type = string
-}
-
-variable "dlp_tag_low_sensitivity_id" {
-  type = string
-}
-
 variable "info_type_map_file_path" {
   type = string
-}
-
-variable "dlp_gcs_discovery_configurations" {
-  type = list(object({
-    # Folder to be scanned
-    folder_id = string
-
-    # Regex for project ids to be covered by the DLP scan of GCS buckets. For organization-level configuration, if unset, will match all projects
-    project_id_regex = string
-
-    # Regex to test the bucket name against during the DLP scan. If empty, all buckets match
-    bucket_name_regex = string
-
-    # When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to buckets
-    apply_tags = bool
-
-    # When set to true, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to false, the discovery scan will start running upon creation
-    create_configuration_in_paused_state = bool
-
-    # If you set this field, profiles are refreshed at this frequency regardless of whether the underlying data have changes. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY
-    reprofile_frequency = string
-
-    # How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_inspection_template_update = string
-
-    # Only objects with the specified attributes will be scanned. Defaults to [ALL_SUPPORTED_BUCKETS] if unset. Each value may be one of: ALL_SUPPORTED_BUCKETS, AUTOCLASS_DISABLED, AUTOCLASS_ENABLED.
-    included_bucket_attributes = list(string)
-
-    # "Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to [ALL_SUPPORTED_OBJECTS]. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: ALL_SUPPORTED_OBJECTS, STANDARD, NEARLINE, COLDLINE, ARCHIVE, REGIONAL, MULTI_REGIONAL, DURABLE_REDUCED_AVAILABILITY."
-    included_object_attributes = list(string)
-  }))
 }
 
 variable "publishing_project" {
@@ -228,4 +158,13 @@ variable "application_service_account_name" {
 
 variable "tagger_gcs_service_account_name" {
   type = string
+}
+
+variable "dlp_notifications_topic_name" {
+  type = string
+}
+
+variable "retain_dlp_tagger_pubsub_messages" {
+  type = bool
+  description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
 }

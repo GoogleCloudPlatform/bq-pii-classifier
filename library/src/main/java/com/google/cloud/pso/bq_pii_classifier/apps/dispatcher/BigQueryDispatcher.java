@@ -59,7 +59,8 @@ public class BigQueryDispatcher extends BaseDispatcher {
 
         return Map.of(
                 "${project}", this.environment.getPublishingProjectId(),
-                "${dataset}", this.environment.getDlpResultsDataset(),
+                "${dlp_dataset}", this.environment.getDlpResultsDataset(),
+                "${logging_dataset}", this.environment.getLoggingDataset(),
                 "${results_table}", this.environment.getDlpResultsTable(),
                 "${folder_id_regex}", foldersRegex,
                 "${project_id_regex}", projectsRegex,

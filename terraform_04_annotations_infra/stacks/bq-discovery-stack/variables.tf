@@ -21,27 +21,22 @@ variable "compute_region" {
   type = string
 }
 
-variable "data_region" {
-  description = "GCP region to store application data (e.g. DLP results, logs, etc)"
-  type = string
-}
-
 variable "source_data_regions" {
   description = "Supported GCP regions for DLP inspection and tagging. These are the regions to run DLP jobs in and deploy policy tags taxonomies."
   type = set(string)
 }
 
-variable "bigquery_dataset_name" {
+variable "dlp_dataset_name" {
+  type = string
+}
+
+variable "logging_dataset_name" {
   type = string
 }
 
 variable "auto_dlp_results_table_name" {
   type = string
   description = "New table name to be created to hold DLP findings in the format 'table'"
-}
-
-variable "dlp_service_account_email" {
-  type = string
 }
 
 variable "workflows_bq_name" {
@@ -63,7 +58,6 @@ variable "tagger_pubsub_topic" {
 variable "tagger_pubsub_sub" {
   type = string
 }
-
 
 # Images
 variable "gar_docker_repo_name" {
@@ -176,32 +170,11 @@ variable "promote_dlp_other_matches" {
   description = "When set to true, the tagger service will include the 'other_matches' that DLP finds for a particular table to promote one policy tag per column"
 }
 
-variable "dlp_bq_scan_org_id" {
-  type = string
-}
-
 variable "logging_table_name" {
   type = string
 }
 
 variable "bq_view_run_summary" {
-  type = string
-}
-
-variable "dlp_inspection_templates_ids_list" {
-  type = list(string)
-}
-
-## Tags
-variable "dlp_tag_high_sensitivity_id" {
-  type = string
-}
-
-variable "dlp_tag_moderate_sensitivity_id" {
-  type = string
-}
-
-variable "dlp_tag_low_sensitivity_id" {
   type = string
 }
 
@@ -211,47 +184,6 @@ variable "info_type_map_file_path" {
 
 variable "resources_bucket_name" {
   type = string
-}
-
-variable "dlp_bq_discovery_configurations" {
-  type = list(object({
-
-    # GCP folder to scan
-    folder_id                                         = number
-
-    # Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects
-    project_id_regex                                  = string
-
-    # Regex to test the dataset name against during the DLP scan for BigQuery. if unset, this property matches all datasets
-    dataset_regex                                     = string
-
-    # Regex to test the table name against during the DLP scan for BigQuery.  if unset, this property matches all tables
-    table_regex                                       = string
-
-    # When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to BigQuery tables
-    apply_tags                                        = bool
-
-    # dlp_bq_create_configuration_in_paused_state
-    create_configuration_in_paused_state              = bool
-
-    # Restrict dlp discovery service for BigQuery to specific table types
-    table_types = list(string)
-
-    # How frequently data profiles can be updated when a table schema is modified (i.e. columns). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_table_schema_update        = string
-
-    # How frequently data profiles can be updated when a table data is modified (i.e. rows). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_table_data_update          = string
-
-    # How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_inspection_template_update = string
-
-    # The type of events to consider when deciding if the table's schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
-    reprofile_types_on_schema_update = list(string)
-
-    # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP
-    reprofile_types_on_table_data_update = list(string)
-  }))
 }
 
 variable "publishing_project" {
@@ -309,5 +241,9 @@ variable "application_service_account_name" {
 }
 
 variable "tagger_bq_service_account_name" {
+  type = string
+}
+
+variable "dlp_notifications_topic_name" {
   type = string
 }

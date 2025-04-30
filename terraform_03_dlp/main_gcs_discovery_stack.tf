@@ -1,0 +1,41 @@
+########################################################################################################################
+#                                            PubSub
+########################################################################################################################
+
+resource "google_pubsub_topic" "dlp_gcs_topic" {
+  project = var.application_project
+  name = var.dlp_for_gcs_pubsub_topic_name
+}
+
+########################################################################################################################
+#                                            DLP Configs
+########################################################################################################################
+
+module "gcs_dlp_configs" {
+  source = "./modules/dlp-gcs-discovery-config"
+
+  count = length(var.dlp_gcs_discovery_configurations)
+
+  dlp_gcs_scan_org_id = var.org_id
+
+  dlp_gcs_scan_folder_id                          = var.dlp_gcs_discovery_configurations[count.index].folder_id
+  dlp_gcs_bucket_name_regex                       = var.dlp_gcs_discovery_configurations[count.index].bucket_name_regex
+  dlp_gcs_project_id_regex                        = var.dlp_gcs_discovery_configurations[count.index].project_id_regex
+  dlp_gcs_apply_tags                              = var.dlp_gcs_discovery_configurations[count.index].apply_tags
+  dlp_gcs_create_configuration_in_paused_state    = var.dlp_gcs_discovery_configurations[count.index].create_configuration_in_paused_state
+  dlp_gcs_reprofile_frequency               = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency
+  dlp_gcs_reprofile_on_inspection_template_update = var.dlp_gcs_discovery_configurations[count.index].reprofile_frequency_on_inspection_template_update
+  dlp_gcs_included_bucket_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_bucket_attributes
+  dlp_gcs_included_object_attributes              = var.dlp_gcs_discovery_configurations[count.index].included_object_attributes
+
+  bq_results_dataset                = google_bigquery_dataset.results_dataset.dataset_id
+  data_region                       = var.data_region
+  dlp_gcs_bq_results_table_name     = var.dlp_gcs_results_table_name
+  dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
+  dlp_tag_high_sensitivity_id       = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
+  dlp_tag_low_sensitivity_id        = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
+  dlp_tag_moderate_sensitivity_id   = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+  project                           = var.application_project
+  pubsub_tagger_topic_id            = google_pubsub_topic.dlp_gcs_topic.id
+  publishing_project                = var.publishing_project
+}

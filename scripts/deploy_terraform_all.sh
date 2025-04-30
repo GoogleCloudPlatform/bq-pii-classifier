@@ -36,6 +36,12 @@ echo "#######################################################"
 ./scripts/deploy_terraform_iam_publishing_project.sh
 
 echo "##################################################"
+echo "###         Deploying Terraform DLP            ###"
+echo "##################################################"
+
+./scripts/deploy_terraform_dlp.sh
+
+echo "##################################################"
 echo "###         Deploying Terraform infra          ###"
 echo "##################################################"
 

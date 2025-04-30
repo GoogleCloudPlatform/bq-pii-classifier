@@ -1,4 +1,4 @@
-INSERT INTO `${project}.${dataset}.${dispatcher_runs_table}`
+INSERT INTO `${project}.${logging_dataset}.${dispatcher_runs_table}`
 
 WITH  core AS (
 
@@ -11,8 +11,8 @@ WITH  core AS (
         c.column_profile.column AS column_name,
         c.column_profile.column_info_type.info_type.name AS dlp_info_type_name,
         ARRAY_AGG(STRUCT(other_matches.info_type.name AS info_type_name, CAST(other_matches.estimated_prevalence AS INT64) AS info_type_prevalence) ORDER BY other_matches.estimated_prevalence DESC) AS dlp_other_matches
-        FROM `${project}.${dataset}.${results_table}` c, UNNEST(c.column_profile.other_matches) other_matches
-        INNER JOIN `${project}.${dataset}.${results_table}` t ON c.column_profile.table_data_profile = t.table_profile.name
+        FROM `${project}.${dlp_dataset}.${results_table}` c, UNNEST(c.column_profile.other_matches) other_matches
+        INNER JOIN `${project}.${dlp_dataset}.${results_table}` t ON c.column_profile.table_data_profile = t.table_profile.name
         WHERE (c.column_profile.column_info_type.info_type.name IS NOT NULL OR c.column_profile.other_matches IS NOT NULL)
                AND REGEXP_CONTAINS(CAST(t.table_profile.config_snapshot.data_profile_job.location.folder_id AS STRING), r'${folder_id_regex}')
                AND REGEXP_CONTAINS(c.column_profile.dataset_project_id, r'${project_id_regex}')
@@ -46,4 +46,4 @@ WITH  core AS (
         dataset_id,
         table_id ;
 
-SELECT * FROM `${project}.${dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';
+SELECT * FROM `${project}.${logging_dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';

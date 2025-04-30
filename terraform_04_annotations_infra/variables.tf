@@ -72,29 +72,10 @@ variable "classification_taxonomy" {
   }))
 }
 
-variable "custom_info_types_dictionaries" {
-  type = list(object({
-    name = string
-    likelihood = string
-    dictionary =list(string)
-  }))
-  default = []
-}
-
-variable "custom_info_types_regex" {
-  type = list(object({
-    name = string
-    likelihood = string
-    regex = string
-  }))
-  default = []
-}
-
 variable "terraform_service_account_email" {
   type = string
   description = "The service account email to be used by terraform to deploy to GCP"
 }
-
 
 variable "is_dry_run_labels" {
   type = bool
@@ -149,43 +130,12 @@ variable "retain_dlp_tagger_pubsub_messages" {
   description = " Indicates whether to retain acknowledged messages. If true, then messages are not expunged from the subscription's backlog, even if they are acknowledged, until they fall out of the messageRetentionDuration window. Retaining messages enables the 'Replay' functionality."
 }
 
-variable "deploy_dlp_inspection_template_to_global_region" {
-  type = bool
-  default = false
-  description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
-}
-
 variable "image_name" {
   type = string
   default = "bq-pii-classifier-services:latest"
 }
 
-variable "org_id" {
-  type = number
-  description = "GCP organization ID that will host the DLP discovery service configuration"
-}
-
 ### Tags
-
-variable "dlp_tag_sensitivity_level_key_name" {
-  type = string
-  default = "dlp_sensitivity_level"
-}
-
-variable "dlp_tag_high_sensitivity_value_name" {
-  type = string
-  default = "high"
-}
-
-variable "dlp_tag_moderate_sensitivity_value_name" {
-  type = string
-  default = "moderate"
-}
-
-variable "dlp_tag_low_sensitivity_value_name" {
-  type = string
-  default = "low"
-}
 
 # Dispatcher Scalability params
 
@@ -228,4 +178,9 @@ variable "dispatcher_pubsub_client_config" {
 variable "application_service_account_name" {
   type = string
   description = "Name of the service account to run the application components"
+}
+
+variable "dlp_dataset_name" {
+  type = string
+  description = "Existing BigQuery dataset that contains DLP discovery service findings"
 }

@@ -37,12 +37,12 @@ public class Environment {
     return Utils.getConfigFromEnv("TAGGER_TOPIC", true);
   }
 
-  public String getGcsFlagsBucket() {
-    return Utils.getConfigFromEnv("GCS_FLAGS_BUCKET", true);
-  }
-
   public String getDlpResultsDataset() {
     return Utils.getConfigFromEnv("DLP_RESULTS_DATASET", true);
+  }
+
+  public String getLoggingDataset() {
+    return Utils.getConfigFromEnv("LOGGING_DATASET", true);
   }
 
   public String getDlpResultsTable() {

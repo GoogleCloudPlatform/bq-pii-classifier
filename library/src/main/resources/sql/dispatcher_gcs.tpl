@@ -1,4 +1,4 @@
-INSERT INTO `${project}.${dataset}.${dispatcher_runs_table}`
+INSERT INTO `${project}.${logging_dataset}.${dispatcher_runs_table}`
 
 WITH a AS (
     SELECT
@@ -7,7 +7,7 @@ WITH a AS (
         file_store_profile.project_id AS project_id,
         CAST(file_store_profile.config_snapshot.discovery_config.org_config.location.folder_id AS STRING) AS folder_id,
         ARRAY_TO_STRING(ARRAY_AGG(DISTINCT ss.info_type.name), ',') AS info_types
-    FROM `${project}.${dataset}.${dlp_gcs_results_table}`,
+    FROM `${project}.${dlp_dataset}.${dlp_gcs_results_table}`,
         UNNEST(file_store_profile.file_cluster_summaries) s,
         UNNEST(s.file_store_info_type_summaries) ss
     WHERE
@@ -31,4 +31,4 @@ FROM a
 -- This dummy cross join is used to generate multiples of the dataset for stress testing. Default is 1.
 CROSS JOIN UNNEST(GENERATE_ARRAY(1, ${rows_multiplication_factor})) AS dummy_row;
 
-SELECT * FROM `${project}.${dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';
+SELECT * FROM `${project}.${logging_dataset}.${dispatcher_runs_table}` WHERE run_id = '${run_id}';

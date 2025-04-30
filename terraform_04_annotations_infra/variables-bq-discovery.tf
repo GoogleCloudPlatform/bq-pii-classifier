@@ -92,46 +92,7 @@ variable "promote_dlp_other_matches" {
   description = "When set to true, the tagger service will include the 'other_matches' that DLP finds for a particular table to promote one policy tag per column"
 }
 
-variable "dlp_bq_discovery_configurations" {
-  type = list(object({
 
-    # GCP folder to scan
-    folder_id                                         = number
-
-    # Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects
-    project_id_regex                                  = optional(string, ".*")
-
-    # Regex to test the dataset name against during the DLP scan for BigQuery. if unset, this property matches all datasets
-    dataset_regex                                     = optional(string, ".*")
-
-    # Regex to test the table name against during the DLP scan for BigQuery.  if unset, this property matches all tables
-    table_regex                                       = optional(string, ".*")
-
-    # When set to true, DLP discovery service will attach pre-existing data sensitivity levels tags to BigQuery tables
-    apply_tags                                        = optional(bool, false)
-
-    # dlp_bq_create_configuration_in_paused_state
-    create_configuration_in_paused_state              = optional(bool, true)
-
-    # Restrict dlp discovery service for BigQuery to specific table types
-    table_types = optional(list(string), ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"])
-
-    # How frequently data profiles can be updated when a table schema is modified (i.e. columns). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_table_schema_update        = optional(string, "UPDATE_FREQUENCY_NEVER")
-
-    # How frequently data profiles can be updated when a table data is modified (i.e. rows). Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_table_data_update          = optional(string, "UPDATE_FREQUENCY_NEVER")
-
-    # How frequently data profiles can be updated when the template is modified. Defaults to never. Possible values are: UPDATE_FREQUENCY_NEVER, UPDATE_FREQUENCY_DAILY, UPDATE_FREQUENCY_MONTHLY.
-    reprofile_frequency_on_inspection_template_update = optional(string, "UPDATE_FREQUENCY_NEVER")
-
-    # The type of events to consider when deciding if the tables schema has been modified and should have the profile updated. Defaults to NEW_COLUMN. Each value may be one of: SCHEMA_NEW_COLUMNS, SCHEMA_REMOVED_COLUMNS
-    reprofile_types_on_schema_update = optional(list(string), ["SCHEMA_NEW_COLUMNS"])
-
-    # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP
-    reprofile_types_on_table_data_update = optional(list(string), ["TABLE_MODIFIED_TIMESTAMP"])
-  }))
-}
 
 # Tagger Scalability params
 
@@ -160,4 +121,9 @@ variable "tagger_bq_service_max_cpu" {
 variable "tagger_bq_service_max_memory" {
   type = string
   default = "4Gi"
+}
+
+variable "dlp_for_bq_pubsub_topic_name" {
+  type = string
+  default = "dlp_results_for_bq_topic"
 }
