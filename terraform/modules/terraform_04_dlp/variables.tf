@@ -24,23 +24,16 @@ variable "source_data_regions" {
   type = set(string)
 }
 
-variable "dlp_tag_sensitivity_level_key_name" {
+variable "dlp_tag_high_sensitivity_value_namespaced_name" {
   type = string
 }
 
-variable "dlp_tag_high_sensitivity_value_name" {
+variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
   type = string
-  default = "high"
 }
 
-variable "dlp_tag_moderate_sensitivity_value_name" {
+variable "dlp_tag_low_sensitivity_value_namespaced_name" {
   type = string
-  default = "moderate"
-}
-
-variable "dlp_tag_low_sensitivity_value_name" {
-  type = string
-  default = "low"
 }
 
 variable "deploy_dlp_inspection_template_to_global_region" {

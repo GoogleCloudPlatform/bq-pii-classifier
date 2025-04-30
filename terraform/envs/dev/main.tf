@@ -22,8 +22,15 @@ module "iam_on_publishing_project" {
   depends_on = [module.apis]
 }
 
+module "tags" {
+  source = "../../modules/terraform_03_tags"
+
+  org_id                             = var.org_id
+  dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level_5"
+
+}
 module "dlp" {
-  source = "../../modules/terraform_03_dlp"
+  source = "../../modules/terraform_04_dlp"
 
   org_id                             = var.org_id
   application_project                = var.application_project
@@ -32,9 +39,12 @@ module "dlp" {
   source_data_regions                = var.source_data_regions
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
 
-  deploy_dlp_inspection_template_to_global_region = true
+  # tags for dlp
+  dlp_tag_high_sensitivity_value_namespaced_name     = module.tags.dlp_tag_high_sensitivity_id
+  dlp_tag_moderate_sensitivity_value_namespaced_name = module.tags.dlp_tag_moderate_sensitivity_id
+  dlp_tag_low_sensitivity_value_namespaced_name      = module.tags.dlp_tag_low_sensitivity_id
 
-  dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level_4"
+  deploy_dlp_inspection_template_to_global_region = true
 
   built_in_info_types = [
     {
@@ -110,7 +120,7 @@ module "dlp" {
 }
 
 module "annotations-solution" {
-  source = "../../modules/terraform_04_annotations_infra"
+  source = "../../modules/terraform_05_annotations_infra"
 
   application_project = var.application_project
   publishing_project  = var.publishing_project
@@ -1123,7 +1133,7 @@ module "annotations-solution" {
 }
 
 module "org_iam" {
-  source = "../../modules/terraform_05_iam_org_level"
+  source = "../../modules/terraform_06_iam_org_level"
 
   org_id                          = var.org_id
   application_project             = var.application_project
@@ -1136,7 +1146,7 @@ module "org_iam" {
 }
 
 module "data_folders_iam" {
-  source = "../../modules/terraform_06_iam_folder_level"
+  source = "../../modules/terraform_07_iam_folder_level"
 
   org_id                          = var.org_id
   application_project             = var.application_project

@@ -32,9 +32,9 @@ module "gcs_dlp_configs" {
   data_region                       = var.data_region
   dlp_gcs_bq_results_table_name     = var.dlp_gcs_results_table_name
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
-  dlp_tag_high_sensitivity_id       = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
-  dlp_tag_low_sensitivity_id        = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
-  dlp_tag_moderate_sensitivity_id   = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+  dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_value_namespaced_name
+  dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_value_namespaced_name
+  dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_value_namespaced_name
   project                           = var.application_project
   pubsub_tagger_topic_id            = google_pubsub_topic.dlp_gcs_topic.id
   publishing_project                = var.publishing_project

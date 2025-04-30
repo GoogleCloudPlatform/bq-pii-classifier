@@ -36,9 +36,9 @@ module "bq_dlp_configs" {
   bigquery_dataset_name             = google_bigquery_dataset.results_dataset.dataset_id
   data_region                       = var.data_region
   dlp_inspection_templates_ids_list = local.dlp_inspection_templates_ids_list
-  dlp_tag_high_sensitivity_id       = google_tags_tag_value.dlp_high_sensitivity_value.namespaced_name
-  dlp_tag_low_sensitivity_id        = google_tags_tag_value.dlp_moderate_sensitivity_value.namespaced_name
-  dlp_tag_moderate_sensitivity_id   = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
+  dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_value_namespaced_name
+  dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_value_namespaced_name
+  dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_value_namespaced_name
   project                           = var.application_project
   publishing_project                = var.publishing_project
   pubsub_tagger_topic_id            = google_pubsub_topic.dlp_bq_topic.id
