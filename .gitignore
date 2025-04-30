@@ -1,5 +1,6 @@
 .vscode/*
 
+*.tfstate
 *.tfvars
 terraform*/*.tfvars
 terraform*/*_deployment_verification.tfvars

@@ -35,7 +35,7 @@ locals {
 // The Terraform service account needs certain org/folder levels roles to be able to deploy these. If you can't grant such roles, replicate this particular module in your org CICD pipelines.
 // Run `scripts/prepare_terraform_service_account_on_org.sh <org id>` to grant permissions for Terraform to assign roles on org and folder level
 module "bq-discovery-stack-folder-permissions" {
-  source = "modules/bq-discovery-stack-folder-permissions"
+  source = "./modules/bq-discovery-stack-folder-permissions"
   // deploy once per folder
   count = length(var.dlp_bq_configurations_folders)
 

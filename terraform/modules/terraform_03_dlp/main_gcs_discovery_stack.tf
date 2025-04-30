@@ -12,7 +12,7 @@ resource "google_pubsub_topic" "dlp_gcs_topic" {
 ########################################################################################################################
 
 module "gcs_dlp_configs" {
-  source = "modules/dlp-gcs-discovery-config"
+  source = "./modules/dlp-gcs-discovery-config"
 
   count = length(var.dlp_gcs_discovery_configurations)
 

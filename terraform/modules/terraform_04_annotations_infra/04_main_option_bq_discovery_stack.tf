@@ -1,6 +1,6 @@
 module "bq-discovery-stack" {
 
-  source = "stacks/bq-discovery-stack"
+  source = "./stacks/bq-discovery-stack"
 
   dlp_dataset_name                               = var.dlp_dataset_name
   dlp_notifications_topic_name                   = var.dlp_for_bq_pubsub_topic_name
@@ -53,8 +53,6 @@ module "bq-discovery-stack" {
   tagger_service_max_requests_per_container = var.tagger_bq_service_max_requests_per_container
 
   depends_on = [
-    google_project_service.enable_apis,
-    google_project_service.enable_apis_on_publishing_project,
     google_bigquery_table.logging_table_cloud_run
   ]
 }

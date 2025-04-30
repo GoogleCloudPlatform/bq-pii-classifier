@@ -26,9 +26,9 @@ variable "sa_bq_remote_func_get_buckets_metadata" {
 
 # Helper functions for data analysis and cost estimation
 module "bq-remote-func-get-buckets-metadata" {
-  source                    = "modules/bq-remote-function"
+  source                    = "./modules/bq-remote-function"
   function_name             = var.bq_remote_func_get_buckets_metadata
-  cloud_function_src_dir    = "../helpers/bq-remote-functions/get-buckets-metadata"
+  cloud_function_src_dir    = "../../../helpers/bq-remote-functions/get-buckets-metadata"
   cloud_function_temp_dir   = "/tmp/get-buckets-metadata.zip"
   service_account_name      = var.sa_bq_remote_func_get_buckets_metadata
   function_entry_point      = "process_request"

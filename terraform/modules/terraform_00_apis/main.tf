@@ -6,6 +6,7 @@ locals {
     "workflows.googleapis.com",
     "datacatalog.googleapis.com",
     "dlp.googleapis.com",
+    "pubsub.googleapis.com",
     "batch.googleapis.com"
   ]
 

@@ -31,8 +31,6 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
   }
 
   uniform_bucket_level_access = true
-
-  depends_on = [google_project_service.enable_apis]
 }
 
 ### LOGGING ####
@@ -46,8 +44,6 @@ resource "google_logging_project_sink" "bigquery-logging-sink" {
   bigquery_options {
     use_partitioned_tables = true
   }
-
-  depends_on = [google_project_service.enable_apis]
 }
 #### Resources
 
@@ -61,8 +57,6 @@ resource "google_storage_bucket" "gcs_solution_resources" {
   force_destroy = true
 
   uniform_bucket_level_access = true
-
-  depends_on = [google_project_service.enable_apis]
 }
 
 ### configs that are XXL to fit into a cloud run variable

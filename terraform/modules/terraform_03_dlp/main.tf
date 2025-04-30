@@ -20,14 +20,12 @@ locals {
 
 module "dlp_inspection_templates" {
   count                   = length(local.dlp_regions)
-  source                  = "ion_template"
+  source                  = "./modules/dlp_inspection_template"
   project                 = var.application_project
   region                  = tolist(local.dlp_regions)[count.index]
   built_in_info_types = var.built_in_info_types
   custom_info_types_dictionaries = var.custom_info_types_dictionaries
   custom_info_types_regex        = var.custom_info_types_regex
-
-  depends_on = [google_project_service.enable_apis_on_application_project]
 }
 
 #############################################################
@@ -70,7 +68,5 @@ resource "google_bigquery_dataset" "results_dataset" {
   description = "To store DLP results"
 
   delete_contents_on_destroy = !var.terraform_data_deletion_protection
-
-  depends_on = [google_project_service.enable_apis_on_publishing_project]
 }
 

@@ -14,8 +14,6 @@ resource "google_bigquery_dataset" "logging_dataset" {
   description = "To store logs and monitoring views for the GCP data annotations solution"
 
   delete_contents_on_destroy = !var.terraform_data_deletion_protection
-
-  depends_on = [google_project_service.enable_apis]
 }
 
 

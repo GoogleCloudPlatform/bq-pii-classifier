@@ -1,7 +1,7 @@
 ### DLP for GCS modules
 
 module "gcs-discovery-stack" {
-  source = "stacks/gcs-discovery-stack"
+  source = "./stacks/gcs-discovery-stack"
 
   image_name                                     = var.image_name
   dlp_notifications_topic_name                   = var.dlp_for_gcs_pubsub_topic_name
@@ -47,8 +47,6 @@ module "gcs-discovery-stack" {
   tagger_service_max_requests_per_container = var.tagger_gcs_service_max_requests_per_container
 
   depends_on = [
-    google_project_service.enable_apis,
-    google_project_service.enable_apis_on_publishing_project,
     google_bigquery_table.logging_table_cloud_run
   ]
 }

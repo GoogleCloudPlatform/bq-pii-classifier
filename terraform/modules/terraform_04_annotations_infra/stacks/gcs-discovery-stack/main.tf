@@ -113,7 +113,7 @@ resource "google_pubsub_subscription" "tagger-for-dlp-subscription" {
 }
 
 module "pubsub-tagger-gcs-for-dispatcher" {
-  source                                  = "../../../terraform_00_common_modules/pubsub"
+  source                                  = "../../modules/pubsub"
   project                                 = var.project
   subscription_endpoint                   = "${module.cloud-run-tagger-gcs.service_endpoint}/tagging-dispatcher-handler"
   subscription_name                       = "${var.tagger_gcs_pubsub_sub}_for_dispatcher"
