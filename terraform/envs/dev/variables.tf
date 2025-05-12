@@ -43,4 +43,3 @@ variable "services_container_image_name" {
   description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
-

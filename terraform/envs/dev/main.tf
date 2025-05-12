@@ -1,3 +1,11 @@
+data google_project "gcp_host_project" {
+  project_id = var.application_project
+}
+
+locals {
+  dlp_service_account_email = "service-${data.google_project.gcp_host_project.number}@dlp-api.iam.gserviceaccount.com"
+}
+
 module "apis" {
   source = "../../modules/terraform_00_apis"
 
@@ -27,8 +35,12 @@ module "tags" {
 
   org_id                             = var.org_id
   dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level_5"
+  ignore_dlp_sensitivity_key_name    = "ignore_dlp_sensitivity"
 
+  dlp_tag_sensitivity_level_key_iam_tag_user_principles = ["serviceAccount:${local.dlp_service_account_email}"]
+  ignore_dlp_sensitivity_key_iam_tag_user_principles = []
 }
+
 module "dlp" {
   source = "../../modules/terraform_04_dlp"
 
@@ -40,9 +52,9 @@ module "dlp" {
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
 
   # tags for dlp
-  dlp_tag_high_sensitivity_value_namespaced_name     = module.tags.dlp_tag_high_sensitivity_id
-  dlp_tag_moderate_sensitivity_value_namespaced_name = module.tags.dlp_tag_moderate_sensitivity_id
-  dlp_tag_low_sensitivity_value_namespaced_name      = module.tags.dlp_tag_low_sensitivity_id
+  dlp_tag_high_sensitivity_value_namespaced_name     = ""//module.tags.dlp_tag_high_sensitivity_id
+  dlp_tag_moderate_sensitivity_value_namespaced_name = ""//module.tags.dlp_tag_moderate_sensitivity_id
+  dlp_tag_low_sensitivity_value_namespaced_name      = ""//module.tags.dlp_tag_low_sensitivity_id
 
   deploy_dlp_inspection_template_to_global_region = true
 
@@ -83,7 +95,7 @@ module "dlp" {
       project_id_regex                                  = "^bqsc-marketing-v1$"
       dataset_regex                                     = "^marketing_us$"
       table_regex                                       = ".*"
-      apply_tags                                        = true
+      apply_tags                                        = false
       create_configuration_in_paused_state              = false
       table_types = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
       reprofile_frequency_on_table_schema_update        = "UPDATE_FREQUENCY_NEVER"
@@ -94,6 +106,7 @@ module "dlp" {
     },
     {
       folder_id                            = 490673413823
+      apply_tags                           = false
       create_configuration_in_paused_state = false
     }
   ]
@@ -103,7 +116,7 @@ module "dlp" {
       folder_id                                         = 11357726785
       project_id_regex                                  = "^bqsc-marketing-v1$"
       bucket_name_regex                                 = ".*"
-      apply_tags                                        = true
+      apply_tags                                        = false
       create_configuration_in_paused_state              = false
       reprofile_frequency                               = "UPDATE_FREQUENCY_NEVER"
       reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_NEVER"
@@ -112,6 +125,7 @@ module "dlp" {
     },
     {
       folder_id                            = 490673413823
+      apply_tags                           = false
       create_configuration_in_paused_state = false
     }
   ]

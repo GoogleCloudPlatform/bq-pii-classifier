@@ -3,7 +3,6 @@ variable "application_project" {
   description = "GCP project name to deploy application components to"
 }
 
-
 variable "application_service_account_name" {
   type = string
   default = "annotations-app"
