@@ -1,6 +1,6 @@
 module "bq-discovery-stack" {
 
-  source = "./stacks/bq-discovery-stack"
+  source = "./stacks/bq_discovery_stack"
 
   dlp_dataset_name                               = var.dlp_dataset_name
   dlp_notifications_topic_name                   = var.dlp_for_bq_pubsub_topic_name

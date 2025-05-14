@@ -1,7 +1,7 @@
 ### DLP for GCS modules
 
 module "gcs-discovery-stack" {
-  source = "./stacks/gcs-discovery-stack"
+  source = "./stacks/gcs_discovery_stack"
 
   image_name                                     = var.services_container_image_name
   dlp_notifications_topic_name                   = var.dlp_for_gcs_pubsub_topic_name

@@ -24,7 +24,7 @@ resource "google_bigquery_table" "logging_view_tag_history" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq-discovery-stack/views/v_log_tag_history.tpl",
+    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/views/v_log_tag_history.tpl",
       {
         project = var.publishing_project
         dataset = var.logging_dataset_name
@@ -43,7 +43,7 @@ resource "google_bigquery_table" "logging_view_label_history" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq-discovery-stack/views/v_log_label_history.tpl",
+    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/views/v_log_label_history.tpl",
       {
         project = var.publishing_project
         dataset = var.logging_dataset_name
@@ -63,7 +63,7 @@ resource "google_bigquery_table" "view_tagging_actions" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq-discovery-stack/views/v_tagging_actions.tpl",
+    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/views/v_tagging_actions.tpl",
       {
         project = var.publishing_project
         dataset = var.logging_dataset_name
@@ -84,7 +84,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
 
   view {
     use_legacy_sql = false
-    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq-discovery-stack/views/v_run_summary_counts.tpl",
+    query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/views/v_run_summary_counts.tpl",
       {
         project = var.publishing_project
         dataset = var.logging_dataset_name
@@ -143,7 +143,7 @@ resource "google_bigquery_table" "dispatcher_runs_bq_table" {
 
   clustering = ["run_id"]
 
-  schema = file("../../modules/terraform_05_annotations_infra/stacks/bq-discovery-stack/schema/dispatcher_runs_bigquery.json")
+  schema = file("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/schema/dispatcher_runs_bigquery.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }

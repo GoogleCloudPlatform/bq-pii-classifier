@@ -18,7 +18,7 @@ locals {
 ########################################################################################################################
 
 module "cloud-run-tagger-gcs" {
-  source        = "../../modules/cloud-run"
+  source        = "../../modules/cloud_run"
   project       = var.project
   region        = var.compute_region
   service_image = local.service_image_uri

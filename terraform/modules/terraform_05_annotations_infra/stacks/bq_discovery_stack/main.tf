@@ -73,7 +73,7 @@ resource "google_storage_bucket_object" "info_type_policy_tag_map_file" {
 }
 
 module "cloud-run-tagger" {
-  source                        = "../../modules/cloud-run"
+  source                        = "../../modules/cloud_run"
   project                       = var.project
   region                        = var.compute_region
   service_image                 = local.service_image_uri
@@ -198,7 +198,7 @@ module "pubsub-tagger-for-dispatcher" {
 ### Data Catalog Policy Tags ####
 module "data-catalog" {
   count = length(local.taxonomies_to_be_created)
-  source = "../../modules/data-catalog"
+  source = "../../modules/data_catalog"
   project = var.project
   region = local.taxonomies_to_be_created[count.index][0]
 
