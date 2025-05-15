@@ -3,17 +3,11 @@
 
 #### DLP Permissions #####
 
-// DLP service account must be able to read GCS data to scan it
+// DLP service account must be able to profile buckets and apply tags
+// permissions: https://cloud.google.com/sensitive-data-protection/docs/iam-roles#dlp.orgdriver
 resource "google_folder_iam_member" "iam_member_dlp_sa_gcs_viewer" {
   folder = "folders/${var.dlp_config_folder_id}"
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${var.dlp_service_sa_email}"
-}
-
-// to add and remove tags to resources
-resource "google_folder_iam_member" "iam_member_dlp_sa_tag_user" {
-  folder = "folders/${var.dlp_config_folder_id}"
-  role   = "roles/resourcemanager.tagUser"
+  role   = "roles/dlp.orgdriver"
   member = "serviceAccount:${var.dlp_service_sa_email}"
 }
 

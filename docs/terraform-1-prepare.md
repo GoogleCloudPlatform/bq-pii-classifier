@@ -25,7 +25,7 @@ Make sure that the user account running the below steps has `roles/admin` on the
 In a terminal shell, run the following commands:
 
 ```shell
-export PROJECT_ID=<project id of the host project> 
+export PROJECT_ID=<project id of the host project>
 export COMPUTE_REGION=< region to deploy infra resources >
 export DATA_REGION=< region to deploy data resources e.g. bigquery dataset >
 
@@ -68,6 +68,15 @@ export TF_SA=terraform
 
 ./scripts/prepare_terraform_service_account_on_host_project.sh
 ```
+#### Grant Terraform Service Account permissions on the publishing project
+
+```shell
+# service account name to be created for Terraform in the host project
+export TF_SA=terraform
+
+./scripts/prepare_terraform_service_account_on_publishing_project.sh
+```
+
 
 #### Grant the Terraform Service Account Org Permissions
 
@@ -84,6 +93,7 @@ account needs to have certain org-level permissions to do so
 Alternatively, you can skip this section and use an existing service account granted that it has the roles
 and permissions defined in the following scripts 
 * [host project permissions](../scripts/prepare_terraform_service_account_on_host_project.sh)
+* [publishing project permissions](../scripts/prepare_terraform_service_account_on_publishing_project.sh)
 * [org permissions](../scripts/prepare_terraform_service_account_on_org.sh)
 
 The external service account email will be used with Terraform at a later step

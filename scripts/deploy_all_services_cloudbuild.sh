@@ -30,4 +30,5 @@ gcloud builds submit \
 --project "${PROJECT_ID}" \
 --region "${COMPUTE_REGION}" \
 --config cloudbuild_deploy_docker.yaml \
---substitutions _IMAGE_NAME="${IMAGE_NAME}"
+--substitutions _IMAGE_NAME="${IMAGE_NAME}" \
+--default-buckets-behavior=regional-user-owned-bucket

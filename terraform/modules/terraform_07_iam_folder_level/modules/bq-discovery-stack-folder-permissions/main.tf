@@ -13,24 +13,11 @@ resource "google_folder_iam_member" "iam_member_tagger_sa_custom_role" {
 
 ####### DLP SA ########
 
-# dlp service account needs to read and inspect tables
-resource "google_folder_iam_member" "data_folder_iam_dlp_sa_bq_data_viewer" {
+// DLP service account must be able to profile tables and apply tags
+// permissions: https://cloud.google.com/sensitive-data-protection/docs/iam-roles#dlp.orgdriver
+resource "google_folder_iam_member" "iam_member_dlp_sa_gcs_viewer" {
   folder = "folders/${var.dlp_config_folder_id}"
-  role = "roles/bigquery.dataViewer"
-  member = "serviceAccount:${var.dlp_service_sa_email}"
-}
-
-# dlp sa needs to read columns that are tagged with policy tags created
-resource "google_folder_iam_member" "data_folder_iam_dlp_sa_category_fine_reader" {
-  folder = "folders/${var.dlp_config_folder_id}"
-  role = "roles/datacatalog.categoryFineGrainedReader"
-  member = "serviceAccount:${var.dlp_service_sa_email}"
-}
-
-// to add and remove tags to resources
-resource "google_folder_iam_member" "iam_member_dlp_sa_tag_user" {
-  folder = "folders/${var.dlp_config_folder_id}"
-  role   = "roles/resourcemanager.tagUser"
+  role   = "roles/dlp.orgdriver"
   member = "serviceAccount:${var.dlp_service_sa_email}"
 }
 
