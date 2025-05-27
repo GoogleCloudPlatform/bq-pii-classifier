@@ -1,3 +1,4 @@
+.vscode/*
 
 no-git
 no-git/*
@@ -5,6 +6,8 @@ no-git/*
 TODO.md
 
 terraform/tfvars/*
+*.tfvars
+tfvars_*
 
 *.DS_Store
 
