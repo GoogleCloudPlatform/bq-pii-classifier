@@ -69,25 +69,25 @@ module "dlp" {
   ]
 
   dlp_bq_discovery_configurations = [
-    {
-      folder_id                                         = 11357726785,
-      project_id_regex                                  = "^bqsc-marketing-v1$"
-      dataset_regex                                     = "^marketing_us$"
-      table_regex                                       = ".*"
-      apply_tags                                        = false
-      create_configuration_in_paused_state              = false
-      table_types = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
-      reprofile_frequency_on_table_schema_update        = "UPDATE_FREQUENCY_NEVER"
-      reprofile_frequency_on_table_data_update          = "UPDATE_FREQUENCY_NEVER"
-      reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_NEVER"
-      reprofile_types_on_schema_update = ["SCHEMA_NEW_COLUMNS"]
-      reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
-    },
-    {
-      folder_id                            = 490673413823
-      apply_tags                           = false
-      create_configuration_in_paused_state = false
-    }
+    # {
+    #   folder_id                                         = 11357726785,
+    #   project_id_regex                                  = "^bqsc-marketing-v1$"
+    #   dataset_regex                                     = "^marketing_us$"
+    #   table_regex                                       = ".*"
+    #   apply_tags                                        = false
+    #   create_configuration_in_paused_state              = false
+    #   table_types = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
+    #   reprofile_frequency_on_table_schema_update        = "UPDATE_FREQUENCY_NEVER"
+    #   reprofile_frequency_on_table_data_update          = "UPDATE_FREQUENCY_NEVER"
+    #   reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_NEVER"
+    #   reprofile_types_on_schema_update = ["SCHEMA_NEW_COLUMNS"]
+    #   reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
+    # },
+    # {
+    #   folder_id                            = 490673413823
+    #   apply_tags                           = false
+    #   create_configuration_in_paused_state = false
+    # }
   ]
 
   dlp_gcs_discovery_configurations = [
@@ -96,17 +96,17 @@ module "dlp" {
       project_id_regex                                  = "^bqsc-finance-v1$"
       bucket_name_regex                                 = ".*"
       apply_tags                                        = true
-      create_configuration_in_paused_state              = false
+      create_configuration_in_paused_state              = true
       reprofile_frequency                               = "UPDATE_FREQUENCY_DAILY"
       reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_DAILY"
       included_bucket_attributes = ["ALL_SUPPORTED_BUCKETS"]
       included_object_attributes = ["ALL_SUPPORTED_OBJECTS"]
     },
-    {
-      folder_id                            = 490673413823
-      apply_tags                           = false
-      create_configuration_in_paused_state = false
-    }
+    # {
+    #   folder_id                            = 490673413823
+    #   apply_tags                           = false
+    #   create_configuration_in_paused_state = false
+    # }
   ]
 
   depends_on = [module.apis]
