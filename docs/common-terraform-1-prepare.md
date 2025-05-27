@@ -11,11 +11,8 @@ export DATA_REGION=< region where the target data resides >
 export BUCKET_NAME=${PROJECT_ID}-bq-pii-classifier
 export BUCKET=gs://${BUCKET_NAME}
 export DOCKER_REPO_NAME=bq-pii-classifier
-
-export CONFIG=<gcloud & terraform config name> 
 export ACCOUNT=< personal account email >  
 
-gcloud config configurations create $CONFIG
 gcloud config set project $PROJECT_ID
 gcloud config set account $ACCOUNT
 gcloud config set compute/region $COMPUTE_REGION

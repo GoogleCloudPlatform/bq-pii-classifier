@@ -18,6 +18,7 @@ resource "google_storage_bucket" "gcs_flags_bucket" {
   }
 
   uniform_bucket_level_access = true
+  labels = var.default_labels
 }
 
 resource "google_storage_bucket_iam_binding" "gcs_flags_bucket_iam_bindings" {

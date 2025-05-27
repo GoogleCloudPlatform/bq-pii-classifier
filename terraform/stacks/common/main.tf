@@ -143,6 +143,7 @@ module "bigquery" {
   standard_dlp_results_table_name = var.standard_dlp_results_table_name
   inspection_templates_count = local.inspection_templates_count
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
+  default_labels = var.default_labels
 }
 
 module "cloud_logging" {
@@ -206,6 +207,7 @@ module "cloud-run-tagging-dispatcher" {
   service_name                  = var.dispatcher_service_name
   service_account_email         = module.iam.sa_tagging_dispatcher_email
   invoker_service_account_email = module.iam.sa_tagging_dispatcher_tasks_email
+  default_labels                = var.default_labels
   # Dispatcher could take time to list large number of tables
   timeout_seconds               = var.dispatcher_service_timeout_seconds
   max_containers                = 1
@@ -270,6 +272,7 @@ module "cloud-run-tagger" {
   service_name                  = var.tagger_service_name
   service_account_email         = module.iam.sa_tagger_email
   invoker_service_account_email = module.iam.sa_tagger_tasks_email
+  default_labels                = var.default_labels
   # no more than 80 requests at a time to handle BigQuery API rate limiting
   max_containers                = 1
   max_requests_per_container    = 80
@@ -355,6 +358,7 @@ module "pubsub-tagging-dispatcher" {
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  default_labels                          = var.default_labels
 
 }
 
@@ -373,11 +377,5 @@ module "pubsub-tagger" {
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  default_labels                          = var.default_labels
 }
-
-
-
-
-
-
-

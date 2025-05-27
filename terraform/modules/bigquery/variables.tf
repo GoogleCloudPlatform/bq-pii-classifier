@@ -50,3 +50,7 @@ variable "inspection_templates_count" {type = number}
 variable "terraform_data_deletion_protection" {
   type = bool
 }
+
+variable "default_labels" {
+  type = map(string)
+}

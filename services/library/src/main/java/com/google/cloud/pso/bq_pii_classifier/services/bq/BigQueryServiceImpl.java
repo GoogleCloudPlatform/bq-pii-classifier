@@ -42,14 +42,13 @@ public class BigQueryServiceImpl implements BigQueryService {
         bqAPIWrapper = BigQueryOptions.getDefaultInstance().getService();
 
         // direct API calls are needed for some operations
-        // TODO: follow up on the missing/faulty wrapper calls and stop using direct API calls
         bqAPI = new com.google.api.services.bigquery.Bigquery.Builder(
                 new NetHttpTransport(),
                 new JacksonFactory(),
                 new HttpCredentialsAdapter(GoogleCredentials
                         .getApplicationDefault()
                         .createScoped(BigqueryScopes.all())))
-                .setApplicationName("bq-security-classifier")
+                .setApplicationName("cloud-solutions/bq-security-classifier-usage-v2.0")
                 .build();
     }
 
@@ -73,6 +72,7 @@ public class BigQueryServiceImpl implements BigQueryService {
                         // Interactive queries have a limit of 100 concurrent ones. This is handled by
                         // Cloud run number of parallel requests and PubSub retries
                         .setPriority(QueryJobConfiguration.Priority.INTERACTIVE)
+                        .setLabels(Map.of("goog-packaged-solution", "bq-pii-classifier"))
                         .build();
 
         JobId jobId = JobId.of(UUID.randomUUID().toString());

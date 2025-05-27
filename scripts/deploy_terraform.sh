@@ -31,8 +31,6 @@ terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \
     -backend-config="prefix=terraform-state"
 
-terraform workspace select "${CONFIG}"
-
 terraform apply -lock=false -var-file="${VARS}" -auto-approve
 
 # set the working dir as the scripts directory

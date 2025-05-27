@@ -241,3 +241,7 @@ variable "taxonomy_name_suffix" {
 variable "terraform_data_deletion_protection" {
   type = bool
 }
+
+variable "default_labels" {
+  type = map(string)
+}

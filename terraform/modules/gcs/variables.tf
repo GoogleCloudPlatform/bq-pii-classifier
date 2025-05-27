@@ -17,3 +17,7 @@ variable "gcs_flags_bucket_admins" {
 variable "terraform_data_deletion_protection" {
   type = bool
 }
+
+variable "default_labels" {
+  type = map(string)
+}

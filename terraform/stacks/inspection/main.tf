@@ -38,6 +38,7 @@ module "cloud-run-inspection-dispatcher" {
   invoker_service_account_email = google_service_account.sa_inspection_dispatcher_tasks.email
   # Dispatcher could take time to list large number of tables
   timeout_seconds = var.dispatcher_service_timeout_seconds
+  default_labels  = var.default_labels
   # We don't need high conc for the entry point
   max_containers = 1
   # We need more than 1 CPU to help accelerate processing of large BigQuery Scan scope
@@ -83,6 +84,7 @@ module "cloud-run-inspector" {
   service_account_email = google_service_account.sa_inspector.email
   invoker_service_account_email = google_service_account.sa_inspector_tasks.email
   timeout_seconds = var.inspector_service_timeout_seconds
+  default_labels  = var.default_labels
 
   environment_variables =  [
     {
@@ -144,6 +146,7 @@ module "pubsub-inspection-dispatcher" {
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.dispatcher_subscription_message_retention_duration
+  default_labels = var.default_labels
 }
 
 module "pubsub-inspector" {
@@ -159,7 +162,7 @@ module "pubsub-inspector" {
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   # However, retrying the inspector function with the same msg will lead to a non-retryable error due to dlp job name collision
   subscription_message_retention_duration = var.inspector_subscription_message_retention_duration
-
+  default_labels = var.default_labels
 }
 
 

@@ -11,6 +11,7 @@ resource "google_bigquery_dataset" "results_dataset" {
   description = "To store DLP results from BQ PII Classifier solution"
   # contents have deletion_protection set according to user configuration
   delete_contents_on_destroy = true
+  labels = var.default_labels
 }
 
 # Logging BQ sink must be able to write data to logging table in the dataset
@@ -41,6 +42,7 @@ resource "google_bigquery_table" "standard_dlp_results_table" {
   schema = file("modules/bigquery/schema/standard_dlp_results.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_table" {
@@ -57,6 +59,7 @@ resource "google_bigquery_table" "logging_table" {
   schema = file("modules/bigquery/schema/run_googleapis_com_stdout.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+  labels = var.default_labels
 }
 
 
@@ -78,6 +81,7 @@ resource "google_bigquery_table" "logging_view_tag_history" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_label_history" {
@@ -96,6 +100,7 @@ resource "google_bigquery_table" "logging_view_label_history" {
       }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_steps" {
@@ -114,6 +119,7 @@ resource "google_bigquery_table" "logging_view_steps" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_service_calls" {
@@ -132,6 +138,7 @@ resource "google_bigquery_table" "view_service_calls" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_broken_steps" {
@@ -152,6 +159,7 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_tagging_actions" {
@@ -171,6 +179,7 @@ resource "google_bigquery_table" "view_tagging_actions" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_run_summary" {
@@ -191,6 +200,7 @@ resource "google_bigquery_table" "view_run_summary" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_run_summary_counts" {
@@ -210,6 +220,7 @@ resource "google_bigquery_table" "view_run_summary_counts" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_errors_non_retryable" {
@@ -228,6 +239,7 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_errors_retryable" {
@@ -246,6 +258,7 @@ resource "google_bigquery_table" "view_errors_retryable" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_tracking_id_map" {
@@ -264,6 +277,7 @@ resource "google_bigquery_table" "view_tracking_id_map" {
     }
     )
   }
+  labels = var.default_labels
 }
 
 ######## CONFIG VIEWS #####################################################################
@@ -292,6 +306,7 @@ resource "google_bigquery_table" "config_view_infotypes_policytags_map" {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.infotypes_policytags_map_select_statements)
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "config_view_project_domain_map" {
@@ -304,17 +319,19 @@ resource "google_bigquery_table" "config_view_project_domain_map" {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.project_domain_map_select_statements)
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "config_view_dataset_domain_map" {
   dataset_id = google_bigquery_dataset.results_dataset.dataset_id
   table_id = "v_config_datasets_domains_map"
 
-deletion_protection = var.terraform_data_deletion_protection
+  deletion_protection = var.terraform_data_deletion_protection
 
   view {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.dataset_domain_map_select_statements)
   }
+  labels = var.default_labels
 }
 
