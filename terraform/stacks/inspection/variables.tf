@@ -177,6 +177,9 @@ variable "inspector_subscription_message_retention_duration" {
   type = string
 }
 
+variable "default_labels" {
+  type = map(string)
+}
 
 
 

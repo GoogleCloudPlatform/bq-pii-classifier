@@ -548,6 +548,10 @@ variable "terraform_data_deletion_protection" {
   default = false
 }
 
+variable "default_labels" {
+  type = map(string)
+  default = {goog-packaged-solution: "bq-pii-classifier"}
+}
 
 
 

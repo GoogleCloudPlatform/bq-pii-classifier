@@ -23,3 +23,6 @@ variable "subscription_message_retention_duration" {
 variable "subscription_ack_deadline_seconds" {
   type = number
 }
+variable "default_labels" {
+  type = map(string)
+}

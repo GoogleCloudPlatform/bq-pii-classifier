@@ -48,3 +48,7 @@ variable "max_requests_per_container" {
 variable "timeout_seconds" {
   type = number
 }
+
+variable "default_labels" {
+  type = map(string)
+}

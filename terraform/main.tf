@@ -71,6 +71,7 @@ module "gcs" {
   # both dispatchers should be admins. Add the inspection-dispatcher-sa only if it's being deployed
   gcs_flags_bucket_admins = var.is_auto_dlp_mode ? local.common_gcs_admins : concat(local.common_gcs_admins, local.inspection_gcs_admins)
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
+  default_labels          = var.default_labels
 }
 
 module "common-stack" {
@@ -125,6 +126,7 @@ module "common-stack" {
   source_data_regions            = var.source_data_regions
   taxonomy_name_suffix           = var.taxonomy_name_suffix
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
+  default_labels                 = var.default_labels
 }
 
 module "inspection-stack" {
@@ -164,6 +166,7 @@ module "inspection-stack" {
   dlp_min_likelihood              = var.dlp_min_likelihood
   dlp_sampling_method             = var.dlp_sampling_method
   gcs_flags_bucket_name           = module.gcs.create_gcs_flags_bucket_name
+  default_labels                 = var.default_labels
 
   dispatcher_service_timeout_seconds                 = var.dispatcher_service_timeout_seconds
   dispatcher_subscription_ack_deadline_seconds       = var.dispatcher_subscription_ack_deadline_seconds

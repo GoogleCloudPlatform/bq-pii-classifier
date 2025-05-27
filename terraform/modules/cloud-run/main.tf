@@ -55,8 +55,10 @@ resource "google_cloud_run_service" "service" {
     annotations = {
       "run.googleapis.com/ingress" : "internal"
     }
-  }
 
+    // cloud run labels must not include '-'. If so, it will not appear in the YAML definition
+    labels = var.default_labels
+  }
 
   traffic {
     percent = 100
