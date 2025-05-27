@@ -48,7 +48,7 @@ public class BigQueryServiceImpl implements BigQueryService {
                 new HttpCredentialsAdapter(GoogleCredentials
                         .getApplicationDefault()
                         .createScoped(BigqueryScopes.all())))
-                .setApplicationName("cloud-solutions/bq-security-classifier-usage-v2.0")
+                .setApplicationName("cloud-solutions/bq-pii-classifier-usage-v2.0")
                 .build();
     }
 
