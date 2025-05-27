@@ -86,6 +86,7 @@ module "cloud-run-tagger" {
   max_cpu                       = var.tagger_service_max_cpu
   max_memory                    = var.tagger_service_max_memory
   timeout_seconds               = var.tagger_service_timeout_seconds
+  default_labels                = var.default_labels
   environment_variables         = [
     {
       name  = "IS_DRY_RUN_TAGS",
@@ -178,6 +179,8 @@ resource "google_pubsub_subscription" "tagger-for-dlp-subscription" {
       service_account_email = local.sa_application_email
     }
   }
+
+  labels = var.default_labels
 }
 
 module "pubsub-tagger-for-dispatcher" {
@@ -193,6 +196,7 @@ module "pubsub-tagger-for-dispatcher" {
   # How long to retain unacknowledged messages in the subscription's backlog, from the moment a message is published.
   # In case of unexpected problems we want to avoid a buildup that re-trigger functions
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  default_labels                          = var.default_labels
 }
 
 ### Data Catalog Policy Tags ####
@@ -267,6 +271,8 @@ resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
   service_account = local.sa_application_email
 
   deletion_protection = false
+
+  labels = var.default_labels
 
   source_contents = <<-EOF
 main:

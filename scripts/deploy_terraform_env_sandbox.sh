@@ -22,7 +22,7 @@ set -e
 # set the working dir as the scripts directory
 cd "$(dirname "$0")"
 
-cd ../terraform/envs/dev
+cd ../terraform/envs/sandbox
 
 terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \

@@ -27,6 +27,7 @@ module "gcs-discovery-stack" {
   bq_view_run_summary                            = google_bigquery_table.view_run_summary.table_id
   logging_table_name                             = google_bigquery_table.logging_table_cloud_run.table_id
   terraform_data_deletion_protection             = var.terraform_data_deletion_protection
+  default_labels                                 = var.default_labels
   info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 
   # service accounts

@@ -51,7 +51,7 @@ public class BigQueryServiceImpl implements BigQueryService {
                 new JacksonFactory(),
                 new HttpCredentialsAdapter(
                     GoogleCredentials.getApplicationDefault().createScoped(BigqueryScopes.all())))
-            .setApplicationName("bq-security-classifier")
+            .setApplicationName("cloud-solutions/gcp-pii-classifier-usage-v1.0")
             .build();
   }
 
@@ -70,6 +70,7 @@ public class BigQueryServiceImpl implements BigQueryService {
             // Interactive queries have a limit of 100 concurrent ones. This is handled by
             // Cloud run number of parallel requests and PubSub retries
             .setPriority(QueryJobConfiguration.Priority.INTERACTIVE)
+            .setLabels(Map.of("goog-packaged-solution", "gcp-pii-classifier"))
             .setAllowLargeResults(true)
             .build();
 

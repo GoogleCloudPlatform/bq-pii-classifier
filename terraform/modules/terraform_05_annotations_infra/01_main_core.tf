@@ -34,6 +34,8 @@ resource "google_storage_bucket" "gcs_solution_resources" {
   force_destroy = true
 
   uniform_bucket_level_access = true
+
+  labels = var.default_labels
 }
 
 ### configs that are XXL to fit into a cloud run variable

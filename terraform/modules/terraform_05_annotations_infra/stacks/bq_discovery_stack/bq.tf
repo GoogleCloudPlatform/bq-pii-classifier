@@ -32,6 +32,8 @@ resource "google_bigquery_table" "logging_view_tag_history" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_label_history" {
@@ -51,6 +53,8 @@ resource "google_bigquery_table" "logging_view_label_history" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 
@@ -72,6 +76,8 @@ resource "google_bigquery_table" "view_tagging_actions" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 
@@ -93,6 +99,8 @@ resource "google_bigquery_table" "view_run_summary_counts" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 
@@ -107,6 +115,8 @@ resource "google_bigquery_table" "config_view_infotypes_policytags_map" {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.infotypes_policytags_map_select_statements)
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "config_view_project_domain_map" {
@@ -120,6 +130,8 @@ resource "google_bigquery_table" "config_view_project_domain_map" {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.project_domain_map_select_statements)
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "config_view_dataset_domain_map" {
@@ -133,6 +145,8 @@ resource "google_bigquery_table" "config_view_dataset_domain_map" {
     use_legacy_sql = false
     query = join(" UNION ALL \r\n", local.dataset_domain_map_select_statements)
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "dispatcher_runs_bq_table" {
@@ -146,4 +160,6 @@ resource "google_bigquery_table" "dispatcher_runs_bq_table" {
   schema = file("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/schema/dispatcher_runs_bigquery.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+
+  labels = var.default_labels
 }

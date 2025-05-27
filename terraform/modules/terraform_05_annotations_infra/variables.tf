@@ -162,6 +162,11 @@ variable "dlp_dataset_name" {
   default     = "dlp_results"
 }
 
+variable "default_labels" {
+  type = map(string)
+  default = {goog-packaged-solution: "gcp-pii-classifier"}
+}
+
 ################################################################################
 # BQ Discovery stack variables
 ################################################################################

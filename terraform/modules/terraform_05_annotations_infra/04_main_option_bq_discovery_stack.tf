@@ -37,6 +37,7 @@ module "bq-discovery-stack" {
   workflows_bq_name                              = var.workflows_bq_name
   image_name                                     = var.services_container_image_name
   resources_bucket_name                          = google_storage_bucket.gcs_solution_resources.name
+  default_labels                                 = var.default_labels
   info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 
   # Dispatcher Cloud Batch settings

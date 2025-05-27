@@ -27,3 +27,6 @@ variable "retain_acked_messages" {
   type = bool
   default = false
 }
+variable "default_labels" {
+  type = map(string)
+}

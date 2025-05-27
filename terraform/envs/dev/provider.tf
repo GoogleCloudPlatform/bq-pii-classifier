@@ -7,6 +7,10 @@ terraform {
       version = "= 6.18.1"
     }
   }
+
+  provider_meta "google" {
+    module_name = "cloud-solutions/gcp-pii-classifier–deploy-v1.0"
+  }
 }
 
 provider "google" {

@@ -14,6 +14,8 @@ resource "google_bigquery_dataset" "logging_dataset" {
   description = "To store logs and monitoring views for the GCP data annotations solution"
 
   delete_contents_on_destroy = !var.terraform_data_deletion_protection
+
+  labels = var.default_labels
 }
 
 
@@ -35,6 +37,8 @@ resource "google_bigquery_table" "logging_table_cloud_run" {
   schema = file("../../modules/terraform_05_annotations_infra/schema/cloud_logging_export.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_table_cloud_batch" {
@@ -51,6 +55,8 @@ resource "google_bigquery_table" "logging_table_cloud_batch" {
   schema = file("../../modules/terraform_05_annotations_infra/schema/cloud_logging_export.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+
+  labels = var.default_labels
 }
 
 #############################################################
@@ -74,6 +80,8 @@ resource "google_bigquery_table" "logging_view_steps" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_service_calls" {
@@ -93,6 +101,8 @@ resource "google_bigquery_table" "view_service_calls" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_broken_steps" {
@@ -113,6 +123,8 @@ resource "google_bigquery_table" "logging_view_broken_steps" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 
@@ -133,6 +145,8 @@ resource "google_bigquery_table" "view_errors_non_retryable" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_errors_retryable" {
@@ -152,6 +166,8 @@ resource "google_bigquery_table" "view_errors_retryable" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "view_run_summary" {
@@ -172,5 +188,7 @@ resource "google_bigquery_table" "view_run_summary" {
       }
     )
   }
+
+  labels = var.default_labels
 }
 

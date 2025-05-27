@@ -28,4 +28,4 @@ terraform init \
     -backend-config="bucket=${BUCKET_NAME}" \
     -backend-config="prefix=dev/terraform-state"
 
-terraform apply -lock=false -var-file="${VARS}" -auto-approve
+terraform apply -lock=false -auto-approve

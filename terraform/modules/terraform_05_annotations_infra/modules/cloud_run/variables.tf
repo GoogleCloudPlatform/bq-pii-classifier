@@ -52,3 +52,7 @@ variable "timeout_seconds" {
 variable "container_entry_point_args" {
   type = list(string)
 }
+
+variable "default_labels" {
+  type = map(string)
+}

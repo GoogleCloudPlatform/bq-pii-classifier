@@ -34,6 +34,7 @@ module "cloud-run-tagger-gcs" {
   max_requests_per_container    = var.tagger_service_max_requests_per_container
   max_cpu                       = var.tagger_service_max_cpu
   max_memory                    = var.tagger_service_max_memory
+  default_labels                = var.default_labels
   environment_variables = [
     {
       name  = "IS_DRY_RUN_LABELS",
@@ -106,6 +107,8 @@ resource "google_pubsub_subscription" "tagger-for-dlp-subscription" {
       service_account_email = local.sa_application_email
     }
   }
+
+  labels = var.default_labels
 }
 
 module "pubsub-tagger-gcs-for-dispatcher" {
@@ -121,6 +124,7 @@ module "pubsub-tagger-gcs-for-dispatcher" {
   # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
   # min value must be at equal to the ack_deadline_seconds
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+  default_labels                          = var.default_labels
 }
 
 ########################################################################################################################
@@ -137,6 +141,8 @@ resource "google_workflows_workflow" "gcs_tagging_dispatcher_workflow" {
   service_account = local.sa_application_email
 
   deletion_protection = false
+
+  labels = var.default_labels
 
   source_contents = <<-EOF
 main:

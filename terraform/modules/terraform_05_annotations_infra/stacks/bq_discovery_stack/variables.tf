@@ -243,3 +243,7 @@ variable "tagger_bq_service_account_name" {
 variable "dlp_notifications_topic_name" {
   type = string
 }
+
+variable "default_labels" {
+  type = map(string)
+}

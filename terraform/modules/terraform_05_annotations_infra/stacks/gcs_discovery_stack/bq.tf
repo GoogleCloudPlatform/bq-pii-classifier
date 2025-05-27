@@ -16,6 +16,7 @@ resource "google_bigquery_table" "view_gcs_run_summary_counts_gcs" {
       }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "logging_view_label_history_gcs" {
@@ -35,6 +36,7 @@ resource "google_bigquery_table" "logging_view_label_history_gcs" {
       }
     )
   }
+  labels = var.default_labels
 }
 
 resource "google_bigquery_table" "dispatcher_runs_gcs_table" {
@@ -48,4 +50,6 @@ resource "google_bigquery_table" "dispatcher_runs_gcs_table" {
   schema = file("../../modules/terraform_05_annotations_infra/stacks/gcs_discovery_stack/schema/dispatcher_runs_gcs.json")
 
   deletion_protection = var.terraform_data_deletion_protection
+
+  labels = var.default_labels
 }
