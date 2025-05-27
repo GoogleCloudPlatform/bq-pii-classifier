@@ -35,79 +35,17 @@ module "dlp" {
   dlp_tag_moderate_sensitivity_value_namespaced_name = module.tags.dlp_tag_moderate_sensitivity_id
   dlp_tag_low_sensitivity_value_namespaced_name      = module.tags.dlp_tag_low_sensitivity_id
 
-  deploy_dlp_inspection_template_to_global_region = true
+  deploy_dlp_inspection_template_to_global_region = var.deploy_dlp_inspection_template_to_global_region
 
-  built_in_info_types = [
-    {
-      info_type = "EMAIL_ADDRESS"
-    },
-    {
-      info_type = "PHONE_NUMBER"
-    },
-    {
-      info_type = "STREET_ADDRESS"
-    },
-    {
-      info_type = "PERSON_NAME"
-    },
-  ]
+  built_in_info_types = var.built_in_info_types
 
-  custom_info_types_dictionaries = [
-    {
-      name       = "CUSTOM_PAYMENT_METHOD"
-      likelihood = "LIKELY"
-      dictionary = ["Debit Card", "Credit Card"]
-    }
-  ]
+  custom_info_types_dictionaries = var.custom_info_types_dictionaries
 
-  custom_info_types_regex = [
-    {
-      name       = "CUSTOM_EMAIL"
-      likelihood = "LIKELY"
-      regex      = "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}"
-    }
-  ]
+  custom_info_types_regex = var.custom_info_types_regex
 
-  dlp_bq_discovery_configurations = [
-    # {
-    #   folder_id                                         = 11357726785,
-    #   project_id_regex                                  = "^bqsc-marketing-v1$"
-    #   dataset_regex                                     = "^marketing_us$"
-    #   table_regex                                       = ".*"
-    #   apply_tags                                        = false
-    #   create_configuration_in_paused_state              = false
-    #   table_types = ["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]
-    #   reprofile_frequency_on_table_schema_update        = "UPDATE_FREQUENCY_NEVER"
-    #   reprofile_frequency_on_table_data_update          = "UPDATE_FREQUENCY_NEVER"
-    #   reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_NEVER"
-    #   reprofile_types_on_schema_update = ["SCHEMA_NEW_COLUMNS"]
-    #   reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
-    # },
-    # {
-    #   folder_id                            = 490673413823
-    #   apply_tags                           = false
-    #   create_configuration_in_paused_state = false
-    # }
-  ]
+  dlp_bq_discovery_configurations = var.dlp_bq_discovery_configurations
 
-  dlp_gcs_discovery_configurations = [
-    {
-      folder_id                                         = 11357726785
-      project_id_regex                                  = "^bqsc-finance-v1$"
-      bucket_name_regex                                 = ".*"
-      apply_tags                                        = true
-      create_configuration_in_paused_state              = true
-      reprofile_frequency                               = "UPDATE_FREQUENCY_DAILY"
-      reprofile_frequency_on_inspection_template_update = "UPDATE_FREQUENCY_DAILY"
-      included_bucket_attributes = ["ALL_SUPPORTED_BUCKETS"]
-      included_object_attributes = ["ALL_SUPPORTED_OBJECTS"]
-    },
-    # {
-    #   folder_id                            = 490673413823
-    #   apply_tags                           = false
-    #   create_configuration_in_paused_state = false
-    # }
-  ]
+  dlp_gcs_discovery_configurations = var.dlp_gcs_discovery_configurations
 
   depends_on = [module.apis]
 }
@@ -116,8 +54,8 @@ module "tags" {
   source = "../../modules/terraform_03_tags"
 
   org_id                             = var.org_id
-  dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level_p3"
-  ignore_dlp_sensitivity_key_name    = "ignore_dlp_sensitivity_p3"
+  dlp_tag_sensitivity_level_key_name = var.dlp_tag_sensitivity_level_key_name
+  ignore_dlp_sensitivity_key_name    = var.ignore_dlp_sensitivity_key_name
 
   dlp_tag_sensitivity_level_key_iam_tag_user_principles = ["serviceAccount:${local.dlp_service_account_email}"]
   ignore_dlp_sensitivity_key_iam_tag_user_principles = []
@@ -159,37 +97,7 @@ module "annotations-solution" {
   dlp_for_bq_pubsub_topic_name     = module.dlp.dlp_bq_notifications_topic
   dlp_for_gcs_pubsub_topic_name    = module.dlp.dlp_gcs_notifications_topic
 
-  classification_taxonomy = [
-    {
-      info_type                                                                   = "EMAIL_ADDRESS",
-      info_type_category                                                          = "Standard",
-      policy_tag                                                                  = "email_address",
-      classification                                                              = "PII",
-      labels = [{ key = "dg_data_category_pii", value = "yes" }], taxonomy_number = 1,
-    },
-    {
-      info_type                                                                   = "PHONE_NUMBER",
-      info_type_category                                                          = "Standard",
-      policy_tag                                                                  = "phone_number",
-      classification                                                              = "PII",
-      labels = [{ key = "dg_data_category_pii", value = "yes" }], taxonomy_number = 1,
-    },
-    {
-      info_type       = "STREET_ADDRESS",
-      info_type_category = "Standard",
-      policy_tag = "street_address",
-      classification  = "Location",
-      labels = [{ key = "dg_data_category_location", value = "yes" }, { key = "dg_data_category_pii", value = "yes" }],
-      taxonomy_number = 1,
-    },
-    {
-      info_type                                                                   = "PERSON_NAME",
-      info_type_category                                                          = "Standard",
-      policy_tag                                                                  = "person_name",
-      classification                                                              = "PII",
-      labels = [{ key = "dg_data_category_pii", value = "yes" }], taxonomy_number = 1,
-    },
-  ]
+  classification_taxonomy = var.classification_taxonomy
 
   depends_on = [module.iam_on_host_project]
 }
