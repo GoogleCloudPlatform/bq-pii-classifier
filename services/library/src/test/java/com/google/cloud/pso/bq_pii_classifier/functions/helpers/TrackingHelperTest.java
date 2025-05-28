@@ -9,7 +9,7 @@ public class TrackingHelperTest {
 
     @Test
     public void  extractTrackingIdFromJobName(){
-        assertEquals("9-9-9-9",
-                TrackingHelper.extractTrackingIdFromJobName(String.format("//projects/locations/dlpJobs/i-9-9-9-9_1")));
+        assertEquals("1748425779458-I-2026f88e-82f4-44c7-954d-d8e396f01b73_1",
+                TrackingHelper.extractTrackingIdFromJobName(String.format("//projects/locations/dlpJobs/i-1748425779458-I-2026f88e-82f4-44c7-954d-d8e396f01b73_1")));
     }
 }
