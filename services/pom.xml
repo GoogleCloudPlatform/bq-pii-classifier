@@ -28,7 +28,7 @@
         <java.version>17</java.version>
         <!-- Note: keep in sync with the spring boot version in the <parent> config -->
         <spring.boot.version>3.5.0</spring.boot.version>
-        <spring.cloud.version>2024.0.1</spring.cloud.version>
+        <spring.cloud.version>2025.0.0</spring.cloud.version>
         <google.cloud.bom.version>26.61.0</google.cloud.bom.version>
         <!-- The base image to be used by spring framework to run the services. It must match the target Java version. -->
         <maven.jib.base_image>eclipse-temurin:17</maven.jib.base_image>
