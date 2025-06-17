@@ -1,3 +1,5 @@
+# GCP PII Classifier
+
 <!-- TOC -->
 * [GCP PII Classifier](#gcp-pii-classifier)
   * [Overview](#overview)
@@ -34,7 +36,8 @@
     * [Enable APIs](#enable-apis)
     * [Create Terraform State Bucket](#create-terraform-state-bucket)
     * [Prepare a Terraform Service Account](#prepare-a-terraform-service-account)
-      * [Create a Terraform Service Account in the host project](#create-a-terraform-service-account-in-the-host-project)
+      * [Create a dedicated Terraform Service Account in the host project](#create-a-dedicated-terraform-service-account-in-the-host-project)
+        * [Grant Terraform Service Account permissions on the publishing project](#grant-terraform-service-account-permissions-on-the-publishing-project)
         * [Grant the Terraform Service Account Org Permissions](#grant-the-terraform-service-account-org-permissions)
       * [Use an existing Terraform Service Account](#use-an-existing-terraform-service-account)
       * [Linking Terraform SA](#linking-terraform-sa)
@@ -46,8 +49,6 @@
     * [Modules configuration](#modules-configuration)
     * [Running Terraform](#running-terraform)
 <!-- TOC -->
-
-# GCP PII Classifier
 
 ## Overview
 
@@ -182,11 +183,12 @@ Module                                                                          
 [APIs](terraform/modules/terraform_00_apis)                                        | enables required APIs
 [IAM on host project](terraform/modules/terraform_01_iam_host_project)             | creates service accounts and project level IAM on the DLP agent and compute project
 [IAM on publishing project](terraform/modules/terraform_02_iam_publishing_project) | creates service accounts and project level IAM on the project hosting the DLP results
-[Tags](terraform/modules/terraform_03_tags)                                        | creates DLP data sensitivity tags on org level
+[Tags](terraform/modules/terraform_03a_tags)                                       | creates DLP data sensitivity tags on org level
+[Tags IAM](terraform/modules/terraform_03b_tags_iam)                               | grant service accounts used by the solution required permissions on the created tags
 [DLP](terraform/modules/terraform_04_dlp)                                          | creates DLP folder-level discovery configurations on the org node and the BigQuery results dataset
 [Annotations infra](terraform/modules/terraform_05_annotations_infra)              | creates Cloud Run services to act on DLP notifications and custom annotate resources
-[IAM on Org](terraform/modules/terraform_06_iam_org)                               | grants service accounts used by the solution required permissions on the org level
-[IAM on data folders](terraform/modules/terraform_07_iam_data_folders)             | grants service accounts used by the solution required permissions on the data folders
+[IAM on Org](terraform/modules/terraform_06_iam_org_level)                         | grants service accounts used by the solution required permissions on the org level
+[IAM on data folders](terraform/modules/terraform_07_iam_folder_level)             | grants service accounts used by the solution required permissions on the data folders
 
 ### Partial deployment example
 
@@ -429,17 +431,17 @@ gsutil mb -p $PROJECT_ID -l $COMPUTE_REGION -b on $BUCKET
 You can choose between creating a new service account for Terraform to use, or
 use an existing one (e.g. used by your CICD tooling)
 
-#### Create a Terraform Service Account in the host project
+#### Create a dedicated Terraform Service Account in the host project
 
 The following script creates a service account in the host project for Terraform
 and assigns the required project-level permissions on it:
 
 ```shell
 # service account name to be created for Terraform in the host project
-
 export TF_SA=terraform
 
 ./scripts/prepare_terraform_service_account_on_host_project.sh ```
+```
 
 ##### Grant Terraform Service Account permissions on the publishing project
 

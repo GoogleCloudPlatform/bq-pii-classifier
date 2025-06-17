@@ -1,3 +1,5 @@
+# Module - DLP
+
 <!-- TOC -->
 * [Module - DLP](#module---dlp)
   * [Variables](#variables)
@@ -9,7 +11,6 @@
     * [BigQuery Discovery Variables](#bigquery-discovery-variables)
     * [Configure Custom InfoTypes (Optional)](#configure-custom-infotypes-optional)
 <!-- TOC -->
-# Module - DLP
 
 ## Variables
 

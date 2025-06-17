@@ -1,3 +1,4 @@
+# Module - Annotations Infra
 <!-- TOC -->
 * [Module - Annotations Infra](#module---annotations-infra)
   * [Common Variables](#common-variables)
@@ -16,7 +17,6 @@
     * [Configure domain-IAM mapping (Optional)](#configure-domain-iam-mapping-optional)
     * [Configure what to do with Mixed PII](#configure-what-to-do-with-mixed-pii)
 <!-- TOC -->
-# Module - Annotations Infra
 
 ## Common Variables
 
