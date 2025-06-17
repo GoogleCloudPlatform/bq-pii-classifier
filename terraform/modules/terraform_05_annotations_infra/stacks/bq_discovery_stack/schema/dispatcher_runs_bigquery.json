@@ -1,0 +1,66 @@
+[
+  {
+    "name": "run_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "tracking_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "folder_id",
+    "type": "STRING"
+  },
+  {
+    "name": "project_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "dataset_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "table_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "fields",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "field_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "dlp_info_type_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "dlp_other_matches",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "info_type_name",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "info_type_prevalence",
+            "type": "INT64",
+            "mode": "NULLABLE"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+steps:
+  - name: maven:3.8.6-openjdk-18
+    id: deploy_services
+    env:
+      - 'IMAGE_NAME=${_IMAGE_NAME}'
+      - 'BUILD_ID=$BUILD_ID'
+    script:
+
+      set -e
+
+      echo "IMAGE_NAME = ${IMAGE_NAME}"
+
+      mvn install jib:build -Dimage="${IMAGE_NAME}" -Djib.to.tags=${BUILD_ID},latest
