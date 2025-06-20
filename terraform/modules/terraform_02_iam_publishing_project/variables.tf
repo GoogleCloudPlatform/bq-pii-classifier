@@ -32,3 +32,8 @@ variable "application_service_account_name" {
   default     = "annotations-app"
   description = "Name of the service account to run the application components"
 }
+
+variable "dlp_service_agents_emails" {
+  type = list(string)
+  description = "Email addresses of all Cloud DLP service agents across discovery configurations"
+}

@@ -73,6 +73,18 @@ variable "services_container_image_name" {
 # Common-Default Variables
 ################################################################################
 
+variable "deploy_bq_annotations_stack" {
+  type = bool
+  default = true
+  description = "Set to `true` to deploy the BigQuery annotations service and its dependencies"
+}
+
+variable "deploy_gcs_annotations_stack" {
+  type = bool
+  default = true
+  description = "Set to `true` to deploy the Cloud Storage annotations service and its dependencies"
+}
+
 variable "is_dry_run_labels" {
   type        = bool
   default     = true

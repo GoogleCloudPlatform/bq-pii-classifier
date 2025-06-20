@@ -28,7 +28,6 @@ Same for Org-level resources (i.e. Tags), we assume they are integrated under an
 module "dlp" {
   source = "../../modules/terraform_04_dlp"
 
-  org_id                             = var.org_id
   application_project                = var.application_project
   publishing_project                 = var.publishing_project
   data_region                        = var.data_region
@@ -65,7 +64,9 @@ module "dlp" {
 
   dlp_gcs_discovery_configurations = [
     {
-      folder_id                                         = 123
+      parent_type                                       = "organization"
+      parent_id                                         = "ORG_ID"
+      target_id                                         = "TARGET_FOLDER_ID"
       project_id_regex                                  = "^only-this-project$"
       bucket_name_regex                                 = ".*" # all buckets
       apply_tags                                        = true

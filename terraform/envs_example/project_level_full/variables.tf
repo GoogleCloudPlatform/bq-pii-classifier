@@ -17,9 +17,10 @@
 #
 #
 
-###############################################################################
-# Required variables
-################################################################################
+variable "terraform_service_account_email" {
+  type        = string
+  description = "Serviced account to be used by Terraform to deploy resources"
+}
 
 variable "application_project" {
   type        = string
@@ -31,9 +32,19 @@ variable "publishing_project" {
   description = "GCP project to host external/shared resources such as DLP results and monitoring views"
 }
 
+variable "compute_region" {
+  description = "GCP region to deploy compute resources (e.g. Cloud Run)"
+  type        = string
+}
+
 variable "data_region" {
   description = "GCP region to store application data (e.g. DLP results, logs, etc)"
   type        = string
+}
+
+variable "terraform_data_deletion_protection" {
+  type        = bool
+  description = "When set to `True`, Terraform will not delete data assets like buckets and BQ datasets"
 }
 
 variable "source_data_regions" {
@@ -41,19 +52,31 @@ variable "source_data_regions" {
   type        = set(string)
 }
 
-variable "dlp_tag_high_sensitivity_value_namespaced_name" {
+variable "services_container_image_name" {
   type        = string
-  description = "The namespaced name of the DLP high sensitivity tag value. Format: org_id/key_name/value_name"
+  description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
-variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
-  type        = string
-  description = "The namespaced name of the DLP moderate sensitivity tag value. Format: org_id/key_name/value_name"
+########################################################################################################################
+#                                              DLP module variables
+########################################################################################################################
+
+variable "custom_info_types_dictionaries" {
+  type = list(object({
+    name                       = string
+    likelihood                 = string
+    dictionary                 = list(string)
+    inspection_template_number = optional(number, 1)
+  }))
 }
 
-variable "dlp_tag_low_sensitivity_value_namespaced_name" {
-  type        = string
-  description = "The namespaced name of the DLP low sensitivity tag value. Format: org_id/key_name/value_name"
+variable "custom_info_types_regex" {
+  type = list(object({
+    name                       = string
+    likelihood                 = string
+    regex                      = string
+    inspection_template_number = optional(number, 1)
+  }))
 }
 
 variable "built_in_info_types" {
@@ -61,12 +84,7 @@ variable "built_in_info_types" {
     info_type                  = string
     inspection_template_number = optional(number, 1)
   }))
-  description = "List of built-in info types."
 }
-
-# dlp_gcs_scan_parent_type          = ""
-# dlp_gcs_scan_parent_id            = ""
-# dlp_gcs_scan_target_entity_id     = 0
 
 variable "dlp_gcs_discovery_configurations" {
   type = list(object({
@@ -104,8 +122,6 @@ variable "dlp_gcs_discovery_configurations" {
     # Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to [ALL_SUPPORTED_OBJECTS]. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: ALL_SUPPORTED_OBJECTS, STANDARD, NEARLINE, COLDLINE, ARCHIVE, REGIONAL, MULTI_REGIONAL, DURABLE_REDUCED_AVAILABILITY."
     included_object_attributes = optional(list(string), ["ALL_SUPPORTED_OBJECTS"])
   }))
-
-  description = "List of DLP gcs discovery configurations."
 }
 
 variable "dlp_bq_discovery_configurations" {
@@ -153,96 +169,38 @@ variable "dlp_bq_discovery_configurations" {
     # The type of events to consider when deciding if the table has been modified and should have the profile updated. Defaults to MODIFIED_TIMESTAMP Each value may be one of: TABLE_MODIFIED_TIMESTAMP
     reprofile_types_on_table_data_update = optional(list(string), ["TABLE_MODIFIED_TIMESTAMP"])
   }))
-  description = "List of DLP BigQuery discovery configurations."
 }
-
-###############################################################################
-# Variables with default values
-################################################################################
 
 variable "deploy_dlp_inspection_template_to_global_region" {
   type        = bool
-  default     = true
   description = "When set to `True`, DLP inspection template will be deployed to the 'global' region in addition to regions set in source data regions. This allows DLP to scan resources in any region."
 }
 
-variable "bigquery_dlp_dataset_name" {
-  type    = string
-  default = "dlp_results"
+########################################################################################################################
+#                                              Tags module variables
+########################################################################################################################
+
+variable "dlp_tag_sensitivity_level_key_name" {
+  type = string
 }
 
-variable "dlp_errors_table_name" {
-  type        = string
-  description = "Name of the table that DLP will use to save the errors via a pubsub subscription."
-  default     = "dlp_errors"
+variable "ignore_dlp_sensitivity_key_name" {
+  type = string
 }
 
-variable "custom_info_types_dictionaries" {
+########################################################################################################################
+#                                              Annotations module variables
+########################################################################################################################
+
+
+variable "classification_taxonomy" {
   type = list(object({
-    name                       = string
-    likelihood                 = string
-    dictionary                 = list(string)
-    inspection_template_number = optional(number, 1)
+    info_type          = string
+    info_type_category = string
+    # (standard | custom)
+    policy_tag      = string
+    classification  = string
+    labels          = optional(list(object({ key = string, value = string })), [])
+    taxonomy_number = optional(number, 1)
   }))
-  default     = []
-  description = "List of custom info types dictionaries."
-}
-
-variable "custom_info_types_regex" {
-  type = list(object({
-    name                       = string
-    likelihood                 = string
-    regex                      = string
-    inspection_template_number = optional(number, 1)
-  }))
-  default     = []
-  description = "List of custom info types regex."
-}
-
-variable "dlp_gcs_results_table_name" {
-  type        = string
-  description = "Name of the table that DLP will create to save the GCS discovery findings."
-  default     = "dlp_discovery_services_gcs_results"
-}
-
-variable "dlp_bq_results_table_name" {
-  type        = string
-  description = "Name of the table that DLP will create to save the BigQuery discovery findings."
-  default     = "dlp_discovery_services_bq_results"
-}
-
-variable "dlp_for_gcs_pubsub_topic_name" {
-  type    = string
-  default = "dlp_results_for_gcs_topic"
-}
-
-variable "dlp_for_gcs_errors_pubsub_topic_name" {
-  type    = string
-  default = "dlp_errors_for_gcs_topic"
-}
-
-variable "dlp_for_gcs_errors_pubsub_subscription_name" {
-  type    = string
-  default = "dlp_errors_for_gcs_subscription"
-}
-
-variable "dlp_for_bq_pubsub_topic_name" {
-  type    = string
-  default = "dlp_results_for_bq_topic"
-}
-
-variable "dlp_for_bq_errors_pubsub_topic_name" {
-  type    = string
-  default = "dlp_errors_for_bq_topic"
-}
-
-variable "dlp_for_bq_errors_pubsub_subscription_name" {
-  type    = string
-  default = "dlp_errors_for_bq_subscription"
-}
-
-variable "terraform_data_deletion_protection" {
-  type        = bool
-  default     = true
-  description = "When set to `True`, Terraform will not delete data assets like buckets and BQ datasets"
 }

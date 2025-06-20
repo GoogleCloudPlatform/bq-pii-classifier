@@ -21,23 +21,24 @@ locals {
   dlp_region = var.data_region == "eu" ? "europe" : var.data_region
 }
 
-resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
-
-  // Project-level config. Only data in that project could be scanned
-  #    parent = "projects/<project id>/locations/${local.dlp_region}"
-
-  parent = "organizations/${var.dlp_gcs_scan_org_id}/locations/${local.dlp_region}"
-  org_config {
-    // The project that will run the scan. The DLP service account that exists within this project must have access to all resources that are profiled, and the cloud DLP API must be enabled
-    project_id = var.project
-
-    // The data to scan folder or project
-    location {
-      folder_id = var.dlp_gcs_scan_folder_id
-    }
-  }
+resource "google_data_loss_prevention_discovery_config" "dlp_gcs" {
 
   location = local.dlp_region
+
+  parent = var.dlp_gcs_scan_parent_type == "organization"? "organizations/${var.dlp_gcs_scan_parent_id}/locations/${local.dlp_region}" : "projects/${var.dlp_gcs_scan_parent_id}/locations/${local.dlp_region}"
+
+  // conditionally set the org_config if we are deploying to an org node
+  dynamic "org_config" {
+    for_each = var.dlp_gcs_scan_parent_type == "organization" ? [1] : []
+    content {
+      project_id = var.dlp_agent_project_id
+
+      // The data to scan folder or project
+      location {
+        folder_id = var.dlp_gcs_scan_target_entity_id
+      }
+    }
+  }
 
   // inspection template(s) that will be used to inspect GCS buckets
   inspect_templates = var.dlp_inspection_templates_ids_list
@@ -147,6 +148,14 @@ resource "google_data_loss_prevention_discovery_config" "dlp_gcs_org_folder" {
       // (Optional) The type of event that triggers a Pub/Sub. At most one PubSubNotification per EventType is permitted. Possible values are: NEW_PROFILE, CHANGED_PROFILE, SCORE_INCREASED, ERROR_CHANGED.
       event = "CHANGED_PROFILE"
       // (Optional) How much data to include in the pub/sub message. Possible values are: TABLE_PROFILE, RESOURCE_NAME. For GCS, only RESOURCE_NAME is allowed
+      detail_of_message = "RESOURCE_NAME"
+    }
+  }
+
+  actions {
+    pub_sub_notification {
+      topic = var.pubsub_errors_topic_id
+      event = "ERROR_CHANGED"
       detail_of_message = "RESOURCE_NAME"
     }
   }

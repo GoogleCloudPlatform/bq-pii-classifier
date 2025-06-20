@@ -22,8 +22,6 @@ data google_project "gcp_host_project" {
 }
 
 locals {
-  dlp_service_account_email = "service-${data.google_project.gcp_host_project.number}@dlp-api.iam.gserviceaccount.com"
-
   sa_application_roles_on_host_project = [
     "roles/bigquery.jobUser",        # for dispatcher to run the query that reads DLP findings
     "roles/batch.agentReporter",     # for dispatcher to run Cloud Batch jobs
@@ -31,11 +29,6 @@ locals {
     "roles/artifactregistry.reader", # for dispatcher to read container image for the service
     "roles/batch.jobsEditor",        # for cloud workflows  to run batch jobs
     "roles/pubsub.publisher",        # for dispatcher to publish messages to PubSub
-  ]
-
-  dlp_sa_roles_on_host_project = [
-    "roles/pubsub.publisher",                      # for dlp to publish messages to PubSub
-    "roles/datacatalog.categoryFineGrainedReader", # read BigQuery columns tagged by solution-managed taxonomies
   ]
 }
 
@@ -73,10 +66,10 @@ resource "google_service_account_iam_member" "sa_application_service_account_use
 ######### DLP SA
 
 resource "google_project_iam_member" "sa_dlp_roles_binding_on_host_project" {
-  count   = length(local.dlp_sa_roles_on_host_project)
+  count   = length(var.dlp_service_agents_emails)
   project = var.application_project
-  role    = local.dlp_sa_roles_on_host_project[count.index]
-  member  = "serviceAccount:${local.dlp_service_account_email}"
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${var.dlp_service_agents_emails[count.index]}"
 }
 
 

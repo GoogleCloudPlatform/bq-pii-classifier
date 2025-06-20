@@ -22,6 +22,9 @@
 module "gcs-discovery-stack" {
   source = "./stacks/gcs_discovery_stack"
 
+  // deploy this stack once only when instructed
+  count = var.deploy_gcs_annotations_stack? 1: 0
+
   image_name                                     = var.services_container_image_name
   java_class_path_gcs_dispatcher_service         = var.java_class_path_gcs_dispatcher_service
   java_class_path_gcs_tagger_service             = var.java_class_path_gcs_tagger_service

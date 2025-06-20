@@ -34,13 +34,26 @@ output "dlp_results_dataset" {
 }
 
 output "dlp_gcs_folders" {
-  value = [for x in var.dlp_gcs_discovery_configurations : x.folder_id]
+  value = [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "organization"]
+}
+
+output "dlp_gcs_projects" {
+  value = [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"]
 }
 
 output "dlp_bq_folders" {
-  value = [for x in var.dlp_bq_discovery_configurations : x.folder_id]
+  value = [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "organization"]
 }
 
-output "dlp_service_account_email" {
-  value = "service-${data.google_project.gcp_host_project.number}@dlp-api.iam.gserviceaccount.com"
+output "dlp_bq_projects" {
+  value = [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"]
+}
+
+// each config will return either the org-level or project-level dlp agent email
+output "dlp_service_account_emails" {
+  value = distinct(concat(module.gcs_dlp_configs[*].dlp_agent_service_account_email, module.bq_dlp_configs[*].dlp_agent_service_account_email))
+}
+
+output "application_project_dlp_service_account_email" {
+  value = "service-${data.google_project.application_project.number}@dlp-api.iam.gserviceaccount.com"
 }

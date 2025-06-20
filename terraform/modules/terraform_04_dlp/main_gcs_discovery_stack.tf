@@ -26,6 +26,22 @@ resource "google_pubsub_topic" "dlp_gcs_topic" {
   name    = var.dlp_for_gcs_pubsub_topic_name
 }
 
+resource "google_pubsub_topic" "dlp_gcs_errors_topic" {
+  project = var.application_project
+  name    = var.dlp_for_gcs_errors_pubsub_topic_name
+}
+
+resource "google_pubsub_subscription" "dlp_gcs_errors_subscription" {
+  name  = var.dlp_for_gcs_errors_pubsub_subscription_name
+  topic = google_pubsub_topic.dlp_gcs_errors_topic.id
+
+  bigquery_config {
+    table = "${google_bigquery_dataset.results_dataset.project}.${google_bigquery_dataset.results_dataset.dataset_id}.${google_bigquery_table.dlp_errors_table.table_id}"
+  }
+
+  depends_on = [google_bigquery_dataset_iam_member.results_dataset_pubsub_writer]
+}
+
 ########################################################################################################################
 #                                            DLP Configs
 ########################################################################################################################
@@ -35,9 +51,11 @@ module "gcs_dlp_configs" {
 
   count = length(var.dlp_gcs_discovery_configurations)
 
-  dlp_gcs_scan_org_id = var.org_id
+  dlp_agent_project_id                             = var.dlp_gcs_discovery_configurations[count.index].parent_type == "organization"? var.application_project : var.dlp_gcs_discovery_configurations[count.index].parent_id
 
-  dlp_gcs_scan_folder_id                          = var.dlp_gcs_discovery_configurations[count.index].folder_id
+  dlp_gcs_scan_parent_type                        = var.dlp_gcs_discovery_configurations[count.index].parent_type
+  dlp_gcs_scan_parent_id                          = var.dlp_gcs_discovery_configurations[count.index].parent_id
+  dlp_gcs_scan_target_entity_id                   = var.dlp_gcs_discovery_configurations[count.index].target_id
   dlp_gcs_bucket_name_regex                       = var.dlp_gcs_discovery_configurations[count.index].bucket_name_regex
   dlp_gcs_project_id_regex                        = var.dlp_gcs_discovery_configurations[count.index].project_id_regex
   dlp_gcs_apply_tags                              = var.dlp_gcs_discovery_configurations[count.index].apply_tags
@@ -54,7 +72,7 @@ module "gcs_dlp_configs" {
   dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_value_namespaced_name
   dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_value_namespaced_name
   dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_value_namespaced_name
-  project                           = var.application_project
   pubsub_tagger_topic_id            = google_pubsub_topic.dlp_gcs_topic.id
+  pubsub_errors_topic_id            = google_pubsub_topic.dlp_gcs_errors_topic.id
   publishing_project                = var.publishing_project
 }

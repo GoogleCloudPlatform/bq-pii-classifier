@@ -20,6 +20,6 @@
 terraform {
   backend "gcs" {
     bucket = "gcp-pii-classifier-bucket" # set the GCS bucket name
-    prefix = "full-example/terraform-state"
+    prefix = "project-full-example/terraform-state"
   }
 }

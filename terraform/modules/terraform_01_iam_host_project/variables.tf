@@ -39,3 +39,8 @@ variable "tagger_bq_service_account_name" {
   default     = "annotations-bq"
   description = "Name of the service account to run the BigQuery annotations service"
 }
+
+variable "dlp_service_agents_emails" {
+  type = list(string)
+  description = "Email addresses of all Cloud DLP service agents across discovery configurations"
+}

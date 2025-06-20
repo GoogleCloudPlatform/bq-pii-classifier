@@ -20,8 +20,11 @@
       * [BigQuery Helper Functions](#bigquery-helper-functions)
   * [Deployment](#deployment)
     * [Deployment Overview](#deployment-overview)
-    * [Partial deployment example](#partial-deployment-example)
-    * [Full deployment example](#full-deployment-example)
+    * [Project-level vs org-level deployments](#project-level-vs-org-level-deployments)
+    * [Deployment Examples](#deployment-examples)
+      * [Partial org-level deployment example](#partial-org-level-deployment-example)
+      * [Full org-level deployment example](#full-org-level-deployment-example)
+      * [Full project-level deployment example](#full-project-level-deployment-example)
   * [Usage](#usage)
     * [DLP Events](#dlp-events)
     * [Tagging Dispatcher](#tagging-dispatcher)
@@ -30,6 +33,7 @@
     * [Helpful in investigating issues](#helpful-in-investigating-issues)
     * [Execution duration per function](#execution-duration-per-function)
   * [New Environment Deployment Guide {#new-env-deployment-guide}](#new-environment-deployment-guide-new-env-deployment-guide)
+    * [Determine the deployment type](#determine-the-deployment-type)
     * [Create project(s)](#create-projects)
     * [Permissions on host project](#permissions-on-host-project)
     * [Environment setup](#environment-setup)
@@ -38,14 +42,13 @@
     * [Prepare a Terraform Service Account](#prepare-a-terraform-service-account)
       * [Create a dedicated Terraform Service Account in the host project](#create-a-dedicated-terraform-service-account-in-the-host-project)
         * [Grant Terraform Service Account permissions on the publishing project](#grant-terraform-service-account-permissions-on-the-publishing-project)
-        * [Grant the Terraform Service Account Org Permissions](#grant-the-terraform-service-account-org-permissions)
+        * [Grant the Terraform Service Account Org Permissions or Project permissions](#grant-the-terraform-service-account-org-permissions-or-project-permissions)
       * [Use an existing Terraform Service Account](#use-an-existing-terraform-service-account)
       * [Linking Terraform SA](#linking-terraform-sa)
     * [Deploy Services Image (optional)](#deploy-services-image-optional)
       * [Create a Docker Repo](#create-a-docker-repo)
       * [Deploy the services container image](#deploy-the-services-container-image)
-    * [Create new Terraform environment](#create-new-terraform-environment)
-    * [Modules selection](#modules-selection)
+    * [Create a new Terraform environment](#create-a-new-terraform-environment)
     * [Modules configuration](#modules-configuration)
     * [Running Terraform](#running-terraform)
 <!-- TOC -->
@@ -178,22 +181,38 @@ To cater for different organizations, with different code repositories and tooli
 the solution is divided into building blocks (i.e. Terraform modules) that can be hosted
 and deployed separately. These Terraform modules are:
 
-Module                                                                             | Description
----------------------------------------------------------------------------------- | -----------
-[APIs](terraform/modules/terraform_00_apis)                                        | enables required APIs
-[IAM on host project](terraform/modules/terraform_01_iam_host_project)             | creates service accounts and project level IAM on the DLP agent and compute project
-[IAM on publishing project](terraform/modules/terraform_02_iam_publishing_project) | creates service accounts and project level IAM on the project hosting the DLP results
-[Tags](terraform/modules/terraform_03a_tags)                                       | creates DLP data sensitivity tags on org level
-[Tags IAM](terraform/modules/terraform_03b_tags_iam)                               | grant service accounts used by the solution required permissions on the created tags
-[DLP](terraform/modules/terraform_04_dlp)                                          | creates DLP folder-level discovery configurations on the org node and the BigQuery results dataset
-[Annotations infra](terraform/modules/terraform_05_annotations_infra)              | creates Cloud Run services to act on DLP notifications and custom annotate resources
-[IAM on Org](terraform/modules/terraform_06_iam_org_level)                         | grants service accounts used by the solution required permissions on the org level
-[IAM on data folders](terraform/modules/terraform_07_iam_folder_level)             | grants service accounts used by the solution required permissions on the data folders
+| Module                                                                             | Description                                                                                             |
+|------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [APIs](terraform/modules/terraform_00_apis)                                        | enables required APIs                                                                                   |
+| [IAM on host project](terraform/modules/terraform_01_iam_host_project)             | creates service accounts and project level IAM on the DLP agent and compute project                     |
+| [IAM on publishing project](terraform/modules/terraform_02_iam_publishing_project) | creates service accounts and project level IAM on the project hosting the DLP results                   |
+| [Tags](terraform/modules/terraform_03_tags)                                        | creates DLP data sensitivity tags on org or project level and grants required IAM permissions to it     |
+| [DLP](terraform/modules/terraform_04_dlp)                                          | creates DLP folder-level discovery configurations on the org node and the BigQuery results dataset      |
+| [Annotations infra](terraform/modules/terraform_05_annotations_infra)              | creates Cloud Run services to act on DLP notifications and custom annotate resources                    |
+| [IAM on Org](terraform/modules/terraform_06_iam_org_level)                         | grants the solution's service accounts required permissions on the org level (for org-deployments)      |
+| [IAM on data folders](terraform/modules/terraform_07_iam_folder_level)             | grants the solution's service accounts required permissions on the data folders (for org-deployments)   |
+| [IAM on data projects](terraform/modules/terraform_08_iam_project_level)           | grants the solution's service accounts required permissions on project levels (for project-deployments) |
 
-### Partial deployment example
+### Project-level vs org-level deployments
+
+With `project-level` deployments, we enable and configure Cloud DLP on one or more projects, and DLP discovery will be
+limited to only these projects. Meanwhile, all DLP results will be exported to a centralized BigQuery table and 
+no resources or permissions will be required on the organization level.
+
+A `project-level` deployment is particular helpful, and recommended, for proof of concepts, small scale deployments (few projects to scan)
+and/or when granting org-level permissions is not an option. In a minimal example, only one project is required
+to host all components/modules and the data to be scanned.
+
+On the other hand, an `org-level` deployment is more suitable for production and/or large scale deployments
+that targets GCP folders rather than projects. In this scenario, the DLP discovery configurations and other data sensitivity 
+tags will be deployed on the organization node and permissions to deploy there will be required.
+
+### Deployment Examples
+
+#### Partial org-level deployment example
 
 In this example, we assume an organization where only the Cloud DLP discovery configurations
-are required along with the application of Cloud DLP sensitivity level tags to the
+are required on the org level (to scan folders) along with the attachment of Cloud DLP sensitivity level tags to the
 scanned resources (using the native tagging feature in Cloud DLP). In this case, no cloud labels
 or BigQuery policy tags are required.
 
@@ -204,9 +223,9 @@ These modules could be deployed in one Terraform environment or integrated where
 in your organizations.
 
 An example of such deployment is found under
-[terraform/envs_example/partial](terraform/envs_example/partial/main.tf) environment.
+[terraform/envs_example/org_level_partial](terraform/envs_example/org_level_partial) environment.
 
-### Full deployment example
+#### Full org-level deployment example
 
 In this example, we assume an organization where Cloud DLP discovery configurations
 are required along with the application of Cloud DLP sensitivity level tags to the
@@ -219,10 +238,21 @@ is as follows:
 ![alt text](diagrams/full_annotations_flow.png)
 
 An example of such deployment is found under
-[terraform/envs_example/full](terraform/envs_example/full/main.tf) environment.
+[terraform/envs_example/org_level_full](terraform/envs_example/org_level_full) environment.
 
 PS: the three annotations options (dlp sensitivity tags, labels and BigQuery
 policy tags) could be enabled/disabled via config variables.
+
+#### Full project-level deployment example
+
+In this example, one or more project-level Cloud DLP discovery configurations
+will be deployed and no resources or permissions will be required on the organization level.
+
+This is the deployment recommended for proof of concepts, small scale deployments (few projects to scan)
+and/or when granting org-level permissions is not an option.
+
+The full flow of DLP discovery and applying annotations is the same as the [full org-level exampl](#full-org-level-deployment-example) explained earlier.
+The Terraform example environment is under [terraform/envs_example/project_level_full](terraform/envs_example/project_level_full).
 
 ## Usage
 
@@ -357,6 +387,12 @@ ORDER BY 1,2,3
 
 ## New Environment Deployment Guide {#new-env-deployment-guide}
 
+### Determine the deployment type
+
+Identify which deployment type you're targeting, weather an `org-level` or `project-level`
+as explained in the [deployment types](#project-level-vs-org-level-deployments) section. 
+This info will be used in some of the next steps.
+
 ### Create project(s)
 
 Create a `host` and `publishing` projects to host the resources and services
@@ -440,7 +476,7 @@ and assigns the required project-level permissions on it:
 # service account name to be created for Terraform in the host project
 export TF_SA=terraform
 
-./scripts/prepare_terraform_service_account_on_host_project.sh ```
+./scripts/prepare_terraform_service_account_on_host_project.sh 
 ```
 
 ##### Grant Terraform Service Account permissions on the publishing project
@@ -452,16 +488,28 @@ export TF_SA=terraform
 ./scripts/prepare_terraform_service_account_on_publishing_project.sh
 ```
 
-##### Grant the Terraform Service Account Org Permissions
+##### Grant the Terraform Service Account Org Permissions or Project permissions
 
-Terraform will deploy DLP discovery configs on the org node, and grant other
-service accounts permissions to inspect and annotate the data assets. For that,
-the Terraform service account needs to have certain org-level permissions to do
-so
+Depending on the type of deployment you are targeting, [org-level](#full-org-level-deployment-example)
+vs [project-level](#full-project-level-deployment-example), you will need to grant permissions to 
+the Terraform service account to deploy resources to the target environment (e.g. DLP discovery configs, grant IAM roles
+to service accounts used by the solution, etc.)    
+
+In case of an `org-level` deployment run the following:
 
 ```shell
 ./scripts/prepare_terraform_service_account_on_org.sh <ORGANIZATION_ID>
 ```
+
+And in case of a `project-level` deployment run the following:
+
+```shell
+./scripts/prepare_terraform_service_account_on_dlp_projects.sh <PROJECT_ID_#1> <PROJECT_ID_#2> <etc>
+````
+
+Where project ids are the distinct list of projects where you intend to deploy Cloud DLP and scan.
+These projects will later be configured in either the `dlp.dlp_bq_discovery_configurations` and/or
+`dlp.dlp_gcs_discovery_configurations` variables.
 
 #### Use an existing Terraform Service Account
 
@@ -471,7 +519,8 @@ scripts
 
 *   [host project permissions](scripts/prepare_terraform_service_account_on_host_project.sh)
 *   [publishing project permissions](scripts/prepare_terraform_service_account_on_publishing_project.sh)
-*   [org permissions](scripts/prepare_terraform_service_account_on_org.sh)
+*   [org permissions](scripts/prepare_terraform_service_account_on_org.sh) - in case of `org-level` deployment
+*   [project permissions](scripts/prepare_terraform_service_account_on_dlp_projects.sh) - in case of `project-level` deployment
 
 The external service account email will be used with Terraform at a later step
 
@@ -490,7 +539,7 @@ provider "google" {
 }
 ```
 
-Example from [terraform/envs/dev/provider.tf](terraform/envs_example/full/provider.tf)
+Example from [terraform/envs/dev/provider.tf](terraform/envs_example/org_level_full/provider.tf)
 
 ### Deploy Services Image (optional)
 
@@ -517,49 +566,44 @@ and push that container image before deploying Cloud Run via Terraform
 ./scripts/deploy_services_cloudbuild.sh
 ```
 
-### Create new Terraform environment
+### Create a new Terraform environment
 
-Create a new folder under `terraform/envs/` with the name of the new
-deployment/environment.
+Create a new folder `terraform/envs/YOUR_ENV` with the name of the new environment.
 
-Include the following files in the environment:
+Depending on the target entity and their code-repo structure,
+CICD tooling, and the features they require for annotations, you might need to select
+which modules (building blocks) to include in this Terraform env and which modules to host
+somewhere else or omit entirely. 
 
-*   backend.tf
-*   main.tf
-*   provider.tf
-*   terraform.tfvars
-*   variables.tf
+You can start with one of the templates/examples:
+* [org-level deployment](/terraform/envs_example/org_level_full)
+* [project-level deployment](/terraform/envs_example/project_level_full)
 
-### Modules selection
-
-Depending on the target entity and how do they structure their code repo,
-tooling and the features they require for annotations, you might need to select
-which modules (building blocks) to include in this Terraform env, which to host
-somewhere else and which to omit entirely. To deploy the entire stack, follow
-the `terraform/envs_examples/full` environment as an example on how all modules are
-interconnected.
+Alternatively, you can pick which modules to use according to your needs.
 
 Some rules to guide the selection process:
 
 *   `APIs`, `IAM on Host Project`, `IAM on Publishing Project` and `DLP` modules
     are required in all deployments (implemented in Terraform or other systems)
-*   `Tags` and `Tags IAM` modules are only required if you want to apply DLP
+*   `Tags` module is only required if you want to apply DLP
     data sensitivity tags to resources
 *   `Annotations Infra` module is only required for applying labels annotations
     and/or BigQuery policy tags
-*   Some elements of `IAM on org` and `IAM on folder` modules are required in
-    all deployments (implemented in Terraform or other systems). If `Annotations
+*   Some elements of `IAM on org level` and `IAM on folder level` modules are required in
+    all `org-level` deployments (implemented in Terraform or other systems). If `Annotations
     Infra` is deployed then the entire modules are required, if not, only the
     permissions for the DLP service account are required.
-*   `Helper functions` module is optional. Only required to run certain analysis
-    and queries on smaller deployments.
+*   `IAM on project level` module is only required in `project-level` deployments
 
 ### Modules configuration
 
 For each selected module, use the module's documentation to set the required
 variables. Some variables are repeated across modules (e.g.
 `application_project`) and should be defined once in the environment's
-`variables.tf`.
+`variables.tf`. 
+
+If you're using one of the [example environments](terraform/envs_example),
+you can skip this step and use the commonly used variables in the example environment.
 
 ### Running Terraform
 
@@ -580,6 +624,8 @@ terraform {
 Then run Terraform manually:
 
 ```bash
+cd terraform/envs/YOUR_ENV
+
 terraform init
 
 terraform plan

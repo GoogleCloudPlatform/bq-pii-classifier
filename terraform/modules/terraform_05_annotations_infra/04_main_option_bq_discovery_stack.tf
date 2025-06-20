@@ -19,6 +19,9 @@
 
 module "bq-discovery-stack" {
 
+  // deploy this stack once only when instructed
+  count = var.deploy_bq_annotations_stack? 1: 0
+
   source = "./stacks/bq_discovery_stack"
 
   image_name                                     = var.services_container_image_name

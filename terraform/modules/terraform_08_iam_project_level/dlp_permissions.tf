@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #
 #
 #  Copyright 2025 Google LLC
@@ -19,16 +17,14 @@
 #
 #
 
-# exit script when errors occur
-set -e
+data "google_project" "dlp_project" {
+  project_id = var.dlp_project
+}
 
-# set the working dir as the scripts directory
-cd "$(dirname "$0")"
-
-cd ../terraform/envs/dev
-
-terraform init \
-    -backend-config="bucket=${BUCKET_NAME}" \
-    -backend-config="prefix=dev/terraform-state"
-
-terraform apply -lock=false -auto-approve
+// DLP service account must be able to profile buckets and apply tags
+// permissions: https://cloud.google.com/sensitive-data-protection/docs/iam-roles#dlp.projectdriver
+resource "google_project_iam_member" "iam_member_dlp_sa_project_driver" {
+  project = var.dlp_project
+  role   = "roles/dlp.projectdriver"
+  member = "serviceAccount:service-${data.google_project.dlp_project.number}@dlp-api.iam.gserviceaccount.com"
+}

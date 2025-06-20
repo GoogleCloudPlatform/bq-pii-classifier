@@ -1,22 +1,3 @@
-#
-#
-#  Copyright 2025 Google LLC
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#       https://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-#  implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
-#
-
 variable "terraform_service_account_email" {
   type        = string
   description = "Serviced account to be used by Terraform to deploy resources"
@@ -93,8 +74,15 @@ variable "built_in_info_types" {
 
 variable "dlp_gcs_discovery_configurations" {
   type = list(object({
-    # Folder to be scanned
-    folder_id = string
+
+    // [organization, project]
+    parent_type = string
+
+    // organization number or project id
+    parent_id = string
+
+    # Folder id or project id to be scanned. In case of parent_type = project, parent_id and target_id must be equal
+    target_id = string
 
     # Regex for project ids to be covered by the DLP scan of GCS buckets. For organization-level configuration, if unset, will match all projects
     project_id_regex = optional(string, ".*")
@@ -125,8 +113,14 @@ variable "dlp_gcs_discovery_configurations" {
 variable "dlp_bq_discovery_configurations" {
   type = list(object({
 
-    # GCP folder to scan
-    folder_id = number
+    // [organization, project]
+    parent_type = string
+
+    // organization number or project id
+    parent_id = string
+
+    # Folder id or project id to be scanned. In case of parent_type = project, parent_id and target_id must be equal
+    target_id = string
 
     # Regex for project ids to be covered by the DLP scan for BigQuery. For organization-level configuration, if unset, will match all projects
     project_id_regex = optional(string, ".*")

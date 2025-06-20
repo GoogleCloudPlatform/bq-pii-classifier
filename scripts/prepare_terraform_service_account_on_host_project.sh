@@ -24,6 +24,9 @@ gcloud iam service-accounts create "${TF_SA}" \
     --description="Used by Terraform to deploy GCP resources" \
     --display-name="Terraform Service Account"
 
+# wait few seconds after creating the account and assigning permissions
+sleep 5
+
 roles_on_host_project=(
   "roles/iam.roleAdmin"
   "roles/resourcemanager.projectIamAdmin"
@@ -44,6 +47,9 @@ roles_on_host_project=(
   "roles/storage.admin"
   "roles/workflows.editor"
   "roles/artifactregistry.reader"
+  "roles/resourcemanager.tagAdmin" # to create tags on project-level dlp configs deployments
+  "roles/dlp.jobsEditor"           # to create project-level dlp configs
+  "roles/dlp.jobTriggersEditor"    # to create project-level dlp configs
 )
 
 for role in "${roles_on_host_project[@]}"; do

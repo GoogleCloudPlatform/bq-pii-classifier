@@ -26,6 +26,22 @@ resource "google_pubsub_topic" "dlp_bq_topic" {
   name    = var.dlp_for_bq_pubsub_topic_name
 }
 
+resource "google_pubsub_topic" "dlp_bq_errors_topic" {
+  project = var.application_project
+  name    = var.dlp_for_bq_errors_pubsub_topic_name
+}
+
+resource "google_pubsub_subscription" "dlp_bq_errors_subscription" {
+  name  = var.dlp_for_bq_errors_pubsub_subscription_name
+  topic = google_pubsub_topic.dlp_bq_errors_topic.id
+
+  bigquery_config {
+    table = "${google_bigquery_dataset.results_dataset.project}.${google_bigquery_dataset.results_dataset.dataset_id}.${google_bigquery_table.dlp_errors_table.table_id}"
+  }
+
+  depends_on = [google_bigquery_dataset_iam_member.results_dataset_pubsub_writer]
+}
+
 ########################################################################################################################
 #                                            DLP Configs
 ########################################################################################################################
@@ -35,8 +51,11 @@ module "bq_dlp_configs" {
 
   count = length(var.dlp_bq_discovery_configurations)
 
-  dlp_bq_scan_org_id = var.org_id
+  dlp_agent_project_id                                     = var.dlp_bq_discovery_configurations[count.index].parent_type == "organization"? var.application_project : var.dlp_bq_discovery_configurations[count.index].parent_id
 
+  dlp_bq_scan_parent_type                                  = var.dlp_bq_discovery_configurations[count.index].parent_type
+  dlp_bq_scan_parent_id                                    = var.dlp_bq_discovery_configurations[count.index].parent_id
+  dlp_bq_scan_target_entity_id                             = var.dlp_bq_discovery_configurations[count.index].target_id
   dlp_bq_table_regex                                       = var.dlp_bq_discovery_configurations[count.index].table_regex
   dlp_bq_table_types                                       = var.dlp_bq_discovery_configurations[count.index].table_types
   dlp_bq_apply_tags                                        = var.dlp_bq_discovery_configurations[count.index].apply_tags
@@ -48,7 +67,6 @@ module "bq_dlp_configs" {
   dlp_bq_reprofile_on_table_data_update_frequency          = var.dlp_bq_discovery_configurations[count.index].reprofile_frequency_on_table_data_update
   dlp_bq_reprofile_on_table_data_update_types              = var.dlp_bq_discovery_configurations[count.index].reprofile_types_on_table_data_update
   dlp_bq_reprofile_on_table_schema_update_frequency        = var.dlp_bq_discovery_configurations[count.index].reprofile_frequency_on_table_schema_update
-  dlp_bq_scan_folder_id                                    = var.dlp_bq_discovery_configurations[count.index].folder_id
 
 
   auto_dlp_results_table_name       = var.dlp_bq_results_table_name
@@ -58,7 +76,7 @@ module "bq_dlp_configs" {
   dlp_tag_high_sensitivity_id       = var.dlp_tag_high_sensitivity_value_namespaced_name
   dlp_tag_moderate_sensitivity_id   = var.dlp_tag_moderate_sensitivity_value_namespaced_name
   dlp_tag_low_sensitivity_id        = var.dlp_tag_low_sensitivity_value_namespaced_name
-  project                           = var.application_project
   publishing_project                = var.publishing_project
   pubsub_tagger_topic_id            = google_pubsub_topic.dlp_bq_topic.id
+  pubsub_errors_topic_id            = google_pubsub_topic.dlp_bq_errors_topic.id
 }

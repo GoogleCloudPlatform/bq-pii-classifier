@@ -17,14 +17,41 @@
 #
 #
 
-variable "dlp_sensitivity_level_key_id" {
+variable "parent" {
   type        = string
-  description = "The ID of the 'DLP sensitivity' tag key"
+  description = "GCP organization or project that will host the tags. Format `organizations/ORG_ID` or `projects/PROJECT_ID`"
 }
 
-variable "ignore_dlp_key_id" {
+variable "dlp_tag_sensitivity_level_key_name" {
   type        = string
-  description = "The ID of the 'Ignore/Bypass DLP Sensitivity' tag key"
+  description = "the key name for the DLP sensitivity levels tag"
+  default     = "eip-cloud-dlp-sensitivity-level"
+}
+
+variable "ignore_dlp_sensitivity_key_name" {
+  type        = string
+  description = "the key name for the bypass DLP sensitivity levels tag used for raising objections by data owners"
+  default     = "eip-bypass-cloud-dlp-sensitivity-level"
+}
+
+variable "dlp_tag_high_sensitivity_value_name" {
+  type    = string
+  default = "high"
+}
+
+variable "dlp_tag_moderate_sensitivity_value_name" {
+  type    = string
+  default = "moderate"
+}
+
+variable "dlp_tag_low_sensitivity_value_name" {
+  type    = string
+  default = "low"
+}
+
+variable "ignore_dlp_sensitivity_true_value_name" {
+  type    = string
+  default = "true"
 }
 
 variable "dlp_tag_sensitivity_level_key_iam_tag_user_principles" {

@@ -17,7 +17,7 @@
 #
 #
 
-variable "project" {
+variable "dlp_agent_project_id" {
   type = string
 }
 
@@ -25,8 +25,31 @@ variable "publishing_project" {
   type = string
 }
 
-variable "dlp_bq_scan_org_id" {
+variable "dlp_bq_scan_parent_type" {
   type = string
+  description = "The GCP organization hierarchy node to deploy the discovery configuration to. Allowed values [project, organization]"
+  validation {
+    condition     = contains(["organization", "project"], var.dlp_bq_scan_parent_type)
+    error_message = "The 'dlp_bq_scan_parent_type' must be either 'organization' or 'project'."
+  }
+}
+
+variable "dlp_bq_scan_parent_id" {
+  type = string
+  description = "Organization number or project id of the dlp_gcs_scan_parent_type"
+  validation {
+    condition     = var.dlp_bq_scan_parent_type != "project" || var.dlp_bq_scan_parent_id == var.dlp_agent_project_id
+    error_message = "If 'dlp_gcs_scan_parent_type' is 'project', then 'dlp_gcs_scan_parent_id' must be equal to 'dlp_agent_project_id'."
+  }
+}
+
+variable "dlp_bq_scan_target_entity_id" {
+  type        = string
+  description = "GCP folder ID or project ID that will be scanned by DLP discovery service for BigQuery. In case of dlp_bq_scan_parent_type = project, the following fields must be the same: dlp_bq_scan_target_entity_id, dlp_bq_scan_parent_id and dlp_agent_project_id"
+  validation {
+    condition     = var.dlp_bq_scan_parent_type != "project" || var.dlp_bq_scan_parent_id == var.dlp_bq_scan_target_entity_id
+    error_message = "If 'dlp_bq_scan_parent_type' is 'project', then 'dlp_bq_scan_parent_id' must be equal to 'dlp_bq_scan_target_entity_id'."
+  }
 }
 
 variable "data_region" {
@@ -41,11 +64,6 @@ variable "auto_dlp_results_table_name" {
   type        = string
   description = "New table name to be created to hold DLP findings in the format 'table'"
 }
-
-variable "dlp_bq_scan_folder_id" {
-  type = string
-}
-
 
 variable "dlp_inspection_templates_ids_list" {
   type = list(string)
@@ -121,4 +139,8 @@ variable "dlp_bq_reprofile_on_table_data_update_types" {
 
 variable "pubsub_tagger_topic_id" {
   type = string
+}
+
+variable "pubsub_errors_topic_id" {
+  type    = string
 }

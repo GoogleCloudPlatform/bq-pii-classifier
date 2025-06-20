@@ -32,7 +32,7 @@ locals {
   dlp_inspection_templates_ids_list = flatten([for obj in local.created_dlp_inspection_templates : obj["ids"]])
 }
 
-data google_project "gcp_host_project" {
+data "google_project" "application_project" {
   project_id = var.application_project
 }
 
@@ -61,5 +61,36 @@ resource "google_bigquery_dataset" "results_dataset" {
   description = "To store DLP results"
 
   delete_contents_on_destroy = ! var.terraform_data_deletion_protection
+}
+
+
+# bq export Pub/Sub subscriptions needs access to the target tables
+resource "google_bigquery_dataset_iam_member" "results_dataset_pubsub_writer" {
+  project    = var.publishing_project
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+  member     = "serviceAccount:service-${data.google_project.application_project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  role       = "roles/bigquery.dataEditor"
+
+  // wait until a topic is created to force-create the service agent
+  depends_on = [google_pubsub_topic.dlp_bq_topic, google_pubsub_topic.dlp_gcs_topic]
+}
+
+resource "google_bigquery_table" "dlp_errors_table" {
+  project    =  var.publishing_project
+  table_id   = var.dlp_errors_table_name
+  dataset_id = google_bigquery_dataset.results_dataset.dataset_id
+
+  schema = <<EOF
+[
+  {
+    "name": "data",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The data"
+  }
+]
+EOF
+
+  deletion_protection = var.terraform_data_deletion_protection
 }
 

@@ -18,12 +18,12 @@
 #
 
 terraform_service_account_email ="terraform@<PROJECT_ID>.iam.gserviceaccount.com"
+
 application_project = "<PROJECT_ID>"
 publishing_project = "PUBLISHING_PROJECT_ID"
 compute_region = "us-central1"
 data_region    = "us"
 source_data_regions = ["europe-west3", "eu", "us"]
-org_id         = 123 # The organization to deploy Cloud DLP discovery configurations to
 terraform_data_deletion_protection = false # set to `true` for prod environments
 services_container_image_name = "annotation-services:latest"
 
@@ -66,8 +66,11 @@ custom_info_types_regex = [
 # BigQuery discovery
 dlp_bq_discovery_configurations = [
   {
-    folder_id                                         = 123,
-    project_id_regex                                  = "^only-this-project$"
+    parent_type                                       = "project"
+    parent_id                                         = "DATA_PROJECT_ID_#1"
+    target_id                                         = "DATA_PROJECT_ID_#1"
+
+    project_id_regex                                  = ".*" # must be .* or same as parent_id
     dataset_regex                                     = "^only-this-dataset$"
     table_regex                                       = ".*" # all tables
     apply_tags                                        = true
@@ -80,7 +83,9 @@ dlp_bq_discovery_configurations = [
     reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
   },
   {
-    folder_id                            = 567
+    parent_type                                       = "project"
+    parent_id                                         = "DATA_PROJECT_ID_#2"
+    target_id                                         = "DATA_PROJECT_ID_#2"
     # all other fields are set to defaults
   }
 ]
@@ -88,9 +93,12 @@ dlp_bq_discovery_configurations = [
 # Cloud Storage discovery
 dlp_gcs_discovery_configurations = [
   {
-    folder_id                                         = 123
-    project_id_regex                                  = "^only-this-project$"
-    bucket_name_regex                                 = ".*" # all buckets
+    parent_type                                       = "project"
+    parent_id                                         = "DATA_PROJECT_ID_#1"
+    target_id                                         = "DATA_PROJECT_ID_#1"
+
+    project_id_regex                                  = ".*" # must be .* or same as parent_id
+    bucket_name_regex                                 = ".*"
     apply_tags                                        = true
     create_configuration_in_paused_state              = true
     reprofile_frequency                               = "UPDATE_FREQUENCY_DAILY"
@@ -99,13 +107,16 @@ dlp_gcs_discovery_configurations = [
     included_object_attributes = ["ALL_SUPPORTED_OBJECTS"]
   },
   {
-    folder_id                            = 567
+    parent_type                                       = "project"
+    parent_id                                         = "DATA_PROJECT_ID_#2"
+    target_id                                         = "DATA_PROJECT_ID_#2"
     # all other fields are set to defaults
   }
 ]
 
 ### Tags Module variables
 
+# these tags will be created in the application project
 dlp_tag_sensitivity_level_key_name = "dlp_sensitivity_level"
 ignore_dlp_sensitivity_key_name    = "bypass_dlp_sensitivity_level"
 

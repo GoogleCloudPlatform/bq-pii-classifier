@@ -65,14 +65,17 @@ added to the inspection template used to scan data resources. For example:
 
 ### GCS Discovery Variables
 
-Set the `dlp_gcs_discovery_configurations` list to control which GCP folders and
+Set the `dlp_gcs_discovery_configurations` list to control which GCP folders or projects and
 underlying buckets and objects will be scanned by DLP. For example:
 
 ```terraform
 dlp_gcs_discovery_configurations = [
   {
-    folder_id = 123
-    project_id_regex = "^project-name$"
+    parent_type                                       = "project|organization"
+    parent_id                                         = "DATA_PROJECT_ID_#1|ORGANIZATION_ID"
+    target_id                                         = "DATA_PROJECT_ID_#1|DATA_FOLDER_ID_#1"
+    
+    project_id_regex = "^this-exact-project$"
     bucket_name_regex = ".*"
     apply_tags = true
     create_configuration_in_paused_state = false
@@ -82,7 +85,9 @@ dlp_gcs_discovery_configurations = [
     included_object_attributes = ["ALL_SUPPORTED_OBJECTS"]
   },
   {
-    folder_id = 456
+    parent_type                                       = "project|organization"
+    parent_id                                         = "DATA_PROJECT_ID_#2|ORGANIZATION_ID"
+    target_id                                         = "DATA_PROJECT_ID_#2|DATA_FOLDER_ID_#2"
     # all other fields are set to their defaults
   }
 ]
@@ -90,17 +95,19 @@ dlp_gcs_discovery_configurations = [
 
 The full list of fields and descriptions are below:
 
-Field                                               | Required | Description
---------------------------------------------------- | -------- | -----------
-`folder_id`                                         | Yes      | GCP folder to be scanned by DLP
-`project_id_regex`                                  | No       | Regex for project ids to be covered by the DLP scan. If unset, it will match all projects in the folder.
-`bucket_name_regex`                                 | No       | Regex for bucket names (excluding the `gs://` prefix) to be covered by the DLP scan. If unset, it will match all buckets in the folder.
-`apply_tags`                                        | No       | When set to `True`, DLP discovery service will attach pre-existing data sensitivity levels tags to buckets. Defaults to `False`
-`create_configuration_in_paused_state`              | No       | When set to `True`, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to `False`, the discovery scan will start running upon creation.
-`reprofile_frequency`                               | No       | If you set this field, profiles are refreshed at this frequency regardless of whether the underlying data have changes. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`
-`reprofile_frequency_on_inspection_template_update` | No       | How frequently data profiles can be updated when the inspection template is modified. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.
-`included_bucket_attributes`                        | No       | Only buckets with the specified attributes will be scanned. Defaults to `["ALL_SUPPORTED_BUCKETS"]`. Each value may be one of: `ALL_SUPPORTED_BUCKETS`, `AUTOCLASS_DISABLED`, `AUTOCLASS_ENABLED`.
-`included_object_attributes`                        | No       | Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to `["ALL_SUPPORTED_OBJECTS"]`. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: `ALL_SUPPORTED_OBJECTS`, `STANDARD`, `NEARLINE`, `COLDLINE`, `ARCHIVE`, `REGIONAL`, `MULTI_REGIONAL`, `DURABLE_REDUCED_AVAILABILITY`.
+| Field                                               | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|-----------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `parent_type`                                       | Yes      | Configures where to deploy the discovery configuration. Choose `project` to deploy to a project node (to scan one project), or `organization` to deploy to an organization node (to scan a folder).                                                                                                                                                                                                                                                                |
+| `parent_id`                                         | Yes      | The project_id in case of `project`, or the organization_id in case of `organization`                                                                                                                                                                                                                                                                                                                                                                              |
+| `target_id`                                         | Yes      | Configure which data to scan. Use a project_id in case of `project` (same as `parent_id`), or a folder_id in case of `organization`                                                                                                                                                                                                                                                                                                                                |
+| `project_id_regex`                                  | No       | Regex for project ids to be covered by the DLP scan. If unset, it will match all projects in the folder. This field is not used in case of `parent_type = project`.                                                                                                                                                                                                                                                                                                |
+| `bucket_name_regex`                                 | No       | Regex for bucket names (excluding the `gs://` prefix) to be covered by the DLP scan. If unset, it will match all buckets in the folder.                                                                                                                                                                                                                                                                                                                            |
+| `apply_tags`                                        | No       | When set to `True`, DLP discovery service will attach pre-existing data sensitivity levels tags to buckets. Defaults to `False`                                                                                                                                                                                                                                                                                                                                    |
+| `create_configuration_in_paused_state`              | No       | When set to `True`, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to `False`, the discovery scan will start running upon creation.                                                                                                                                                                                        |
+| `reprofile_frequency`                               | No       | If you set this field, profiles are refreshed at this frequency regardless of whether the underlying data have changes. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`                                                                                                                                                                                                                              |
+| `reprofile_frequency_on_inspection_template_update` | No       | How frequently data profiles can be updated when the inspection template is modified. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                                                                                                                                                                                                               |
+| `included_bucket_attributes`                        | No       | Only buckets with the specified attributes will be scanned. Defaults to `["ALL_SUPPORTED_BUCKETS"]`. Each value may be one of: `ALL_SUPPORTED_BUCKETS`, `AUTOCLASS_DISABLED`, `AUTOCLASS_ENABLED`.                                                                                                                                                                                                                                                                 |
+| `included_object_attributes`                        | No       | Only objects with the specified attributes will be scanned. If an object has one of the specified attributes but is inside an excluded bucket, it will not be scanned. Defaults to `["ALL_SUPPORTED_OBJECTS"]`. A profile will be created even if no objects match the included_object_attributes. Each value may be one of: `ALL_SUPPORTED_OBJECTS`, `STANDARD`, `NEARLINE`, `COLDLINE`, `ARCHIVE`, `REGIONAL`, `MULTI_REGIONAL`, `DURABLE_REDUCED_AVAILABILITY`. |
 
 ### BigQuery Discovery Variables
 
@@ -110,7 +117,10 @@ underlying datasets and tables will be scanned by DLP. For example:
 ```terraform
 dlp_gcs_discovery_configurations = [
   {
-    folder_id = 123,
+    parent_type                                       = "project|organization"
+    parent_id                                         = "DATA_PROJECT_ID_#1|ORGANIZATION_ID"
+    target_id                                         = "DATA_PROJECT_ID_#1|DATA_FOLDER_ID_#1"
+    
     project_id_regex = "^project_name$"
     dataset_regex = "^dataset_name$"
     table_regex = ".*"
@@ -124,7 +134,9 @@ dlp_gcs_discovery_configurations = [
     reprofile_types_on_table_data_update = ["TABLE_MODIFIED_TIMESTAMP"]
   },
   {
-    folder_id = 456
+    parent_type                                       = "project|organization"
+    parent_id                                         = "DATA_PROJECT_ID_#2|ORGANIZATION_ID"
+    target_id                                         = "DATA_PROJECT_ID_#2|DATA_FOLDER_ID_#2"
     # all other fields are set to their defaults
   }
 ]
@@ -132,20 +144,22 @@ dlp_gcs_discovery_configurations = [
 
 The full list of fields and descriptions are below:
 
-Field                                               | Required | Description
---------------------------------------------------- | -------- | -----------
-`folder_id`                                         | Yes      | GCP folder to be scanned by DLP
-`project_id_regex`                                  | No       | Regex for project ids to be covered by the DLP scan. If unset, it will match all projects in the folder.
-`dataset_regex`                                     | No       | Regex for datasets to be covered by the DLP scan. If unset, it will match all datasets in the folder.
-`table_regex`                                       | No       | Regex for tables to be covered by the DLP scan. If unset, it will match all tables in the folder.
-`apply_tags`                                        | No       | When set to `True`, DLP discovery service will attach pre-existing data sensitivity levels tags to tables. Defaults to `False`
-`create_configuration_in_paused_state`              | No       | When set to `True`, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to `False`, the discovery scan will start running upon creation.
-`table_types`                                       | No       | Restrict dlp discovery service for BigQuery to specific table types. Defaults to `["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]`
-`reprofile_frequency_on_table_schema_update`        | No       | How frequently data profiles can be updated when a table schema is modified (i.e. columns). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.
-`reprofile_frequency_on_table_data_update`          | No       | How frequently data profiles can be updated when a table data is modified (i.e. rows). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.
-`reprofile_frequency_on_inspection_template_update` | No       | How frequently data profiles can be updated when the inspection template is modified. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.
-`reprofile_types_on_schema_update`                  | No       | A list of type of events to consider when deciding if the tables schema has been modified and should have the profile updated. Each value may be one of: `SCHEMA_NEW_COLUMNS` (default), `SCHEMA_REMOVED_COLUMNS`
-`reprofile_types_on_table_data_update`              | No       | A list type of events to consider when deciding if the table has been modified and should have the profile updated. Each value may be one of: `TABLE_MODIFIED_TIMESTAMP` (default)
+| Field                                               | Required | Description                                                                                                                                                                                                                                                                 |
+|-----------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `parent_type`                                       | Yes      | Configures where to deploy the discovery configuration. Choose `project` to deploy to a project node (to scan one project), or `organization` to deploy to an organization node (to scan a folder).                                                                         |
+| `parent_id`                                         | Yes      | The project_id in case of `project`, or the organization_id in case of `organization`                                                                                                                                                                                       |
+| `target_id`                                         | Yes      | Configure which data to scan. Use a project_id in case of `project` (same as `parent_id`), or a folder_id in case of `organization`                                                                                                                                         |
+| `project_id_regex`                                  | No       | Regex for project ids to be covered by the DLP scan. If unset, it will match all projects in the folder. This field is not used in case of `parent_type = project`.                                                                                                         |
+| `dataset_regex`                                     | No       | Regex for datasets to be covered by the DLP scan. If unset, it will match all datasets in the folder.                                                                                                                                                                       |
+| `table_regex`                                       | No       | Regex for tables to be covered by the DLP scan. If unset, it will match all tables in the folder.                                                                                                                                                                           |
+| `apply_tags`                                        | No       | When set to `True`, DLP discovery service will attach pre-existing data sensitivity levels tags to tables. Defaults to `False`                                                                                                                                              |
+| `create_configuration_in_paused_state`              | No       | When set to `True`, the DLP discovery scan configuration is created in a paused state and must be resumed manually to allow confirmation and avoid DLP scan cost if there are mistakes or errors. When set to `False`, the discovery scan will start running upon creation. |
+| `table_types`                                       | No       | Restrict dlp discovery service for BigQuery to specific table types. Defaults to `["BIG_QUERY_TABLE_TYPE_TABLE", "BIG_QUERY_TABLE_TYPE_EXTERNAL_BIG_LAKE"]`                                                                                                                 |
+| `reprofile_frequency_on_table_schema_update`        | No       | How frequently data profiles can be updated when a table schema is modified (i.e. columns). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                  |
+| `reprofile_frequency_on_table_data_update`          | No       | How frequently data profiles can be updated when a table data is modified (i.e. rows). Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                       |
+| `reprofile_frequency_on_inspection_template_update` | No       | How frequently data profiles can be updated when the inspection template is modified. Possible values are: `UPDATE_FREQUENCY_NEVER` (default), `UPDATE_FREQUENCY_DAILY`, `UPDATE_FREQUENCY_MONTHLY`.                                                                        |
+| `reprofile_types_on_schema_update`                  | No       | A list of type of events to consider when deciding if the tables schema has been modified and should have the profile updated. Each value may be one of: `SCHEMA_NEW_COLUMNS` (default), `SCHEMA_REMOVED_COLUMNS`                                                           |
+| `reprofile_types_on_table_data_update`              | No       | A list type of events to consider when deciding if the table has been modified and should have the profile updated. Each value may be one of: `TABLE_MODIFIED_TIMESTAMP` (default)                                                                                          |
 
 ### Configure Custom InfoTypes (Optional)
 
