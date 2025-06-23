@@ -497,8 +497,10 @@ cd terraform/envs/YOUR_ENV
 
 terraform init
 
-terraform plan
+# this is a workaround for terraform failing to resolve "count" at plan time. Deploying only one target first resolves it
+terraform apply -target=module.apis
 
+# deploy all other modules
 terraform apply
 ```
 
