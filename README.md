@@ -254,136 +254,6 @@ and/or when granting org-level permissions is not an option.
 The full flow of DLP discovery and applying annotations is the same as the [full org-level exampl](#full-org-level-deployment-example) explained earlier.
 The Terraform example environment is under [terraform/envs_example/project_level_full](terraform/envs_example/project_level_full).
 
-## Usage
-
-There are two entry points of execution after deploying the solution:
-
-### DLP Events
-
-This is an event-driven execution where DLP Discovery Service sends a Pub/Sub
-notification after it inspects a certain resource (i.e. table or bucket) and
-creates a data profile for it.
-
-This notification is processed by the `Tagger` service and applies the
-configured annotations (i.e. policy tags and/or resource labels) to the target
-resource based on DLP findings.
-
-Note that one can't force-run DLP discovery service, so it might take time
-between the deployment of the DLP discovery configuration and its scan.
-
-### Tagging Dispatcher
-
-The `Tagging Dispatcher` service is a mechanism to force-run the annotation
-process on pre-existing DLP findings.
-
-This could be used to invoke the annotation process without re-scanning data
-with DLP. For example:
-
-*   When annotation configuration has changed (e.g. new labels, new
-    classification level for policy tags, etc)
-*   When `Tagger` fails the first time due to missing permissions on certain
-    data projects/folders
-
-Cloud Workflows is used to manually invoke this process:
-
-*   In the host project, go to "Cloud Workflows" * Open the BigQuery or GCS
-    tagging dispatcher workflow
-*   Click the "Execute" button on top * Inspect the annotation scope in the
-    "message" field under "Code" * To override the scope pass a JSON object with
-    the attributes as the message in the "Input" tab * * For example
-    `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex":
-    ".*"}` * Click the "Execute" button in the bottom
-
-## Reporting
-
-### Helpful in monitoring active runs
-
-Monitor counts of complete vs incomplete tables for the BigQuery Discovery stack
-
-```sql
-SELECT * FROM `annotations.v_run_summary_counts`
-ORDER BY run_id DESC
-```
-
-or for the GCS Discovery stack
-
-```sql
-SELECT * FROM `annotations.v_summary_counts_gcs`
-ORDER BY run_id DESC
-```
-
-List column tagging actions across all tables
-
-```sql
-SELECT  * FROM `annotations.v_tagging_actions`
-WHERE run_id = RUN_ID
-ORDER BY tracker;
-```
-
-List computed table-level resource labels across all tables
-
-```sql
-SELECT  * FROM `annotations.v_log_label_history`
-WHERE run_id = RUN_ID
-ORDER BY tracker;
-```
-
-### Helpful in investigating issues
-
-Tracking log messages for a particular entity (e.g. table or bucket). ``sql
-SELECT jsonPayload.global_run_id, jsonPayload.global_tracker,
-jsonPayload.global_entity_id, jsonPayload.global_app_log,
-resource.labels.service_name, jsonPayload.global_logger_name,
-jsonPayload.global_msg FROM `annotations.run_googleapis_com_stdout` l WHERE
-jsonPayload.global_entity_id LIKE '%buckets/BUCKET_NAME' AND
-jsonPayload.global_run_id = TAGGING_DISPATCHER_RUN_ID ORDER BY timestamp ASC``
-
-List Non-Retryable errors. Table trackers with Non-Retryable errors implies that
-these tables will not be tagged in this run.
-
-```sql
-SELECT * FROM `annotations.v_errors_non_retryable`
-WHERE run_id = RUN_ID;
-```
-
-List Retryable errors. These errors are transit errors that are retired by the
-solution.
-
-```sql
-SELECT * FROM `annotations.v_errors_retryable`
-WHERE run_id = RUN_ID;
-```
-
-Monitor the number of invocations of each Cloud Run (per table).
-
-```sql
-SELECT * FROM annotations.v_service_calls
-WHERE run_id = RUN_ID
-```
-
-### Execution duration per function
-
-One could analyze or build charts on top of this dataset to monitor the time
-taken for each table request (i.e. tracker) along different steps (i.e.
-Inspector, Listener, Tagger). Note that the Inspector duration is the time taken
-to submit a DLP job and not the DLP inspection itself.
-
-```sql
-SELECT
-t.jsonPayload.global_run_id,
-t.resource.labels.service_name,
-t.jsonPayload.global_tracker,
-TIMESTAMP_MILLIS(CAST(SUBSTR(MAX(t.jsonPayload.global_run_id), 0, 13) AS INT64)) run_start_time,
-MIN(timestamp) AS start,
-MAX(timestamp) AS finish,
-TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), SECOND) AS duration_seconds
-
-FROM annotations.run_googleapis_com_stdout t
-WHERE t.jsonPayload.global_app_log = 'TRACKER_LOG'
-AND t.jsonPayload.function_lifecycle_event IN ("START", "END")
-GROUP BY 1,2,3
-ORDER BY 1,2,3
-```
 
 ## New Environment Deployment Guide {#new-env-deployment-guide}
 
@@ -634,3 +504,43 @@ terraform apply
 ```
 
 Alternatively, use your own CICD tooling to run Terraform.
+
+## Usage
+
+There are two entry points of execution after deploying the solution:
+
+### DLP Events
+
+This is an event-driven execution where DLP Discovery Service sends a Pub/Sub
+notification after it inspects a certain resource (i.e. table or bucket) and
+creates a data profile for it.
+
+This notification is processed by the `Tagger` service and applies the
+configured annotations (i.e. policy tags and/or resource labels) to the target
+resource based on DLP findings.
+
+Note that one can't force-run DLP discovery service, so it might take time
+between the deployment of the DLP discovery configuration and its scan.
+
+### Tagging Dispatcher
+
+The `Tagging Dispatcher` service is a mechanism to force-run the annotation
+process on pre-existing DLP findings.
+
+This could be used to invoke the annotation process without re-scanning data
+with DLP. For example:
+
+*   When annotation configuration has changed (e.g. new labels, new
+    classification level for policy tags, etc)
+*   When `Tagger` fails the first time due to missing permissions on certain
+    data projects/folders
+
+Cloud Workflows is used to manually invoke this process:
+
+*   In the host project, go to "Cloud Workflows" * Open the BigQuery or GCS
+    tagging dispatcher workflow
+*   Click the "Execute" button on top * Inspect the annotation scope in the
+    "message" field under "Code" * To override the scope pass a JSON object with
+    the attributes as the message in the "Input" tab * * For example
+    `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex":
+    ".*"}` * Click the "Execute" button in the bottom
