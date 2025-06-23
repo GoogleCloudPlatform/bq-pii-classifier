@@ -25,13 +25,6 @@
       * [Partial org-level deployment example](#partial-org-level-deployment-example)
       * [Full org-level deployment example](#full-org-level-deployment-example)
       * [Full project-level deployment example](#full-project-level-deployment-example)
-  * [Usage](#usage)
-    * [DLP Events](#dlp-events)
-    * [Tagging Dispatcher](#tagging-dispatcher)
-  * [Reporting](#reporting)
-    * [Helpful in monitoring active runs](#helpful-in-monitoring-active-runs)
-    * [Helpful in investigating issues](#helpful-in-investigating-issues)
-    * [Execution duration per function](#execution-duration-per-function)
   * [New Environment Deployment Guide {#new-env-deployment-guide}](#new-environment-deployment-guide-new-env-deployment-guide)
     * [Determine the deployment type](#determine-the-deployment-type)
     * [Create project(s)](#create-projects)
@@ -51,6 +44,13 @@
     * [Create a new Terraform environment](#create-a-new-terraform-environment)
     * [Modules configuration](#modules-configuration)
     * [Running Terraform](#running-terraform)
+  * [Usage](#usage)
+    * [DLP Events](#dlp-events)
+    * [Tagging Dispatcher](#tagging-dispatcher)
+  * [Reporting](#reporting)
+    * [Helpful in monitoring active runs](#helpful-in-monitoring-active-runs)
+    * [Helpful in investigating issues](#helpful-in-investigating-issues)
+    * [Execution duration per function](#execution-duration-per-function)
 <!-- TOC -->
 
 ## Overview
@@ -253,7 +253,6 @@ and/or when granting org-level permissions is not an option.
 
 The full flow of DLP discovery and applying annotations is the same as the [full org-level exampl](#full-org-level-deployment-example) explained earlier.
 The Terraform example environment is under [terraform/envs_example/project_level_full](terraform/envs_example/project_level_full).
-
 
 ## New Environment Deployment Guide {#new-env-deployment-guide}
 
@@ -544,3 +543,94 @@ Cloud Workflows is used to manually invoke this process:
     the attributes as the message in the "Input" tab * * For example
     `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex":
     ".*"}` * Click the "Execute" button in the bottom
+
+## Reporting
+
+### Helpful in monitoring active runs
+
+Monitor counts of complete vs incomplete tables for the BigQuery Discovery stack
+
+```sql
+SELECT * FROM `annotations.v_run_summary_counts`
+ORDER BY run_id DESC
+```
+
+or for the GCS Discovery stack
+
+```sql
+SELECT * FROM `annotations.v_summary_counts_gcs`
+ORDER BY run_id DESC
+```
+
+List column tagging actions across all tables
+
+```sql
+SELECT  * FROM `annotations.v_tagging_actions`
+WHERE run_id = RUN_ID
+ORDER BY tracker;
+```
+
+List computed table-level resource labels across all tables
+
+```sql
+SELECT  * FROM `annotations.v_log_label_history`
+WHERE run_id = RUN_ID
+ORDER BY tracker;
+```
+
+### Helpful in investigating issues
+
+Tracking log messages for a particular entity (e.g. table or bucket). ``sql
+SELECT jsonPayload.global_run_id, jsonPayload.global_tracker,
+jsonPayload.global_entity_id, jsonPayload.global_app_log,
+resource.labels.service_name, jsonPayload.global_logger_name,
+jsonPayload.global_msg FROM `annotations.run_googleapis_com_stdout` l WHERE
+jsonPayload.global_entity_id LIKE '%buckets/BUCKET_NAME' AND
+jsonPayload.global_run_id = TAGGING_DISPATCHER_RUN_ID ORDER BY timestamp ASC``
+
+List Non-Retryable errors. Table trackers with Non-Retryable errors implies that
+these tables will not be tagged in this run.
+
+```sql
+SELECT * FROM `annotations.v_errors_non_retryable`
+WHERE run_id = RUN_ID;
+```
+
+List Retryable errors. These errors are transit errors that are retired by the
+solution.
+
+```sql
+SELECT * FROM `annotations.v_errors_retryable`
+WHERE run_id = RUN_ID;
+```
+
+Monitor the number of invocations of each Cloud Run (per table).
+
+```sql
+SELECT * FROM annotations.v_service_calls
+WHERE run_id = RUN_ID
+```
+
+### Execution duration per function
+
+One could analyze or build charts on top of this dataset to monitor the time
+taken for each table request (i.e. tracker) along different steps (i.e.
+Inspector, Listener, Tagger). Note that the Inspector duration is the time taken
+to submit a DLP job and not the DLP inspection itself.
+
+```sql
+SELECT
+t.jsonPayload.global_run_id,
+t.resource.labels.service_name,
+t.jsonPayload.global_tracker,
+TIMESTAMP_MILLIS(CAST(SUBSTR(MAX(t.jsonPayload.global_run_id), 0, 13) AS INT64)) run_start_time,
+MIN(timestamp) AS start,
+MAX(timestamp) AS finish,
+TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), SECOND) AS duration_seconds
+
+FROM annotations.run_googleapis_com_stdout t
+WHERE t.jsonPayload.global_app_log = 'TRACKER_LOG'
+AND t.jsonPayload.function_lifecycle_event IN ("START", "END")
+GROUP BY 1,2,3
+ORDER BY 1,2,3
+```
