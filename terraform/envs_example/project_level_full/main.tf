@@ -17,28 +17,18 @@
 #
 #
 
-/*
-Deployment notes:
-- There is a dead-lock between {creating new tags and assigning IAM roles to them} and {creating DLP configs & force-creation of dlp service accounts}
-- This corresponds to the modules tags and dlp
-- The dead-lock happens we need to create the dlp configs (that is in turn using the tags) to force-create the dlp SA, but we also need to grant access to the SA on the tags
-- To solve it, deploy on the following waves:
-    -- Wave 1:
-        -- set apply_tags in both GCS and BQ dlp configs to false
-        -- set create_configuration_in_paused_state in both GCS and BQ dlp configs to true
-        -- set the dlp.dlp_tag_* variables to empty strings
-        -- apply terraform: this will create the configs without the tags, so that the DLP SA doesn't need IAM roles on them
-    -- Wave 2:
-        -- set apply_tags in both GCS and BQ dlp configs to true (if intended)
-        -- set create_configuration_in_paused_state in both GCS and BQ dlp configs to false (if intended)
-        -- map the dlp.dlp_tag_* variables to module.project_tags.dlp_tag_*
-        -- apply terraform: this will grant IAM roles to the DLP SA on the tags and reference the tags in the config
- */
 module "apis" {
   source = "../../modules/terraform_00_apis"
 
   application_project = var.application_project
   publishing_project  = var.publishing_project
+
+  // the union of all project-level configs, plus the application project (used for org-level configs)
+  dlp_projects = distinct(concat(
+    [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [var.application_project]
+  ))
 }
 
 // project-level tags for project-level dlp configs
@@ -51,7 +41,7 @@ module "project_tags" {
   ignore_dlp_sensitivity_key_name    = var.ignore_dlp_sensitivity_key_name
 
   // only DLP service accounts (across all configs)  should be able to tag/untag resources with the DLP sensitivity tags (unless desired otherwise)
-  dlp_tag_sensitivity_level_key_iam_tag_user_principles = [for x in module.dlp.dlp_service_account_emails: "serviceAccount:${x}"]
+  dlp_tag_sensitivity_level_key_iam_tag_user_principles = [for x in var.dlp_service_accounts_emails: "serviceAccount:${x}"]
   // TODO: all users should be able to use the ignore/bypass tag. Set to an equivalent of "all users"
   ignore_dlp_sensitivity_key_iam_tag_user_principles = []
 }
@@ -90,7 +80,7 @@ module "iam_on_host_project" {
   source = "../../modules/terraform_01_iam_host_project"
 
   application_project = var.application_project
-  dlp_service_agents_emails = module.dlp.dlp_service_account_emails
+  dlp_service_agents_emails = var.dlp_service_accounts_emails
 
   depends_on = [module.apis]
 }
@@ -100,7 +90,7 @@ module "iam_on_publishing_project" {
 
   application_project = var.application_project
   publishing_project  = var.publishing_project
-  dlp_service_agents_emails = module.dlp.dlp_service_account_emails
+  dlp_service_agents_emails = var.dlp_service_accounts_emails
 
   depends_on = [module.apis, module.iam_on_host_project]
 
@@ -138,10 +128,10 @@ locals {
   all_dlp_projects = distinct(concat(module.dlp.dlp_gcs_projects,module.dlp.dlp_bq_projects))
 }
 
-// grant permissions for the annotations service accounts to all projects where dlp is deployed
 module "iam_project_level" {
   source = "../../modules/terraform_08_iam_project_level"
 
+  // grant permissions for the annotations service accounts to all projects where dlp is deployed
   count = length(local.all_dlp_projects)
 
   application_project = var.application_project

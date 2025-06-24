@@ -55,11 +55,11 @@ variable "ignore_dlp_sensitivity_true_value_name" {
 }
 
 variable "dlp_tag_sensitivity_level_key_iam_tag_user_principles" {
-  type        = list(string)
+  type        = set(string)
   description = "List of principles to have roles/resourcemanager.tagUser on the 'DLP sensitivity' tags"
 }
 
 variable "ignore_dlp_sensitivity_key_iam_tag_user_principles" {
-  type        = list(string)
+  type        = set(string)
   description = "List of principles to have roles/resourcemanager.tagUser on the 'Ignore DLP Sensitivity' tags"
 }

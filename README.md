@@ -344,7 +344,6 @@ and assigns the required project-level permissions on it:
 ```shell
 # service account name to be created for Terraform in the host project
 export TF_SA=terraform
-
 ./scripts/prepare_terraform_service_account_on_host_project.sh 
 ```
 
@@ -353,7 +352,6 @@ export TF_SA=terraform
 ```shell
 # service account name to be created for Terraform in the host project
 export TF_SA=terraform
-
 ./scripts/prepare_terraform_service_account_on_publishing_project.sh
 ```
 
@@ -423,7 +421,7 @@ We need a Docker repository to publish container images that are used by this
 solution
 
 ```shell
-./scripts/prepare_docker_repo.sh
+./scripts/prepare_for_container_image.sh
 ```
 
 #### Deploy the services container image
@@ -495,13 +493,17 @@ Then run Terraform manually:
 ```bash
 cd terraform/envs/YOUR_ENV
 
+# initialize the terraform workspace
 terraform init
 
-# this is a workaround for terraform failing to resolve "count" at plan time. Deploying only one target first resolves it
-terraform apply -target=module.apis
+# to inspect which resources will be created/changed
+terraform plan
 
-# deploy all other modules
+# to deploy all resources
 terraform apply
+
+# (optional): to delete all deployed resources
+terraform destroy
 ```
 
 Alternatively, use your own CICD tooling to run Terraform.

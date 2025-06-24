@@ -57,6 +57,13 @@ variable "services_container_image_name" {
   description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
+// we can dynamically infer this but we're using a static list to avoid complications with running terraform apply
+// with count/for each loops that can only be determined after apply
+variable "dlp_service_accounts_emails" {
+  type = set(string)
+  description = "Cloud DLP service accounts used across configurations in the format 'service-{PROJECT_NUMBER}@dlp-api.iam.gserviceaccount.com' "
+}
+
 ########################################################################################################################
 #                                              DLP module variables
 ########################################################################################################################

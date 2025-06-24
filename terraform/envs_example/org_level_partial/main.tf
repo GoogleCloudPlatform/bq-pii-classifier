@@ -17,10 +17,6 @@
 #
 #
 
-data google_project "gcp_host_project" {
-  project_id = var.application_project
-}
-
 /**
 In this partial example we assume that all IAM-related modules are integrated in other external IAM environments.
 Same for Org-level resources (i.e. Tags), we assume they are integrated under an external Org-level environment.

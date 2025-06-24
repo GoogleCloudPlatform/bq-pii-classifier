@@ -21,6 +21,7 @@
 
 apis=(
   "serviceusage.googleapis.com"
+  "compute.googleapis.com"
   "cloudresourcemanager.googleapis.com"
   "iam.googleapis.com"
   "artifactregistry.googleapis.com"

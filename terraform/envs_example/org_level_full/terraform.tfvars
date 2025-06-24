@@ -114,6 +114,8 @@ dlp_gcs_discovery_configurations = [
   }
 ]
 
+dlp_service_accounts_emails = ["service-{APPLICATION_PROJECT_NUMBER}@dlp-api.iam.gserviceaccount.com"]
+
 ### Tags Module variables
 
 # these tags will be created on the organization level

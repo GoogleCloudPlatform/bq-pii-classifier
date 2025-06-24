@@ -68,15 +68,15 @@ resource "google_tags_tag_value" "ignore_dlp_true_value" {
 # principles need to be tag users on the tag and the resource to create a binding
 
 resource "google_tags_tag_key_iam_member" "dlp_sensitivity_level_key_iam_tag_user" {
-  count   = length(var.dlp_tag_sensitivity_level_key_iam_tag_user_principles)
-  member  = var.dlp_tag_sensitivity_level_key_iam_tag_user_principles[count.index]
-  role    = "roles/resourcemanager.tagUser"
-  tag_key = google_tags_tag_key.dlp_sensitivity_level_key.id
+  for_each = var.dlp_tag_sensitivity_level_key_iam_tag_user_principles
+  member   = each.value
+  role     = "roles/resourcemanager.tagUser"
+  tag_key  = google_tags_tag_key.dlp_sensitivity_level_key.id
 }
 
 resource "google_tags_tag_key_iam_member" "ignore_dlp_key_iam_tag_user" {
-  count   = length(var.ignore_dlp_sensitivity_key_iam_tag_user_principles)
-  member  = var.ignore_dlp_sensitivity_key_iam_tag_user_principles[count.index]
-  role    = "roles/resourcemanager.tagUser"
-  tag_key = google_tags_tag_key.ignore_dlp_key.id
+  for_each = var.ignore_dlp_sensitivity_key_iam_tag_user_principles
+  member   = each.value
+  role     = "roles/resourcemanager.tagUser"
+  tag_key  = google_tags_tag_key.ignore_dlp_key.id
 }

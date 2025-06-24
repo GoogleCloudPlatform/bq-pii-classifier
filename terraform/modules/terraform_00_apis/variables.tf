@@ -26,3 +26,9 @@ variable "publishing_project" {
   type        = string
   description = "GCP project to host external/shared resources such as DLP results and monitoring views"
 }
+
+variable "dlp_projects" {
+  type        = set(string)
+  description = "List of project ids where Cloud DLP will be deployed. Used for project-level DLP configurations"
+  default = []
+}
