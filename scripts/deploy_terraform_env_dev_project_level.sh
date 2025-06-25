@@ -29,7 +29,4 @@ cd ../terraform/envs/dev_project_level
 
 terraform init
 
-# this is a workaround for terraform missing count at initial plan/apply. Deploying only one target first resolves it
-terraform apply -target=module.apis
-
 terraform apply -lock=false -auto-approve

@@ -19,6 +19,7 @@
 
 package com.google.cloud.oss.solutions.annotations.apps.storage;
 
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.CleanBucketAnnotationsRequest;
 import com.google.gson.Gson;
 import com.google.cloud.oss.solutions.annotations.entities.GcsDlpProfileSummary;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
@@ -71,6 +72,49 @@ public class GcsTaggerController {
 
   public static void main(String[] args) {
     SpringApplication.run(GcsTaggerController.class, args);
+  }
+
+  /**
+   * Handles requests from the cleaning dispatcher service.
+   *
+   * @param requestBody The pubsub event containing the {@link CleanBucketAnnotationsRequest} as a serialized json.
+   * @return A ResponseEntity with a success message or an error response.
+   */
+  @RequestMapping(value = "/cleaning-dispatcher-handler", method = RequestMethod.POST)
+  public ResponseEntity cleaningDispatcherHandler(@RequestBody PubSubEvent requestBody) {
+
+    CleanBucketAnnotationsRequest request = null;
+
+    try {
+
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(TrackingHelper.DEFAULT_TRACKING_ID, null, msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
+
+      String requestJsonString = requestBody.getMessage().dataToUtf8String();
+
+      request = gson.fromJson(requestJsonString, CleanBucketAnnotationsRequest.class);
+
+      logger.logInfoWithTracker(
+              request.getTrackingId(),
+              Utils.generateBucketEntityId(
+                      request.getProjectId(),
+                      request.getBucketName()),
+              String.format("Parsed Request from GCS Cleaning Dispatcher: '%s'", request));
+
+      // TODO: implement cleaning logic
+
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
+
+      String trackingId =
+              request == null
+                      ? TrackingHelper.DEFAULT_TRACKING_ID
+                      : request.getTrackingId();
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
+    }
   }
 
   /**

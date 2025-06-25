@@ -26,8 +26,9 @@ module "gcs-discovery-stack" {
   count = var.deploy_gcs_annotations_stack? 1: 0
 
   image_name                                     = var.services_container_image_name
-  java_class_path_gcs_dispatcher_service         = var.java_class_path_gcs_dispatcher_service
   java_class_path_gcs_tagger_service             = var.java_class_path_gcs_tagger_service
+  java_class_path_gcs_cleaner_dispatcher_service = var.java_class_path_gcs_cleaning_dispatcher_service
+  java_class_path_gcs_tagger_dispatcher_service  = var.java_class_path_gcs_tagging_dispatcher_service
 
   dlp_notifications_topic_name                   = var.dlp_for_gcs_pubsub_topic_name
   logging_dataset_name                           = google_bigquery_dataset.logging_dataset.dataset_id
@@ -44,11 +45,17 @@ module "gcs-discovery-stack" {
   dlp_gcs_bq_results_table_name                  = var.dlp_gcs_bq_results_table_name
   tagger_gcs_pubsub_sub                          = var.tagger_gcs_pubsub_sub
   tagger_gcs_pubsub_topic                        = var.tagger_gcs_pubsub_topic
+  cleaner_gcs_pubsub_topic                       = var.cleaner_gcs_pubsub_topic
+  cleaner_gcs_pubsub_sub                         = var.cleaner_gcs_pubsub_sub
   tagger_gcs_service_name                        = var.tagger_gcs_service_name
   gcs_existing_labels_regex                      = var.existing_labels_regex
   retain_dlp_tagger_pubsub_messages              = var.retain_dlp_tagger_pubsub_messages
-  workflows_gcs_description                      = var.workflows_gcs_description
-  workflows_gcs_name                             = var.workflows_gcs_name
+
+  workflows_cleaner_gcs_description              = var.workflows_cleaner_gcs_description
+  workflows_cleaner_gcs_name                     = var.workflows_cleaner_gcs_name
+  workflows_tagger_gcs_description               = var.workflows_tagger_gcs_description
+  workflows_tagger_gcs_name                      = var.workflows_tagger_gcs_name
+
   bq_view_run_summary                            = google_bigquery_table.view_run_summary.table_id
   logging_table_name                             = google_bigquery_table.logging_table_cloud_run.table_id
   terraform_data_deletion_protection             = var.terraform_data_deletion_protection
@@ -69,6 +76,10 @@ module "gcs-discovery-stack" {
   tagger_service_max_cpu                    = var.tagger_gcs_service_max_cpu
   tagger_service_max_memory                 = var.tagger_gcs_service_max_memory
   tagger_service_max_requests_per_container = var.tagger_gcs_service_max_requests_per_container
+
+  dlp_tag_high_sensitivity_value_namespaced_name     = var.dlp_tag_high_sensitivity_value_namespaced_name
+  dlp_tag_moderate_sensitivity_value_namespaced_name = var.dlp_tag_moderate_sensitivity_value_namespaced_name
+  dlp_tag_low_sensitivity_value_namespaced_name      = var.dlp_tag_low_sensitivity_value_namespaced_name
 
   depends_on = [
     google_bigquery_table.logging_table_cloud_run

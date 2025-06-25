@@ -22,7 +22,7 @@ package com.google.cloud.oss.solutions.annotations.apps.dispatcher;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
 import com.google.cloud.oss.solutions.annotations.helpers.TrackingHelper;
 import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamer;
-import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamerForGcsDispatcher;
+import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamerForGcsTaggingDispatcher;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -31,9 +31,9 @@ import java.util.concurrent.ExecutionException;
  * Dispatcher for DLP Discovery Service Results for GCS. It will read DLP results from a BigQuery
  * table and publish to PubSub.
  */
-public class GcsDispatcher extends BaseDispatcher {
+public class GcsTaggingDispatcher extends BaseDispatcher {
 
-  public GcsDispatcher(Environment environment) {
+  public GcsTaggingDispatcher(Environment environment) {
     super(environment);
   }
 
@@ -54,7 +54,7 @@ public class GcsDispatcher extends BaseDispatcher {
 
   @Override
   protected BigQueryToPubSubStreamer getBigQueryToPubSubStreamer() {
-    return new BigQueryToPubSubStreamerForGcsDispatcher(
+    return new BigQueryToPubSubStreamerForGcsTaggingDispatcher(
         environment.getPubSubFlowControlMaxOutstandingRequestBytes(),
         environment.getPubSubFlowControlMaxOutstandingElementCount(),
         environment.getPubSubBatchingElementCountThreshold(),
@@ -106,6 +106,6 @@ public class GcsDispatcher extends BaseDispatcher {
           IOException,
           ExecutionException,
           InterruptedException {
-    new GcsDispatcher(new Environment()).run(args);
+    new GcsTaggingDispatcher(new Environment()).run(args);
   }
 }

@@ -89,15 +89,31 @@ variable "tagger_gcs_pubsub_sub" {
   type = string
 }
 
+variable "cleaner_gcs_pubsub_topic" {
+  type    = string
+}
+
+variable "cleaner_gcs_pubsub_sub" {
+  type    = string
+}
+
 variable "gcs_existing_labels_regex" {
   type = string
 }
 
-variable "workflows_gcs_name" {
+variable "workflows_tagger_gcs_name" {
   type = string
 }
 
-variable "workflows_gcs_description" {
+variable "workflows_tagger_gcs_description" {
+  type = string
+}
+
+variable "workflows_cleaner_gcs_name" {
+  type = string
+}
+
+variable "workflows_cleaner_gcs_description" {
   type = string
 }
 
@@ -188,6 +204,25 @@ variable "java_class_path_gcs_tagger_service" {
   type = string
 }
 
-variable "java_class_path_gcs_dispatcher_service" {
+variable "java_class_path_gcs_tagger_dispatcher_service" {
   type = string
+}
+
+variable "java_class_path_gcs_cleaner_dispatcher_service" {
+  type = string
+}
+
+variable "dlp_tag_high_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP high sensitivity tag value. Format: org_id/key_name/value_name"
+}
+
+variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP moderate sensitivity tag value. Format: org_id/key_name/value_name"
+}
+
+variable "dlp_tag_low_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP low sensitivity tag value. Format: org_id/key_name/value_name"
 }

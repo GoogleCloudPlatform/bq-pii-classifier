@@ -20,24 +20,24 @@
 package com.google.cloud.oss.solutions.annotations.services.pubsub;
 
 import com.google.cloud.bigquery.FieldValueList;
-import com.google.cloud.oss.solutions.annotations.entities.GcsDlpProfileSummary;
-import com.google.cloud.oss.solutions.annotations.functions.tagger.gcs.GcsTaggerRequest;
-import com.google.cloud.oss.solutions.annotations.helpers.Utils;
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.CleanBucketAnnotationsRequest;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
-import java.util.HashSet;
+
 
 /**
- * Concrete implementation of {@link BigQueryToPubSubStreamerAbstract} for dispatching GCS related
- * messages.
+ * This class is a specialized implementation of {@link BigQueryToPubSubStreamerAbstract} designed
+ * for processing BigQuery records that are intended for the Gcs buckets tags cleaner dispatcher. It includes specific
+ * logic to convert BigQuery rows into {@link PubsubMessage} objects, which encapsulate {@link
+ * CleanBucketAnnotationsRequest} data.
  */
-public class BigQueryToPubSubStreamerForGcsDispatcher extends BigQueryToPubSubStreamerAbstract {
+public class BigQueryToPubSubStreamerForGcsCleaningDispatcher extends BigQueryToPubSubStreamerAbstract {
 
-  public BigQueryToPubSubStreamerForGcsDispatcher() {
+  public BigQueryToPubSubStreamerForGcsCleaningDispatcher() {
     super();
   }
 
-  public BigQueryToPubSubStreamerForGcsDispatcher(
+  public BigQueryToPubSubStreamerForGcsCleaningDispatcher(
       Long flowControlMaxOutstandingRequestBytes,
       Long flowControlMaxOutstandingElementCount,
       Long batchingElementCountThreshold,
@@ -67,28 +67,24 @@ public class BigQueryToPubSubStreamerForGcsDispatcher extends BigQueryToPubSubSt
         executorThreadCountMultiplier);
   }
 
-  @Override
+  /**
+   * Converts a BigQuery row (represented as a {@link FieldValueList}) into a {@link PubsubMessage}.
+   * The method extracts data from the row, constructs a {@link CleanBucketAnnotationsRequest}, and serializes it
+   * into a JSON string before setting it as the message data.
+   *
+   * @param row The BigQuery row to convert.
+   * @return A PubsubMessage containing the serialized {@link CleanBucketAnnotationsRequest}.
+   */
   public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row) {
-    String runId = row.get("run_id").getStringValue();
-    String trackingId = row.get("tracking_id").getStringValue();
-    String profileName = row.get("profile_name").getStringValue();
-    String bucketName = row.get("bucket_name").getStringValue();
+
     String projectId = row.get("project_id").getStringValue();
-    String folderId = row.get("folder_id").getStringValue();
-    String infoTypesStrList = row.get("info_types").getStringValue();
+    String bucketName = row.get("bucket_name").getStringValue();
+    String bucketLocation = row.get("bucket_location").getStringValue();
+    String tagValue = row.get("tag_value").getStringValue();
 
-    GcsTaggerRequest taggerRequest =
-        new GcsTaggerRequest(
-            runId,
-            trackingId,
-            new GcsDlpProfileSummary(
-                profileName,
-                String.format("gs://%s", bucketName),
-                projectId,
-                folderId,
-                new HashSet<>(Utils.tokenize(infoTypesStrList, ",", true))));
+    CleanBucketAnnotationsRequest request = new CleanBucketAnnotationsRequest(projectId, bucketName, bucketLocation, tagValue);
 
-    ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
+    ByteString data = ByteString.copyFromUtf8(request.toJsonString());
 
     return PubsubMessage.newBuilder().setData(data).build();
   }

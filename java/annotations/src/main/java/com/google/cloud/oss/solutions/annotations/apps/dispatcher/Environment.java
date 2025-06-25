@@ -54,6 +54,18 @@ public class Environment {
     return Utils.getConfigFromEnv("DLP_RESULTS_TABLE", true);
   }
 
+  public String getDlpTagValueHigh() {
+    return Utils.getConfigFromEnv("DLP_TAG_VALUE_HIGH", true);
+  }
+
+  public String getDlpTagValueModerate() {
+    return Utils.getConfigFromEnv("DLP_TAG_VALUE_MODERATE", true);
+  }
+
+  public String getDlpTagValueLow() {
+    return Utils.getConfigFromEnv("DLP_TAG_VALUE_LOW", true);
+  }
+
   public String getDispatcherRunsTable() {
     return Utils.getConfigFromEnv("DISPATCHER_RUNS_TABLE", true);
   }

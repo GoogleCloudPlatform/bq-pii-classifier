@@ -69,6 +69,21 @@ variable "services_container_image_name" {
   description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
+variable "dlp_tag_high_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP high sensitivity tag value. Format: org_id/key_name/value_name"
+}
+
+variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP moderate sensitivity tag value. Format: org_id/key_name/value_name"
+}
+
+variable "dlp_tag_low_sensitivity_value_namespaced_name" {
+  type        = string
+  description = "The namespaced name of the DLP low sensitivity tag value. Format: org_id/key_name/value_name"
+}
+
 ################################################################################
 # Common-Default Variables
 ################################################################################
@@ -355,14 +370,24 @@ variable "dlp_gcs_bq_results_table_name" {
   default     = "dlp_discovery_services_gcs_results"
 }
 
-variable "workflows_gcs_name" {
+variable "workflows_tagger_gcs_name" {
   type    = string
   default = "gcs_buckets_re_annotation_trigger"
 }
 
-variable "workflows_gcs_description" {
+variable "workflows_tagger_gcs_description" {
   type    = string
   default = "Trigger (re)annotation process for Cloud Storage buckets based on DLP findings"
+}
+
+variable "workflows_cleaner_gcs_name" {
+  type    = string
+  default = "gcs_buckets_cleaner_trigger"
+}
+
+variable "workflows_cleaner_gcs_description" {
+  type    = string
+  default = "Trigger cleaning process for Cloud Storage buckets dlp-driven annotations"
 }
 
 ##### GCS Tagger Service ######
@@ -385,6 +410,16 @@ variable "tagger_gcs_pubsub_topic" {
 variable "tagger_gcs_pubsub_sub" {
   type    = string
   default = "tagger_gcs_push_sub"
+}
+
+variable "cleaner_gcs_pubsub_topic" {
+  type    = string
+  default = "cleaner_gcs_topic"
+}
+
+variable "cleaner_gcs_pubsub_sub" {
+  type    = string
+  default = "cleaner_gcs_push_sub"
 }
 
 # Tagger Scalability params
@@ -426,7 +461,12 @@ variable "java_class_path_gcs_tagger_service" {
   default = "com.google.cloud.oss.solutions.annotations.apps.storage.GcsTaggerController"
 }
 
-variable "java_class_path_gcs_dispatcher_service" {
+variable "java_class_path_gcs_tagging_dispatcher_service" {
   type = string
-  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsDispatcher"
+  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsTaggingDispatcher"
+}
+
+variable "java_class_path_gcs_cleaning_dispatcher_service" {
+  type = string
+  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsCleaningDispatcher"
 }

@@ -28,10 +28,11 @@ resource "google_bigquery_table" "view_gcs_run_summary_counts_gcs" {
     use_legacy_sql = false
     query = templatefile("../../modules/terraform_05_annotations_infra/stacks/gcs_discovery_stack/views/v_run_summary_counts_gcs.tpl",
       {
-        project             = var.publishing_project
-        dataset             = var.logging_dataset_name
-        v_run_summary       = var.bq_view_run_summary
-        dispatcher_runs_gcs = google_bigquery_table.dispatcher_runs_gcs_table.table_id
+        project                      = var.publishing_project
+        dataset                      = var.logging_dataset_name
+        v_run_summary                = var.bq_view_run_summary
+        tagging_dispatcher_runs_gcs  = google_bigquery_table.tagging_dispatcher_runs_gcs_table.table_id
+        cleaning_dispatcher_runs_gcs = google_bigquery_table.cleaner_dispatcher_runs_gcs_table.table_id
       }
     )
   }
@@ -56,15 +57,28 @@ resource "google_bigquery_table" "logging_view_label_history_gcs" {
   }
 }
 
-resource "google_bigquery_table" "dispatcher_runs_gcs_table" {
+resource "google_bigquery_table" "tagging_dispatcher_runs_gcs_table" {
 
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
-  table_id   = "dispatcher_runs_gcs"
+  table_id   = "tagging_dispatcher_runs_gcs"
 
   clustering = ["run_id"]
 
-  schema = file("../../modules/terraform_05_annotations_infra/stacks/gcs_discovery_stack/schema/dispatcher_runs_gcs.json")
+  schema = file("../../modules/terraform_05_annotations_infra/stacks/gcs_discovery_stack/schema/tagging_dispatcher_runs_gcs.json")
+
+  deletion_protection = var.terraform_data_deletion_protection
+}
+
+resource "google_bigquery_table" "cleaner_dispatcher_runs_gcs_table" {
+
+  project    = var.publishing_project
+  dataset_id = var.logging_dataset_name
+  table_id   = "cleaning_dispatcher_runs_gcs"
+
+  clustering = ["run_id"]
+
+  schema = file("../../modules/terraform_05_annotations_infra/stacks/gcs_discovery_stack/schema/cleaning_dispatcher_runs_gcs.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }

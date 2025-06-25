@@ -21,7 +21,7 @@ package com.google.cloud.oss.solutions.annotations.apps;
 
 import com.google.cloud.oss.solutions.annotations.apps.bigquery.BigQueryTaggerController;
 import com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryDispatcher;
-import com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsDispatcher;
+import com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsTaggingDispatcher;
 import com.google.cloud.oss.solutions.annotations.apps.storage.GcsTaggerController;
 
 /** Main class that acts as an entrypoint for all the supported apps. */
@@ -31,7 +31,7 @@ public class EntryPoint {
     switch (args[0].toLowerCase()) {
       case "bq-dispatcher" -> BigQueryDispatcher.main(args);
       case "bq-tagger" -> BigQueryTaggerController.main(new String[0]);
-      case "gcs-dispatcher" -> GcsDispatcher.main(args);
+      case "gcs-dispatcher" -> GcsTaggingDispatcher.main(args);
       case "gcs-tagger" -> GcsTaggerController.main(new String[0]);
       default ->
           throw new Exception(

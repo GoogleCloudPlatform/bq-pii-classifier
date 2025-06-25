@@ -2,7 +2,15 @@ WITH dispatched AS (
   SELECT
   run_id,
   COUNT(tracking_id) AS dispatched_tracking_id_count
-  FROM `${project}.${dataset}.${dispatcher_runs_gcs}`
+  FROM `${project}.${dataset}.${tagging_dispatcher_runs_gcs}`
+  GROUP BY 1
+
+  UNION ALL
+
+  SELECT
+  run_id,
+  COUNT(tracking_id) AS dispatched_tracking_id_count
+  FROM `${project}.${dataset}.${cleaning_dispatcher_runs_gcs}`
   GROUP BY 1
 
 )
