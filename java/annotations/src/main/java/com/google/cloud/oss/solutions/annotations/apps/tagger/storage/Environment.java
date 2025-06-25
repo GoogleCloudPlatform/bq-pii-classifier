@@ -17,7 +17,7 @@
  *
  */
 
-package com.google.cloud.oss.solutions.annotations.apps.storage;
+package com.google.cloud.oss.solutions.annotations.apps.tagger.storage;
 
 import com.google.cloud.oss.solutions.annotations.entities.InfoTypeInfo;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;

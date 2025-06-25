@@ -45,7 +45,7 @@ public class GcsCleaningDispatcher extends BaseDispatcher {
 
     @Override
     protected String getRunId() {
-        return TrackingHelper.generateTaggingRunIdForGcs();
+        return TrackingHelper.generateCleaningRunIdForGcs();
     }
 
     @Override

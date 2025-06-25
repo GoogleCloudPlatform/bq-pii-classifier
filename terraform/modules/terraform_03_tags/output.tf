@@ -29,6 +29,18 @@ output "dlp_tag_low_sensitivity_namespaced_name" {
   value = google_tags_tag_value.dlp_low_sensitivity_value.namespaced_name
 }
 
+output "dlp_tag_high_sensitivity_value_id" {
+  value = google_tags_tag_value.dlp_high_sensitivity_value.id
+}
+
+output "dlp_tag_moderate_sensitivity_value_id" {
+  value = google_tags_tag_value.dlp_moderate_sensitivity_value.id
+}
+
+output "dlp_tag_low_sensitivity_value_id" {
+  value = google_tags_tag_value.dlp_low_sensitivity_value.id
+}
+
 output "dlp_sensitivity_level_key_id" {
   value = google_tags_tag_key.dlp_sensitivity_level_key.id
 }

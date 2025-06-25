@@ -17,9 +17,11 @@
  *
  */
 
-package com.google.cloud.oss.solutions.annotations.apps.storage;
+package com.google.cloud.oss.solutions.annotations.apps.tagger.storage;
 
-import com.google.cloud.oss.solutions.annotations.functions.cleaner.CleanBucketAnnotationsRequest;
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.GcsAnnotationsCleaner;
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.GcsBucketAnnotationsCleanerRequest;
+import com.google.cloud.oss.solutions.annotations.services.tags.TagsServiceImpl;
 import com.google.gson.Gson;
 import com.google.cloud.oss.solutions.annotations.entities.GcsDlpProfileSummary;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
@@ -77,13 +79,13 @@ public class GcsTaggerController {
   /**
    * Handles requests from the cleaning dispatcher service.
    *
-   * @param requestBody The pubsub event containing the {@link CleanBucketAnnotationsRequest} as a serialized json.
+   * @param requestBody The pubsub event containing the {@link GcsBucketAnnotationsCleanerRequest} as a serialized json.
    * @return A ResponseEntity with a success message or an error response.
    */
   @RequestMapping(value = "/cleaning-dispatcher-handler", method = RequestMethod.POST)
   public ResponseEntity cleaningDispatcherHandler(@RequestBody PubSubEvent requestBody) {
 
-    CleanBucketAnnotationsRequest request = null;
+    GcsBucketAnnotationsCleanerRequest request = null;
 
     try {
 
@@ -95,7 +97,7 @@ public class GcsTaggerController {
 
       String requestJsonString = requestBody.getMessage().dataToUtf8String();
 
-      request = gson.fromJson(requestJsonString, CleanBucketAnnotationsRequest.class);
+      request = gson.fromJson(requestJsonString, GcsBucketAnnotationsCleanerRequest.class);
 
       logger.logInfoWithTracker(
               request.getTrackingId(),
@@ -104,7 +106,12 @@ public class GcsTaggerController {
                       request.getBucketName()),
               String.format("Parsed Request from GCS Cleaning Dispatcher: '%s'", request));
 
-      // TODO: implement cleaning logic
+      GcsAnnotationsCleaner cleaner = new GcsAnnotationsCleaner(
+              environment.getProjectId(),
+              new TagsServiceImpl()
+      );
+
+      cleaner.execute(request);
 
       return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
     } catch (Exception e) {

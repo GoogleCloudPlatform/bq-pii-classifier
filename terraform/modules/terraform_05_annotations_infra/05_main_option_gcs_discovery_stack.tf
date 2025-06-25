@@ -23,7 +23,7 @@ module "gcs-discovery-stack" {
   source = "./stacks/gcs_discovery_stack"
 
   // deploy this stack once only when instructed
-  count = var.deploy_gcs_annotations_stack? 1: 0
+  count = var.deploy_gcs_annotations_stack ? 1 : 0
 
   image_name                                     = var.services_container_image_name
   java_class_path_gcs_tagger_service             = var.java_class_path_gcs_tagger_service
@@ -51,25 +51,25 @@ module "gcs-discovery-stack" {
   gcs_existing_labels_regex                      = var.existing_labels_regex
   retain_dlp_tagger_pubsub_messages              = var.retain_dlp_tagger_pubsub_messages
 
-  workflows_cleaner_gcs_description              = var.workflows_cleaner_gcs_description
-  workflows_cleaner_gcs_name                     = var.workflows_cleaner_gcs_name
-  workflows_tagger_gcs_description               = var.workflows_tagger_gcs_description
-  workflows_tagger_gcs_name                      = var.workflows_tagger_gcs_name
+  workflows_cleaner_gcs_description = var.workflows_cleaner_gcs_description
+  workflows_cleaner_gcs_name        = var.workflows_cleaner_gcs_name
+  workflows_tagger_gcs_description  = var.workflows_tagger_gcs_description
+  workflows_tagger_gcs_name         = var.workflows_tagger_gcs_name
 
-  bq_view_run_summary                            = google_bigquery_table.view_run_summary.table_id
-  logging_table_name                             = google_bigquery_table.logging_table_cloud_run.table_id
-  terraform_data_deletion_protection             = var.terraform_data_deletion_protection
-  info_type_map_file_path                        = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
+  bq_view_run_summary                = google_bigquery_table.view_run_summary.table_id
+  logging_table_name                 = google_bigquery_table.logging_table_cloud_run.table_id
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
+  info_type_map_file_path = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 
   # service accounts
   application_service_account_name = var.application_service_account_name
-  tagger_gcs_service_account_name  = var.tagger_gcs_service_account_name
+  tagger_gcs_service_account_name = var.tagger_gcs_service_account_name
 
   # Dispatcher Cloud Batch scalability settings
   dispatcher_cloud_batch_cpu_millis               = var.dispatcher_cloud_batch_cpu_millis
   dispatcher_cloud_batch_memory_mib               = var.dispatcher_cloud_batch_memory_mib
   dispatcher_cloud_batch_max_run_duration_seconds = var.dispatcher_cloud_batch_max_run_duration_seconds
-  dispatcher_pubsub_client_config                 = var.dispatcher_pubsub_client_config
+  dispatcher_pubsub_client_config = var.dispatcher_pubsub_client_config
 
   # Tagger Cloud Run scalability settings
   tagger_service_max_containers             = var.tagger_gcs_service_max_containers
@@ -77,9 +77,9 @@ module "gcs-discovery-stack" {
   tagger_service_max_memory                 = var.tagger_gcs_service_max_memory
   tagger_service_max_requests_per_container = var.tagger_gcs_service_max_requests_per_container
 
-  dlp_tag_high_sensitivity_value_namespaced_name     = var.dlp_tag_high_sensitivity_value_namespaced_name
-  dlp_tag_moderate_sensitivity_value_namespaced_name = var.dlp_tag_moderate_sensitivity_value_namespaced_name
-  dlp_tag_low_sensitivity_value_namespaced_name      = var.dlp_tag_low_sensitivity_value_namespaced_name
+  dlp_tag_high_sensitivity_value     = var.dlp_tag_high_sensitivity_value
+  dlp_tag_moderate_sensitivity_value = var.dlp_tag_moderate_sensitivity_value
+  dlp_tag_low_sensitivity_value      = var.dlp_tag_low_sensitivity_value
 
   depends_on = [
     google_bigquery_table.logging_table_cloud_run

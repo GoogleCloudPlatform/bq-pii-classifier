@@ -38,7 +38,9 @@ resource "google_organization_iam_custom_role" "custom_role_tagger_gcs" {
 
   permissions = [
     "storage.buckets.get",   # to get the metadata of buckets
-    "storage.buckets.update" # to attach labels to buckets
+    "storage.buckets.update", # to attach labels to buckets
+    "storage.buckets.listTagBindings", # for the annotations cleaner service to list dlp tag bindings. Replace with tagUser role
+    "storage.buckets.deleteTagBinding" # for the annotations cleaner service to delete dlp tag bindings. Replace with tagUser role
   ]
 
   stage = "GA"

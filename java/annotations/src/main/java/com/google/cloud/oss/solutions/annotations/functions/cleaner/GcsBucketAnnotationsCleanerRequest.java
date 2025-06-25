@@ -21,14 +21,15 @@ package com.google.cloud.oss.solutions.annotations.functions.cleaner;
 
 import com.google.cloud.oss.solutions.annotations.entities.Operation;
 
-public class CleanBucketAnnotationsRequest extends Operation {
+public class GcsBucketAnnotationsCleanerRequest extends Operation {
 
     private final String projectId;
     private final String bucketName;
     private final String bucketLocation;
     private final String tagValue;
 
-    public CleanBucketAnnotationsRequest(String projectId, String bucketName, String bucketLocation, String tagValue) {
+    public GcsBucketAnnotationsCleanerRequest(String runId, String trackingId,String projectId, String bucketName, String bucketLocation, String tagValue) {
+        super(runId, trackingId);
         this.projectId = projectId;
         this.bucketName = bucketName;
         this.bucketLocation = bucketLocation;
@@ -53,7 +54,7 @@ public class CleanBucketAnnotationsRequest extends Operation {
 
     @Override
     public String toString() {
-        return "DeleteGcsTagRequest{" +
+        return "GcsBucketAnnotationsCleanerRequest{" +
                 "projectId='" + projectId + '\'' +
                 ", bucketName='" + bucketName + '\'' +
                 ", bucketLocation='" + bucketLocation + '\'' +

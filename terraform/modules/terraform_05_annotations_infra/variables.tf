@@ -69,19 +69,19 @@ variable "services_container_image_name" {
   description = "Existing Container image name that contains the services used by Cloud Run and published in the host project. Example: annotations-services:latest"
 }
 
-variable "dlp_tag_high_sensitivity_value_namespaced_name" {
+variable "dlp_tag_high_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP high sensitivity tag value. Format: org_id/key_name/value_name"
+  description = "The id of the DLP high sensitivity tag value. Format: tagValues/123"
 }
 
-variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
+variable "dlp_tag_moderate_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP moderate sensitivity tag value. Format: org_id/key_name/value_name"
+  description = "The id of the DLP moderate sensitivity tag value. Format: tagValues/123"
 }
 
-variable "dlp_tag_low_sensitivity_value_namespaced_name" {
+variable "dlp_tag_low_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP low sensitivity tag value. Format: org_id/key_name/value_name"
+  description = "The id of the DLP low sensitivity tag value. Format: tagValues/123"
 }
 
 ################################################################################
@@ -350,12 +350,12 @@ variable "dlp_for_bq_pubsub_topic_name" {
 
 variable "java_class_path_bq_tagger_service" {
   type = string
-  default = "com.google.cloud.oss.solutions.annotations.apps.bigquery.BigQueryTaggerController"
+  default = "com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery.BigQueryTaggerController"
 }
 
 variable "java_class_path_bq_dispatcher_service" {
   type = string
-  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryDispatcher"
+  default = "com.google.cloud.oss.solutions.annotations.apps.tagger.dispatcher.BigQueryDispatcher"
 }
 
 ################################################################################
@@ -458,7 +458,7 @@ variable "dlp_for_gcs_pubsub_topic_name" {
 
 variable "java_class_path_gcs_tagger_service" {
   type = string
-  default = "com.google.cloud.oss.solutions.annotations.apps.storage.GcsTaggerController"
+  default = "com.google.cloud.oss.solutions.annotations.apps.tagger.storage.GcsTaggerController"
 }
 
 variable "java_class_path_gcs_tagging_dispatcher_service" {

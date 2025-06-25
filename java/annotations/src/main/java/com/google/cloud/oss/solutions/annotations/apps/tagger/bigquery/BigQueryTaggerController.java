@@ -17,7 +17,7 @@
  *
  */
 
-package com.google.cloud.oss.solutions.annotations.apps.bigquery;
+package com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery;
 
 import com.google.gson.Gson;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;

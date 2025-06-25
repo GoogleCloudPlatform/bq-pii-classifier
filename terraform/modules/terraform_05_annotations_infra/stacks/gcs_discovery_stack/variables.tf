@@ -212,17 +212,14 @@ variable "java_class_path_gcs_cleaner_dispatcher_service" {
   type = string
 }
 
-variable "dlp_tag_high_sensitivity_value_namespaced_name" {
+variable "dlp_tag_high_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP high sensitivity tag value. Format: org_id/key_name/value_name"
 }
 
-variable "dlp_tag_moderate_sensitivity_value_namespaced_name" {
+variable "dlp_tag_moderate_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP moderate sensitivity tag value. Format: org_id/key_name/value_name"
 }
 
-variable "dlp_tag_low_sensitivity_value_namespaced_name" {
+variable "dlp_tag_low_sensitivity_value" {
   type        = string
-  description = "The namespaced name of the DLP low sensitivity tag value. Format: org_id/key_name/value_name"
 }

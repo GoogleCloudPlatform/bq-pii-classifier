@@ -19,10 +19,10 @@
 
 package com.google.cloud.oss.solutions.annotations.apps;
 
-import com.google.cloud.oss.solutions.annotations.apps.bigquery.BigQueryTaggerController;
+import com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery.BigQueryTaggerController;
 import com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryDispatcher;
 import com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsTaggingDispatcher;
-import com.google.cloud.oss.solutions.annotations.apps.storage.GcsTaggerController;
+import com.google.cloud.oss.solutions.annotations.apps.tagger.storage.GcsTaggerController;
 
 /** Main class that acts as an entrypoint for all the supported apps. */
 public class EntryPoint {

@@ -188,7 +188,7 @@ main:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
           parent: $${"projects/" + project_id + "/locations/" + location}
-          jobId: $${"gcs-dispatcher-" + uuid.generate()}
+          jobId: $${"gcs-tagging-dispatcher-" + uuid.generate()}
           body:
             taskGroups:
                 - taskSpec:
@@ -272,7 +272,7 @@ main:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
           parent: $${"projects/" + project_id + "/locations/" + location}
-          jobId: $${"gcs-dispatcher-" + uuid.generate()}
+          jobId: $${"gcs-cleaning-dispatcher-" + uuid.generate()}
           body:
             taskGroups:
                 - taskSpec:
@@ -302,9 +302,9 @@ main:
                         DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
                         DISPATCHER_RUNS_TABLE: "${google_bigquery_table.cleaner_dispatcher_runs_gcs_table.table_id}"
 
-                        DLP_TAG_VALUE_HIGH: "${var.dlp_tag_high_sensitivity_value_namespaced_name}"
-                        DLP_TAG_VALUE_MODERATE: "${var.dlp_tag_moderate_sensitivity_value_namespaced_name}"
-                        DLP_TAG_VALUE_LOW: "${var.dlp_tag_low_sensitivity_value_namespaced_name}"
+                        DLP_TAG_VALUE_HIGH: "${var.dlp_tag_high_sensitivity_value}"
+                        DLP_TAG_VALUE_MODERATE: "${var.dlp_tag_moderate_sensitivity_value}"
+                        DLP_TAG_VALUE_LOW: "${var.dlp_tag_low_sensitivity_value}"
 
                         PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_REQUESTS_BYTES : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_request_bytes}"
                         PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_ELEMENT_COUNT : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_element_count}"

@@ -26,6 +26,7 @@ public class TrackingHelper {
 
   public static final String DEFAULT_TRACKING_ID = "0000000000000-z";
 
+  private static final String cleaningRunSuffix = "-C";
   private static final String taggingRunSuffix = "-T";
   private static final String oneTimeTaggingSuffix = "-A";
   private static final String gcsSuffix = "-GS";
@@ -42,6 +43,14 @@ public class TrackingHelper {
 
   public static String generateTaggingRunIdForGcs() {
     return generateRunId(taggingRunSuffix, gcsSuffix);
+  }
+
+  public static String generateCleaningRunIdForGcs() {
+    return generateRunId(cleaningRunSuffix, gcsSuffix);
+  }
+
+  public static String generateCleaningRunIdForBigQuery() {
+    return generateRunId(cleaningRunSuffix, bigQuerySuffix);
   }
 
   public static String generateOneTimeTaggingSuffixForGcs() {

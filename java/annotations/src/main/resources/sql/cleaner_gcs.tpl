@@ -6,16 +6,16 @@ WITH a AS (
         r.file_store_profile.project_id AS project_id,
         SUBSTRING(r.file_store_profile.file_store_path,6) AS bucket_name,
         r.file_store_profile.file_store_location AS bucket_location,
-        t.namespaced_tag_value AS tag_value
+        t.value AS tag_value
     FROM `${project}.${dlp_dataset}.${dlp_gcs_results_table}` r, UNNEST(r.file_store_profile.tags) t
     WHERE
             REGEXP_CONTAINS(file_store_profile.project_id, r'${project_name_regex}') AND
             REGEXP_CONTAINS(SUBSTRING(file_store_profile.file_store_path,6), r'${bucket_name_regex}') AND
             REGEXP_CONTAINS(CAST(file_store_profile.config_snapshot.discovery_config.org_config.location.folder_id AS STRING), r'${folder_id_regex}') AND
             (
-              t.namespaced_tag_value = '${dlp_sensitivity_level_tag_value_high}' OR
-              t.namespaced_tag_value = '${dlp_sensitivity_level_tag_value_moderate}' OR
-              t.namespaced_tag_value = '${dlp_sensitivity_level_tag_value_low}'
+              t.value = '${dlp_sensitivity_level_tag_value_high}' OR
+              t.value = '${dlp_sensitivity_level_tag_value_moderate}' OR
+              t.value = '${dlp_sensitivity_level_tag_value_low}'
             )
 )
 
