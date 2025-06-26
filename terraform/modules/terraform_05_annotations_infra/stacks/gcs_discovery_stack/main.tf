@@ -183,7 +183,7 @@ main:
           - foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
           - projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
           - bucketsRegex: $${default(map.get(input, "bucketsRegex"), ".*")}
-          - rowsMultiplicationFactor: $${default(map.get(input, "rowsMultiplicationFactor"), "1")}
+          - testingRowsMultiplicationFactor: $${default(map.get(input, "testingRowsMultiplicationFactor"), "1")}
     - create_batch_job:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
@@ -202,7 +202,7 @@ main:
                             - $${foldersRegex}
                             - $${projectsRegex}
                             - $${bucketsRegex}
-                            - $${rowsMultiplicationFactor}
+                            - $${testingRowsMultiplicationFactor}
                           entrypoint: java
                     computeResource:
                       memoryMib: ${var.dispatcher_cloud_batch_memory_mib}
@@ -212,7 +212,7 @@ main:
                     - variables:
                         PROJECT_ID: "${var.project}"
                         PUBLISHING_PROJECT_ID: "${var.publishing_project}"
-                        TAGGER_TOPIC: "${module.pubsub-tagger-gcs-for-dispatcher.topic-name}"
+                        OUTPUT_TOPIC: "${module.pubsub-tagger-gcs-for-dispatcher.topic-name}"
                         LOGGING_DATASET: "${var.logging_dataset_name}"
                         DLP_RESULTS_DATASET: "${var.dlp_dataset_name}"
                         DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
@@ -267,7 +267,7 @@ main:
           - foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
           - projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
           - bucketsRegex: $${default(map.get(input, "bucketsRegex"), ".*")}
-          - rowsMultiplicationFactor: $${default(map.get(input, "rowsMultiplicationFactor"), "1")}
+          - testingRowsMultiplicationFactor: $${default(map.get(input, "testingRowsMultiplicationFactor"), "1")}
     - create_batch_job:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
@@ -286,7 +286,7 @@ main:
                             - $${foldersRegex}
                             - $${projectsRegex}
                             - $${bucketsRegex}
-                            - $${rowsMultiplicationFactor}
+                            - $${testingRowsMultiplicationFactor}
                           entrypoint: java
                     computeResource:
                       memoryMib: ${var.dispatcher_cloud_batch_memory_mib}
@@ -296,7 +296,7 @@ main:
                     - variables:
                         PROJECT_ID: "${var.project}"
                         PUBLISHING_PROJECT_ID: "${var.publishing_project}"
-                        TAGGER_TOPIC: "${module.pubsub-cleaner-gcs-for-dispatcher.topic-name}"
+                        OUTPUT_TOPIC: "${module.pubsub-cleaner-gcs-for-dispatcher.topic-name}"
                         LOGGING_DATASET: "${var.logging_dataset_name}"
                         DLP_RESULTS_DATASET: "${var.dlp_dataset_name}"
                         DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"

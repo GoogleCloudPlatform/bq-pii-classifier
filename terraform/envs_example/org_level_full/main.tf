@@ -17,6 +17,21 @@
 #
 #
 
+locals {
+  // all dlp service accounts and tagger services service accounts (used for cleaning annotations) must be tagUser on the dlp tags
+  dlp_tag_key_users = concat(
+    ["serviceAccount:${module.iam_on_host_project.sa_tagger_gcs_email}",
+    "serviceAccount:${module.iam_on_host_project.sa_tagger_bq_email}"],
+    [for email in var.dlp_service_accounts_emails: "serviceAccount:${email}"]
+  )
+
+  all_dlp_projects = distinct(concat(
+    [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [var.application_project]
+  ))
+}
+
 module "apis" {
   source = "../../modules/terraform_00_apis"
 
@@ -24,56 +39,8 @@ module "apis" {
   publishing_project  = var.publishing_project
 
   // the union of all project-level configs, plus the application project (used for org-level configs)
-  dlp_projects = distinct(concat(
-    [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"],
-    [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"],
-    [var.application_project]
-  ))
+  dlp_projects = local.all_dlp_projects
 }
-
-// org-level tags for folder-level dlp configs
-module "org_tags" {
-  source = "../../modules/terraform_03_tags"
-
-  parent                             = "organizations/${var.org_id}"
-  dlp_tag_sensitivity_level_key_name = var.dlp_tag_sensitivity_level_key_name
-  ignore_dlp_sensitivity_key_name = var.ignore_dlp_sensitivity_key_name
-
-  // only DLP service accounts (across all configs)  should be able to tag/untag resources with the DLP sensitivity tags (unless desired otherwise)
-  dlp_tag_sensitivity_level_key_iam_tag_user_principles = [for email in var.dlp_service_accounts_emails: "serviceAccount:${email}"]
-  // TODO: all users should be able to use the ignore/bypass tag. Set to an equivalent of "all users"
-  ignore_dlp_sensitivity_key_iam_tag_user_principles = []
-}
-
-module "dlp" {
-  source = "../../modules/terraform_04_dlp"
-
-  application_project = var.application_project
-  publishing_project  = var.publishing_project
-  data_region         = var.data_region
-  source_data_regions = var.source_data_regions
-  terraform_data_deletion_protection = var.terraform_data_deletion_protection
-
-  # tags for dlp
-  dlp_tag_high_sensitivity_value_namespaced_name     = module.org_tags.dlp_tag_high_sensitivity_namespaced_name
-  dlp_tag_moderate_sensitivity_value_namespaced_name = module.org_tags.dlp_tag_moderate_sensitivity_namespaced_name
-  dlp_tag_low_sensitivity_value_namespaced_name      = module.org_tags.dlp_tag_low_sensitivity_namespaced_name
-
-  deploy_dlp_inspection_template_to_global_region = var.deploy_dlp_inspection_template_to_global_region
-
-  built_in_info_types = var.built_in_info_types
-
-  custom_info_types_dictionaries = var.custom_info_types_dictionaries
-
-  custom_info_types_regex = var.custom_info_types_regex
-
-  dlp_bq_discovery_configurations = var.dlp_bq_discovery_configurations
-
-  dlp_gcs_discovery_configurations = var.dlp_gcs_discovery_configurations
-
-  depends_on = [module.apis]
-}
-
 
 module "iam_on_host_project" {
   source = "../../modules/terraform_01_iam_host_project"
@@ -92,6 +59,50 @@ module "iam_on_publishing_project" {
   dlp_service_agents_emails = var.dlp_service_accounts_emails
 
   depends_on = [module.apis, module.iam_on_host_project]
+}
+
+// org-level tags for folder-level dlp configs
+module "org_tags" {
+  source = "../../modules/terraform_03_tags"
+
+  parent                             = "organizations/${var.org_id}"
+  dlp_tag_sensitivity_level_key_name = var.dlp_tag_sensitivity_level_key_name
+  ignore_dlp_sensitivity_key_name = var.ignore_dlp_sensitivity_key_name
+
+  // only DLP service accounts (across all configs)  should be able to tag/untag resources with the DLP sensitivity tags (unless desired otherwise)
+  dlp_tag_sensitivity_level_key_iam_tag_user_principles = local.dlp_tag_key_users
+  // TODO: all users should be able to use the ignore/bypass tag. Set to an equivalent of "all users"
+  ignore_dlp_sensitivity_key_iam_tag_user_principles = []
+}
+
+module "dlp" {
+  source = "../../modules/terraform_04_dlp"
+
+  application_project = var.application_project
+  publishing_project  = var.publishing_project
+  data_region         = var.data_region
+  source_data_regions = var.source_data_regions
+  terraform_data_deletion_protection = var.terraform_data_deletion_protection
+
+  # tags for dlp
+  # Note: dlp_gcs_discovery_configurations[*].apply_tags must be set to false if you want to skip setting these variables
+  dlp_tag_high_sensitivity_value_namespaced_name     = module.org_tags.dlp_tag_high_sensitivity_namespaced_name
+  dlp_tag_moderate_sensitivity_value_namespaced_name = module.org_tags.dlp_tag_moderate_sensitivity_namespaced_name
+  dlp_tag_low_sensitivity_value_namespaced_name      = module.org_tags.dlp_tag_low_sensitivity_namespaced_name
+
+  deploy_dlp_inspection_template_to_global_region = var.deploy_dlp_inspection_template_to_global_region
+
+  built_in_info_types = var.built_in_info_types
+
+  custom_info_types_dictionaries = var.custom_info_types_dictionaries
+
+  custom_info_types_regex = var.custom_info_types_regex
+
+  dlp_bq_discovery_configurations = var.dlp_bq_discovery_configurations
+
+  dlp_gcs_discovery_configurations = var.dlp_gcs_discovery_configurations
+
+  depends_on = [module.apis]
 }
 
 module "annotations-solution" {
@@ -113,7 +124,15 @@ module "annotations-solution" {
   dlp_for_bq_pubsub_topic_name     = module.dlp.dlp_bq_notifications_topic
   dlp_for_gcs_pubsub_topic_name    = module.dlp.dlp_gcs_notifications_topic
 
+  dlp_tag_high_sensitivity_value     = module.org_tags.dlp_tag_high_sensitivity_value_id
+  dlp_tag_moderate_sensitivity_value = module.org_tags.dlp_tag_moderate_sensitivity_value_id
+  dlp_tag_low_sensitivity_value      = module.org_tags.dlp_tag_low_sensitivity_value_id
+
+  is_dry_run_labels = var.is_dry_run_labels
+  is_dry_run_tags   = var.is_dry_run_tags
+
   classification_taxonomy = var.classification_taxonomy
+  taxonomy_name_suffix    = var.taxonomy_name_suffix
 
   depends_on = [module.iam_on_host_project]
 }

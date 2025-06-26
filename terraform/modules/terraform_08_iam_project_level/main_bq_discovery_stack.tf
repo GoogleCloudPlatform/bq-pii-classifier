@@ -30,19 +30,11 @@ locals {
 ########################################################################################################################
 locals {
 
-  # These are the required permissions for the BQ tagger service on the data/dlp project (in a project-level dlp deployment)
-  # for simplifications, we don't create custom roles on org level and use built-in roles instead.
-  # permissions = [
-  #   "bigquery.tables.get",         # get table metadata (e.g. labels, schema and policy tags) (not table data)
-  #   "bigquery.tables.update",      #  update table metadata (e.g. labels, schema and policy tags) (not table data)
-  #   "bigquery.tables.setCategory", # to apply policy tags to columns
-  #   "datacatalog.taxonomies.get",  # to get existing policy tag names and report them
-  #   "bigquery.datasets.get",       # get dataset location (to determine regional policy tags)
-  # ]
   tagger_bq_sa_roles_on_dlp_project = [
     "roles/dlp.columnDataProfilesReader", # to fetch dlp results
     "roles/bigquery.dataOwner", # to get metadata and add labels and tags
     "roles/datacatalog.viewer", # to read policy tags if exist
+    "roles/resourcemanager.tagUser" # to delete tags from resources (for the cleaner service)
   ]
 }
 

@@ -38,13 +38,13 @@ import java.util.Map;
  * logic to convert BigQuery rows into {@link PubsubMessage} objects, which encapsulate {@link
  * TaggerRequest} data.
  */
-public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStreamerAbstract {
+public class BigQueryToPubSubStreamerForBQTaggingDispatcher extends BigQueryToPubSubStreamerAbstract {
 
-  public BigQueryToPubSubStreamerForBQDispatcher() {
+  public BigQueryToPubSubStreamerForBQTaggingDispatcher() {
     super();
   }
 
-  public BigQueryToPubSubStreamerForBQDispatcher(
+  public BigQueryToPubSubStreamerForBQTaggingDispatcher(
       Long flowControlMaxOutstandingRequestBytes,
       Long flowControlMaxOutstandingElementCount,
       Long batchingElementCountThreshold,
@@ -86,7 +86,7 @@ public class BigQueryToPubSubStreamerForBQDispatcher extends BigQueryToPubSubStr
 
     String runId = row.get("run_id").getStringValue();
     String trackingId = row.get("tracking_id").getStringValue();
-    String folderId = row.get("folder_id").getStringValue();
+    String folderId = row.get("folder_id").isNull()? "" : row.get("folder_id").getStringValue();
     String projectId = row.get("project_id").getStringValue();
     String datasetId = row.get("dataset_id").getStringValue();
     String tableId = row.get("table_id").getStringValue();

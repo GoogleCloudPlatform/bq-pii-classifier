@@ -31,15 +31,10 @@ locals {
 
 locals {
 
-  # These are the required permissions for the GCS tagger service on the data/dlp project (in a project-level dlp deployment)
-  # for simplifications, we don't create custom roles on org level and use built-in roles instead.
-  # permissions = [
-  # "storage.buckets.get",   # to get the metadata of buckets
-  # "storage.buckets.update" # to attach labels to buckets
-  # ]
   tagger_gcs_sa_roles_on_dlp_project = [
     "roles/dlp.fileStoreProfilesReader", # to fetch dlp results
-    "roles/storage.admin" # to annotate the buckets
+    "roles/storage.admin", # to annotate the buckets
+    "roles/resourcemanager.tagUser" # to delete tags from resources (for the cleaner service)
   ]
 }
 

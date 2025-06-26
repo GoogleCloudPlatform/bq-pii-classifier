@@ -19,6 +19,9 @@
 
 package com.google.cloud.oss.solutions.annotations.services.tags;
 
+import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
+import com.google.cloud.oss.solutions.annotations.entities.TableSpec;
+
 import java.io.IOException;
 
 public interface TagsService {
@@ -36,6 +39,7 @@ public interface TagsService {
     }
 
 
-    void deleteTagBinding(String bucketName, String tagValueToDelete) throws ParentNotFoundException, IOException, TagBindingNotFoundException;
+    void deleteTagBindingFromBucket(String bucketName, String tagValueToDelete) throws ParentNotFoundException, IOException, TagBindingNotFoundException;
 
+    void deleteTagBindingFromTable(String bqOperationProject, TableSpec tableSpec, String tableRegion, String tagValueId)  throws ParentNotFoundException, IOException, TagBindingNotFoundException;
 }

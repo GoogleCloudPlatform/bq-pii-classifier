@@ -17,6 +17,21 @@
 #
 #
 
+locals {
+  // all dlp service accounts and tagger services service accounts (used for cleaning annotations) must be tagUser on the dlp tags
+  dlp_tag_key_users = concat(
+    ["serviceAccount:${module.iam_on_host_project.sa_tagger_gcs_email}",
+      "serviceAccount:${module.iam_on_host_project.sa_tagger_bq_email}"],
+    [for email in var.dlp_service_accounts_emails: "serviceAccount:${email}"]
+  )
+
+  all_dlp_projects = distinct(concat(
+    [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"],
+    [var.application_project]
+  ))
+}
+
 module "apis" {
   source = "../../modules/terraform_00_apis"
 
@@ -24,11 +39,26 @@ module "apis" {
   publishing_project  = var.publishing_project
 
   // the union of all project-level configs, plus the application project (used for org-level configs)
-  dlp_projects = distinct(concat(
-    [for x in var.dlp_bq_discovery_configurations : x.target_id if x.parent_type == "project"],
-    [for x in var.dlp_gcs_discovery_configurations : x.target_id if x.parent_type == "project"],
-    [var.application_project]
-  ))
+  dlp_projects = local.all_dlp_projects
+}
+
+module "iam_on_host_project" {
+  source = "../../modules/terraform_01_iam_host_project"
+
+  application_project = var.application_project
+  dlp_service_agents_emails = var.dlp_service_accounts_emails
+
+  depends_on = [module.apis]
+}
+
+module "iam_on_publishing_project" {
+  source = "../../modules/terraform_02_iam_publishing_project"
+
+  application_project = var.application_project
+  publishing_project  = var.publishing_project
+  dlp_service_agents_emails = var.dlp_service_accounts_emails
+
+  depends_on = [module.apis, module.iam_on_host_project]
 }
 
 // project-level tags for project-level dlp configs
@@ -41,7 +71,7 @@ module "project_tags" {
   ignore_dlp_sensitivity_key_name    = var.ignore_dlp_sensitivity_key_name
 
   // only DLP service accounts (across all configs)  should be able to tag/untag resources with the DLP sensitivity tags (unless desired otherwise)
-  dlp_tag_sensitivity_level_key_iam_tag_user_principles = [for x in var.dlp_service_accounts_emails: "serviceAccount:${x}"]
+  dlp_tag_sensitivity_level_key_iam_tag_user_principles = local.dlp_tag_key_users
   // TODO: all users should be able to use the ignore/bypass tag. Set to an equivalent of "all users"
   ignore_dlp_sensitivity_key_iam_tag_user_principles = []
 }
@@ -76,31 +106,8 @@ module "dlp" {
   depends_on = [module.apis]
 }
 
-module "iam_on_host_project" {
-  source = "../../modules/terraform_01_iam_host_project"
-
-  application_project = var.application_project
-  dlp_service_agents_emails = var.dlp_service_accounts_emails
-
-  depends_on = [module.apis]
-}
-
-module "iam_on_publishing_project" {
-  source = "../../modules/terraform_02_iam_publishing_project"
-
-  application_project = var.application_project
-  publishing_project  = var.publishing_project
-  dlp_service_agents_emails = var.dlp_service_accounts_emails
-
-  depends_on = [module.apis, module.iam_on_host_project]
-
-}
-
 module "annotations-solution" {
   source = "../../modules/terraform_05_annotations_infra"
-
-  deploy_gcs_annotations_stack       = length(var.dlp_gcs_discovery_configurations) > 0
-  deploy_bq_annotations_stack        = length(var.dlp_bq_discovery_configurations) > 0
 
   application_project                = var.application_project
   publishing_project                 = var.publishing_project
@@ -108,7 +115,7 @@ module "annotations-solution" {
   source_data_regions                = var.source_data_regions
   compute_region                     = var.compute_region
   terraform_data_deletion_protection = var.terraform_data_deletion_protection
-  services_container_image_name      = var.services_container_image_name
+  services_container_image_name = var.services_container_image_name
 
   # Linked variables. One can also omit and use the defaults assuming that they are in-sync across modules
   dlp_dataset_name                 = module.dlp.dlp_results_dataset
@@ -117,15 +124,18 @@ module "annotations-solution" {
   tagger_gcs_service_account_name  = module.iam_on_host_project.sa_tagger_gcs_name
   dlp_for_bq_pubsub_topic_name     = module.dlp.dlp_bq_notifications_topic
   dlp_for_gcs_pubsub_topic_name    = module.dlp.dlp_gcs_notifications_topic
-  default_domain_name              = "AnnotationsTestProjectLevel"
+
+  dlp_tag_high_sensitivity_value     = module.project_tags.dlp_tag_high_sensitivity_value_id
+  dlp_tag_moderate_sensitivity_value = module.project_tags.dlp_tag_moderate_sensitivity_value_id
+  dlp_tag_low_sensitivity_value      = module.project_tags.dlp_tag_low_sensitivity_value_id
+
+  is_dry_run_labels = var.is_dry_run_labels
+  is_dry_run_tags   = var.is_dry_run_tags
 
   classification_taxonomy = var.classification_taxonomy
+  taxonomy_name_suffix    = var.taxonomy_name_suffix
 
   depends_on = [module.iam_on_host_project]
-}
-
-locals {
-  all_dlp_projects = distinct(concat(module.dlp.dlp_gcs_projects,module.dlp.dlp_bq_projects))
 }
 
 module "iam_project_level" {

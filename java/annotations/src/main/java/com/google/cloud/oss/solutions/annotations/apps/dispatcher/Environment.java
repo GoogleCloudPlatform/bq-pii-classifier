@@ -27,7 +27,7 @@ public class Environment {
 
   public DispatcherConfig toConfig() {
 
-    return new DispatcherConfig(getProjectId(), getTaggerTopic());
+    return new DispatcherConfig(getProjectId(), getOutputTopic());
   }
 
   public String getProjectId() {
@@ -38,8 +38,8 @@ public class Environment {
     return Utils.getConfigFromEnv("PUBLISHING_PROJECT_ID", true);
   }
 
-  public String getTaggerTopic() {
-    return Utils.getConfigFromEnv("TAGGER_TOPIC", true);
+  public String getOutputTopic() {
+    return Utils.getConfigFromEnv("OUTPUT_TOPIC", true);
   }
 
   public String getDlpResultsDataset() {

@@ -22,8 +22,9 @@ package com.google.cloud.oss.solutions.annotations.apps.dispatcher;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
 import com.google.cloud.oss.solutions.annotations.helpers.TrackingHelper;
 import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamer;
-import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamerForBQDispatcher;
+import com.google.cloud.oss.solutions.annotations.services.pubsub.BigQueryToPubSubStreamerForBQTaggingDispatcher;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -31,15 +32,15 @@ import java.util.concurrent.ExecutionException;
  * Dispatcher for DLP Discovery Service Results for BigQuery . It will read DLP results from a
  * BigQuery table and publish to PubSub.
  */
-public class BigQueryDispatcher extends BaseDispatcher {
+public class BigQueryTaggingDispatcher extends BaseDispatcher {
 
-  public BigQueryDispatcher(Environment environment) {
+  public BigQueryTaggingDispatcher(Environment environment) {
     super(environment);
   }
 
   @Override
   protected Integer getExpectedArgumentsCount() {
-    return 4;
+    return 5;
   }
 
   @Override
@@ -54,7 +55,7 @@ public class BigQueryDispatcher extends BaseDispatcher {
 
   @Override
   protected BigQueryToPubSubStreamer getBigQueryToPubSubStreamer() {
-    return new BigQueryToPubSubStreamerForBQDispatcher(
+    return new BigQueryToPubSubStreamerForBQTaggingDispatcher(
         environment.getPubSubFlowControlMaxOutstandingRequestBytes(),
         environment.getPubSubFlowControlMaxOutstandingElementCount(),
         environment.getPubSubBatchingElementCountThreshold(),
@@ -78,27 +79,20 @@ public class BigQueryDispatcher extends BaseDispatcher {
     String datasetsRegex = args[2];
     String tablesRegex = args[3];
 
-    return Map.of(
-        "${project}",
-        this.environment.getPublishingProjectId(),
-        "${dlp_dataset}",
-        this.environment.getDlpResultsDataset(),
-        "${logging_dataset}",
-        this.environment.getLoggingDataset(),
-        "${results_table}",
-        this.environment.getDlpResultsTable(),
-        "${folder_id_regex}",
-        foldersRegex,
-        "${project_id_regex}",
-        projectsRegex,
-        "${dataset_id_regex}",
-        datasetsRegex,
-        "${table_id_regex}",
-        tablesRegex,
-        "${dispatcher_runs_table}",
-        this.environment.getDispatcherRunsTable(),
-        "${run_id}",
-        this.runId);
+    Map<String, String> map = new HashMap<>();
+
+    map.put("${project}", this.environment.getPublishingProjectId());
+    map.put("${dlp_dataset}", this.environment.getDlpResultsDataset());
+    map.put("${logging_dataset}", this.environment.getLoggingDataset());
+    map.put("${results_table}", this.environment.getDlpResultsTable());
+    map.put("${folder_id_regex}", foldersRegex);
+    map.put("${project_id_regex}", projectsRegex);
+    map.put("${dataset_id_regex}", datasetsRegex);
+    map.put("${table_id_regex}", tablesRegex);
+    map.put("${dispatcher_runs_table}", this.environment.getDispatcherRunsTable());
+    map.put("${run_id}", this.runId);
+
+    return map;
   }
 
   public static void main(String[] args)
@@ -106,6 +100,6 @@ public class BigQueryDispatcher extends BaseDispatcher {
           IOException,
           ExecutionException,
           InterruptedException {
-    new BigQueryDispatcher(new Environment()).run(args);
+    new BigQueryTaggingDispatcher(new Environment()).run(args);
   }
 }

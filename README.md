@@ -540,13 +540,38 @@ with DLP. For example:
 
 Cloud Workflows is used to manually invoke this process:
 
-*   In the host project, go to "Cloud Workflows" * Open the BigQuery or GCS
-    tagging dispatcher workflow
-*   Click the "Execute" button on top * Inspect the annotation scope in the
-    "message" field under "Code" * To override the scope pass a JSON object with
-    the attributes as the message in the "Input" tab * * For example
+*   In the host project, go to `Cloud Workflows` 
+*   Open the BigQuery or GCS `tagging dispatcher` workflow
+*   Click the `Execute` button on top 
+*   Inspect the annotation scope in the `message` field under `Code` 
+*   To override the scope pass a JSON object with
+    the attributes as the message in the `Input` tab 
+    * For example
     `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex":
-    ".*"}` * Click the "Execute" button in the bottom
+    ".*"}` 
+* Click the "Execute" button in the bottom
+
+### Cleaning Dispatcher
+
+The `Cleaning Dispatcher` service is a mechanism to delete Cloud DLP sensitivity tag bindings
+from scanned resources (i.e. Buckets, BigQuery Tables).
+
+This could be used as a roll-back measure and/or to delete existing bindings in order to
+delete the tag values themselves.
+
+Cloud Workflows is used to manually invoke this process:
+
+*   In the host project, go to `Cloud Workflows`
+*   Open the BigQuery or GCS `cleaning dispatcher` workflow
+*   Click the `Execute` button on top
+*   Inspect the annotation scope in the `message` field under `Code`
+*   To override the scope pass a JSON object with
+    the attributes as the message in the `Input` tab
+    * For example
+      `{"foldersRegex": "^123$", "projectsRegex": "^prod-", "bucketsRegex":
+      ".*"}`
+* Click the "Execute" button in the bottom
+
 
 ## Reporting
 
@@ -555,7 +580,7 @@ Cloud Workflows is used to manually invoke this process:
 Monitor counts of complete vs incomplete tables for the BigQuery Discovery stack
 
 ```sql
-SELECT * FROM `annotations.v_run_summary_counts`
+SELECT * FROM `annotations.v_run_summary_counts_bq`
 ORDER BY run_id DESC
 ```
 
@@ -569,7 +594,7 @@ ORDER BY run_id DESC
 List column tagging actions across all tables
 
 ```sql
-SELECT  * FROM `annotations.v_tagging_actions`
+SELECT  * FROM `annotations.v_tagging_actions_bq`
 WHERE run_id = RUN_ID
 ORDER BY tracker;
 ```
@@ -577,7 +602,7 @@ ORDER BY tracker;
 List computed table-level resource labels across all tables
 
 ```sql
-SELECT  * FROM `annotations.v_log_label_history`
+SELECT  * FROM `annotations.v_log_label_history_bq`
 WHERE run_id = RUN_ID
 ORDER BY tracker;
 ```
@@ -585,10 +610,16 @@ ORDER BY tracker;
 ### Helpful in investigating issues
 
 Tracking log messages for a particular entity (e.g. table or bucket). ``sql
-SELECT jsonPayload.global_run_id, jsonPayload.global_tracker,
-jsonPayload.global_entity_id, jsonPayload.global_app_log,
-resource.labels.service_name, jsonPayload.global_logger_name,
-jsonPayload.global_msg FROM `annotations.run_googleapis_com_stdout` l WHERE
+SELECT 
+jsonPayload.global_run_id, 
+jsonPayload.global_tracker,
+jsonPayload.global_entity_id, 
+jsonPayload.global_app_log,
+resource.labels.service_name, 
+jsonPayload.global_logger_name,
+jsonPayload.global_msg 
+FROM `annotations.run_googleapis_com_stdout` l 
+WHERE
 jsonPayload.global_entity_id LIKE '%buckets/BUCKET_NAME' AND
 jsonPayload.global_run_id = TAGGING_DISPATCHER_RUN_ID ORDER BY timestamp ASC``
 

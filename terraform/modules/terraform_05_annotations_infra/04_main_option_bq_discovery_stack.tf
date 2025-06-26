@@ -25,7 +25,7 @@ module "bq-discovery-stack" {
   source = "./stacks/bq_discovery_stack"
 
   image_name                                     = var.services_container_image_name
-  java_class_path_bq_dispatcher_service          = var.java_class_path_bq_dispatcher_service
+
   java_class_path_bq_tagger_service              = var.java_class_path_bq_tagger_service
 
   dlp_dataset_name                               = var.dlp_dataset_name
@@ -59,8 +59,7 @@ module "bq-discovery-stack" {
   tagger_subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
   taxonomy_name_suffix                           = var.taxonomy_name_suffix
   terraform_data_deletion_protection             = var.terraform_data_deletion_protection
-  workflows_bq_description                       = var.workflows_bq_description
-  workflows_bq_name                              = var.workflows_bq_name
+
   resources_bucket_name                          = google_storage_bucket.gcs_solution_resources.name
   info_type_map_file_path                        = "gs://${google_storage_bucket.gcs_solution_resources.name}/${google_storage_bucket_object.info_type_map_file.name}"
 
@@ -75,6 +74,22 @@ module "bq-discovery-stack" {
   tagger_service_max_cpu                    = var.tagger_bq_service_max_cpu
   tagger_service_max_memory                 = var.tagger_bq_service_max_memory
   tagger_service_max_requests_per_container = var.tagger_bq_service_max_requests_per_container
+
+  dlp_tag_high_sensitivity_value                 = var.dlp_tag_high_sensitivity_value
+  dlp_tag_moderate_sensitivity_value             = var.dlp_tag_moderate_sensitivity_value
+  dlp_tag_low_sensitivity_value                  = var.dlp_tag_low_sensitivity_value
+
+  cleaner_pubsub_sub                             = var.cleaner_bq_pubsub_sub
+  cleaner_pubsub_topic                           = var.cleaner_bq_pubsub_topic
+
+  java_class_path_bq_cleaning_dispatcher_service = var.java_class_path_bq_cleaning_dispatcher_service
+  java_class_path_bq_tagging_dispatcher_service  = var.java_class_path_bq_tagging_dispatcher_service
+
+  workflows_cleaning_bq_description              = var.workflows_cleaning_bq_description
+  workflows_cleaning_bq_name                     = var.workflows_cleaning_bq_name
+
+  workflows_tagging_bq_description               = var.workflows_tagging_bq_description
+  workflows_tagging_bq_name                      = var.workflows_tagging_bq_name
 
   depends_on = [
     google_bigquery_table.logging_table_cloud_run

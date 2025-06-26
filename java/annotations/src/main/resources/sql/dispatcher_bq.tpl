@@ -14,7 +14,7 @@ WITH  core AS (
         FROM `${project}.${dlp_dataset}.${results_table}` c, UNNEST(c.column_profile.other_matches) other_matches
         INNER JOIN `${project}.${dlp_dataset}.${results_table}` t ON c.column_profile.table_data_profile = t.table_profile.name
         WHERE (c.column_profile.column_info_type.info_type.name IS NOT NULL OR c.column_profile.other_matches IS NOT NULL)
-               AND REGEXP_CONTAINS(CAST(t.table_profile.config_snapshot.data_profile_job.location.folder_id AS STRING), r'${folder_id_regex}')
+               AND (REGEXP_CONTAINS(CAST(t.table_profile.config_snapshot.data_profile_job.location.folder_id AS STRING), r'${folder_id_regex}') OR t.table_profile.config_snapshot.data_profile_job.location.folder_id IS NULL)
                AND REGEXP_CONTAINS(c.column_profile.dataset_project_id, r'${project_id_regex}')
                AND REGEXP_CONTAINS(c.column_profile.dataset_id, r'${dataset_id_regex}')
                AND REGEXP_CONTAINS(c.column_profile.table_id, r'${table_id_regex}')

@@ -37,7 +37,7 @@ locals {
 resource "google_bigquery_table" "logging_view_tag_history" {
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
-  table_id   = "v_log_tag_history"
+  table_id   = "v_log_tag_history_bq"
 
   deletion_protection = var.terraform_data_deletion_protection
 
@@ -56,7 +56,7 @@ resource "google_bigquery_table" "logging_view_tag_history" {
 resource "google_bigquery_table" "logging_view_label_history" {
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
-  table_id   = "v_log_label_history"
+  table_id   = "v_log_label_history_bq"
 
   deletion_protection = var.terraform_data_deletion_protection
 
@@ -76,7 +76,7 @@ resource "google_bigquery_table" "logging_view_label_history" {
 resource "google_bigquery_table" "view_tagging_actions" {
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
-  table_id   = "v_tagging_actions"
+  table_id   = "v_tagging_actions_bq"
 
   deletion_protection = var.terraform_data_deletion_protection
 
@@ -97,7 +97,7 @@ resource "google_bigquery_table" "view_tagging_actions" {
 resource "google_bigquery_table" "view_run_summary_counts" {
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
-  table_id   = "v_run_summary_counts"
+  table_id   = "v_run_summary_counts_bq"
 
   deletion_protection = var.terraform_data_deletion_protection
 
@@ -105,10 +105,11 @@ resource "google_bigquery_table" "view_run_summary_counts" {
     use_legacy_sql = false
     query = templatefile("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/views/v_run_summary_counts.tpl",
       {
-        project                  = var.publishing_project
-        dataset                  = var.logging_dataset_name
-        v_run_summary            = var.bq_view_run_summary
-        dispatcher_runs_bigquery = google_bigquery_table.dispatcher_runs_bq_table.table_id
+        project                           = var.publishing_project
+        dataset                           = var.logging_dataset_name
+        v_run_summary                     = var.bq_view_run_summary
+        tagging_dispatcher_runs_bigquery  = google_bigquery_table.tagging_dispatcher_runs_bq_table.table_id
+        cleaning_dispatcher_runs_bigquery = google_bigquery_table.cleaner_dispatcher_runs_bq_table.table_id
       }
     )
   }
@@ -124,7 +125,7 @@ resource "google_bigquery_table" "config_view_infotypes_policytags_map" {
 
   view {
     use_legacy_sql = false
-    query          = join(" UNION ALL \r\n", local.infotypes_policytags_map_select_statements)
+    query = join(" UNION ALL \r\n", local.infotypes_policytags_map_select_statements)
   }
 }
 
@@ -137,7 +138,7 @@ resource "google_bigquery_table" "config_view_project_domain_map" {
 
   view {
     use_legacy_sql = false
-    query          = join(" UNION ALL \r\n", local.project_domain_map_select_statements)
+    query = join(" UNION ALL \r\n", local.project_domain_map_select_statements)
   }
 }
 
@@ -150,11 +151,11 @@ resource "google_bigquery_table" "config_view_dataset_domain_map" {
 
   view {
     use_legacy_sql = false
-    query          = join(" UNION ALL \r\n", local.dataset_domain_map_select_statements)
+    query = join(" UNION ALL \r\n", local.dataset_domain_map_select_statements)
   }
 }
 
-resource "google_bigquery_table" "dispatcher_runs_bq_table" {
+resource "google_bigquery_table" "tagging_dispatcher_runs_bq_table" {
 
   project    = var.publishing_project
   dataset_id = var.logging_dataset_name
@@ -162,7 +163,20 @@ resource "google_bigquery_table" "dispatcher_runs_bq_table" {
 
   clustering = ["run_id"]
 
-  schema = file("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/schema/dispatcher_runs_bigquery.json")
+  schema = file("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/schema/tagging_dispatcher_runs_bigquery.json")
+
+  deletion_protection = var.terraform_data_deletion_protection
+}
+
+resource "google_bigquery_table" "cleaner_dispatcher_runs_bq_table" {
+
+  project    = var.publishing_project
+  dataset_id = var.logging_dataset_name
+  table_id   = "cleaning_dispatcher_runs_bq"
+
+  clustering = ["run_id"]
+
+  schema = file("../../modules/terraform_05_annotations_infra/stacks/bq_discovery_stack/schema/cleaning_dispatcher_runs_bigquery.json")
 
   deletion_protection = var.terraform_data_deletion_protection
 }

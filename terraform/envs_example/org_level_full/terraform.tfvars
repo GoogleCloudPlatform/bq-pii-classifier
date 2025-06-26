@@ -154,3 +154,12 @@ classification_taxonomy = [
     labels = [{ key = "contains_pii", value = "yes" }], taxonomy_number = 1,
   },
 ]
+
+# false to apply labels to buckets and tables, true or dry_run
+is_dry_run_labels = false
+
+# false to apply BigQuery policy tags to tables, true or dry_run
+is_dry_run_tags = false
+
+# to make the policy tags taxonomy tag unique acros the organization
+taxonomy_name_suffix = "org"

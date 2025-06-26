@@ -20,7 +20,7 @@
 package com.google.cloud.oss.solutions.annotations.apps;
 
 import com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery.BigQueryTaggerController;
-import com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryDispatcher;
+import com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryTaggingDispatcher;
 import com.google.cloud.oss.solutions.annotations.apps.dispatcher.GcsTaggingDispatcher;
 import com.google.cloud.oss.solutions.annotations.apps.tagger.storage.GcsTaggerController;
 
@@ -29,7 +29,7 @@ public class EntryPoint {
   public static void main(String[] args) throws Exception {
 
     switch (args[0].toLowerCase()) {
-      case "bq-dispatcher" -> BigQueryDispatcher.main(args);
+      case "bq-dispatcher" -> BigQueryTaggingDispatcher.main(args);
       case "bq-tagger" -> BigQueryTaggerController.main(new String[0]);
       case "gcs-dispatcher" -> GcsTaggingDispatcher.main(args);
       case "gcs-tagger" -> GcsTaggerController.main(new String[0]);

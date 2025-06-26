@@ -20,24 +20,25 @@
 package com.google.cloud.oss.solutions.annotations.services.pubsub;
 
 import com.google.cloud.bigquery.FieldValueList;
-import com.google.cloud.oss.solutions.annotations.entities.GcsDlpProfileSummary;
-import com.google.cloud.oss.solutions.annotations.functions.tagger.gcs.GcsTaggerRequest;
-import com.google.cloud.oss.solutions.annotations.helpers.Utils;
+import com.google.cloud.oss.solutions.annotations.entities.TableSpec;
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.BigQueryTableAnnotationsCleanerRequest;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
-import java.util.HashSet;
+
 
 /**
- * Concrete implementation of {@link BigQueryToPubSubStreamerAbstract} for dispatching GCS related
- * messages.
+ * This class is a specialized implementation of {@link BigQueryToPubSubStreamerAbstract} designed
+ * for processing BigQuery records that are intended for the BigQuery tables tags cleaner dispatcher. It includes specific
+ * logic to convert BigQuery rows into {@link PubsubMessage} objects, which encapsulate {@link
+ * BigQueryTableAnnotationsCleanerRequest} data.
  */
-public class BigQueryToPubSubStreamerForGcsTaggingDispatcher extends BigQueryToPubSubStreamerAbstract {
+public class BigQueryToPubSubStreamerForBQCleaningDispatcher extends BigQueryToPubSubStreamerAbstract {
 
-  public BigQueryToPubSubStreamerForGcsTaggingDispatcher() {
+  public BigQueryToPubSubStreamerForBQCleaningDispatcher() {
     super();
   }
 
-  public BigQueryToPubSubStreamerForGcsTaggingDispatcher(
+  public BigQueryToPubSubStreamerForBQCleaningDispatcher(
       Long flowControlMaxOutstandingRequestBytes,
       Long flowControlMaxOutstandingElementCount,
       Long batchingElementCountThreshold,
@@ -67,28 +68,29 @@ public class BigQueryToPubSubStreamerForGcsTaggingDispatcher extends BigQueryToP
         executorThreadCountMultiplier);
   }
 
-  @Override
+  /**
+   * Converts a BigQuery row (represented as a {@link FieldValueList}) into a {@link PubsubMessage}.
+   * The method extracts data from the row, constructs a {@link BigQueryTableAnnotationsCleanerRequest}, and serializes it
+   * into a JSON string before setting it as the message data.
+   *
+   * @param row The BigQuery row to convert.
+   * @return A PubsubMessage containing the serialized {@link BigQueryTableAnnotationsCleanerRequest}.
+   */
   public PubsubMessage bigQueryRowToPubSubMessage(FieldValueList row) {
+
     String runId = row.get("run_id").getStringValue();
     String trackingId = row.get("tracking_id").getStringValue();
-    String profileName = row.get("profile_name").getStringValue();
-    String bucketName = row.get("bucket_name").getStringValue();
+    String folder_id = row.get("folder_id").isNull()? "" : row.get("folder_id").getStringValue();
     String projectId = row.get("project_id").getStringValue();
-    String folderId = row.get("folder_id").isNull()? "" : row.get("folder_id").getStringValue();
-    String infoTypesStrList = row.get("info_types").getStringValue();
+    String datasetId = row.get("dataset_id").getStringValue();
+    String tableId = row.get("table_id").getStringValue();
+    String tableRegion = row.get("table_region").getStringValue();
+    String tagValue = row.get("tag_value").getStringValue();
 
-    GcsTaggerRequest taggerRequest =
-        new GcsTaggerRequest(
-            runId,
-            trackingId,
-            new GcsDlpProfileSummary(
-                profileName,
-                String.format("gs://%s", bucketName),
-                projectId,
-                folderId,
-                new HashSet<>(Utils.tokenize(infoTypesStrList, ",", true))));
+    BigQueryTableAnnotationsCleanerRequest request = new BigQueryTableAnnotationsCleanerRequest(runId,
+            trackingId, new TableSpec(folder_id, projectId, datasetId, tableId), tableRegion, tagValue);
 
-    ByteString data = ByteString.copyFromUtf8(taggerRequest.toJsonString());
+    ByteString data = ByteString.copyFromUtf8(request.toJsonString());
 
     return PubsubMessage.newBuilder().setData(data).build();
   }

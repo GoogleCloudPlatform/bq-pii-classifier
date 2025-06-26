@@ -19,6 +19,9 @@
 
 package com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery;
 
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.BigQueryAnnotationsCleaner;
+import com.google.cloud.oss.solutions.annotations.functions.cleaner.BigQueryTableAnnotationsCleanerRequest;
+import com.google.cloud.oss.solutions.annotations.services.tags.TagsServiceImpl;
 import com.google.gson.Gson;
 import com.google.cloud.oss.solutions.annotations.entities.NonRetryableApplicationException;
 import com.google.cloud.oss.solutions.annotations.entities.PubSubEvent;
@@ -72,6 +75,60 @@ public class BigQueryTaggerController {
 
   public static void main(String[] args) {
     SpringApplication.run(BigQueryTaggerController.class, args);
+  }
+
+  /**
+   * Handles cleaning requests from the dispatcher.
+   *
+   * @param requestBody The PubSub event containing the tagging request.
+   * @return A ResponseEntity indicating the status of the request.
+   */
+  @RequestMapping(value = "/cleaning-dispatcher-handler", method = RequestMethod.POST)
+  public ResponseEntity cleaningDispatcherHandler(@RequestBody PubSubEvent requestBody) {
+
+    BigQueryTableAnnotationsCleanerRequest request = null;
+
+    try {
+
+      if (requestBody == null || requestBody.getMessage() == null) {
+        String msg = "Bad Request: invalid message format";
+        logger.logSevereWithTracker(TrackingHelper.DEFAULT_TRACKING_ID, null, msg);
+        throw new NonRetryableApplicationException("Request body or message is Null.");
+      }
+
+      String requestJsonString = requestBody.getMessage().dataToUtf8String();
+
+      // remove any escape characters (e.g. from Terraform
+      requestJsonString = requestJsonString.replace("\\", "");
+
+      logger.logInfoWithTracker(
+              TrackingHelper.DEFAULT_TRACKING_ID,
+              null,
+              String.format("Received payload: %s", requestJsonString));
+
+      request = gson.fromJson(requestJsonString, BigQueryTableAnnotationsCleanerRequest.class);
+
+      logger.logInfoWithTracker(
+              request.getTrackingId(),
+              request.getTableSpec().toSqlString(),
+              String.format("Parsed Tagger Request from Dispatcher: %s", request));
+
+      BigQueryAnnotationsCleaner cleaner = new BigQueryAnnotationsCleaner(
+              environment.getProjectId(),
+              new TagsServiceImpl()
+      );
+
+      cleaner.execute(request);
+
+      return new ResponseEntity("Process completed successfully.", HttpStatus.OK);
+    } catch (Exception e) {
+
+      String trackingId =
+              request == null
+                      ? TrackingHelper.DEFAULT_TRACKING_ID
+                      : request.getTrackingId();
+      return ControllerExceptionHelper.handleException(e, logger, trackingId);
+    }
   }
 
   /**

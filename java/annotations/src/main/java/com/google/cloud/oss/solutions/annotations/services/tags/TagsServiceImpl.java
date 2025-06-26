@@ -20,23 +20,47 @@
 package com.google.cloud.oss.solutions.annotations.services.tags;
 
 import com.google.api.gax.longrunning.OperationFuture;
-import com.google.cloud.resourcemanager.v3.*;
-import com.google.cloud.storage.Storage;
+import com.google.api.gax.retrying.RetrySettings;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.Table;
+import com.google.cloud.oss.solutions.annotations.entities.TableSpec;
+import com.google.cloud.resourcemanager.v3.DeleteTagBindingMetadata;
+import com.google.cloud.resourcemanager.v3.DeleteTagBindingRequest;
+import com.google.cloud.resourcemanager.v3.ListTagBindingsRequest;
+import com.google.cloud.resourcemanager.v3.TagBinding;
+import com.google.cloud.resourcemanager.v3.TagBindingsClient;
+import com.google.cloud.resourcemanager.v3.TagBindingsSettings;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.common.base.VerifyException;
 import com.google.protobuf.Empty;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import org.threeten.bp.Duration;
 
+/**
+ * Implementation of the TagsService with improved encapsulation and dependency injection.
+ */
 public class TagsServiceImpl implements TagsService {
 
     private final Storage storage;
+    private final TagBindingsClientFactory tagBindingsClientFactory;
+    private final BigQueryProvider bigQueryProvider;
 
     public TagsServiceImpl() {
         this.storage = StorageOptions.newBuilder().build().getService();
+        this.tagBindingsClientFactory = new TagBindingsClientFactory();
+        this.bigQueryProvider = new BigQueryProvider(
+                RetrySettings.newBuilder()
+                .setInitialRetryDelay(Duration.ofSeconds(1))
+                .setRetryDelayMultiplier(2)
+                .setMaxRetryDelay(Duration.ofSeconds(10))
+                .setTotalTimeout(Duration.ofSeconds(30))
+                .build()
+        );
     }
-
 
     /**
      * Deletes a specific tag binding from a GCS bucket.
@@ -44,59 +68,124 @@ public class TagsServiceImpl implements TagsService {
      * @param bucketName The name of the GCS bucket.
      * @param tagValueId The id of the tag value to delete the binding for.
      */
-    public void deleteTagBinding(String bucketName, String tagValueId) throws ParentNotFoundException, IOException, TagBindingNotFoundException {
-
+    @Override
+    public void deleteTagBindingFromBucket(String bucketName, String tagValueId)
+            throws ParentNotFoundException, IOException, TagBindingNotFoundException {
         // Make sure the bucket still exists and get its location
-        Bucket bucket = storage.get(bucketName);
-        if (bucket == null) {
-            String msg = String.format("Bucket '%s' is not found or caller has no permissions.", bucketName);
-            throw new ParentNotFoundException(msg);
-        }
-
+        Bucket bucket = getBucket(bucketName);
         String gcsLocation = bucket.getLocation();
+        String parent = "//storage.googleapis.com/projects/_/buckets/" + bucketName;
+        deleteTagBinding(parent, tagValueId, gcsLocation);
+    }
 
-        String regionalEndpoint = String.format("%s-cloudresourcemanager.googleapis.com:443", gcsLocation);
+    /**
+     * Deletes a specific tag binding from a BigQuery table.
+     *
+     * @param bqOperationProject The project to perform the operation.
+     * @param tableSpec          The table specifications.
+     * @param tableRegion        The region of the table.
+     * @param tagValueId         The tag value id to delete.
+     */
+    @Override
+    public void deleteTagBindingFromTable(String bqOperationProject, TableSpec tableSpec, String tableRegion, String tagValueId)
+            throws ParentNotFoundException, TagBindingNotFoundException, IOException {
 
-        TagBindingsSettings tagBindingsSettings = TagBindingsSettings.newBuilder()
-                .setEndpoint(regionalEndpoint)
-                .build();
+        // 2. Check if table exists
+        checkTableExists(bqOperationProject, tableSpec);
 
-        // Initialize the Resource Manager TagBindingsClient.
-        try (TagBindingsClient tagBindingsClient = TagBindingsClient.create(tagBindingsSettings)) {
+        String parent = String.format("//bigquery.googleapis.com/projects/%s/datasets/%s/tables/%s",
+                tableSpec.project(),
+                tableSpec.dataset(),
+                tableSpec.table());
 
-            String parent = "//storage.googleapis.com/projects/_/buckets/" + bucketName;
+        deleteTagBinding(parent, tagValueId, tableRegion);
+    }
 
-            // List the tag bindings for the bucket to find the one to delete.
-            ListTagBindingsRequest listRequest = ListTagBindingsRequest.newBuilder().setParent(parent).build();
-            TagBindingsClient.ListTagBindingsPagedResponse response = tagBindingsClient.listTagBindings(listRequest);
-
-            String tagBindingNameToDelete = null;
-            for (TagBinding tagBinding : response.iterateAll()) {
-                if (tagBinding.getTagValue().equals(tagValueId)) {
-                    tagBindingNameToDelete = tagBinding.getName();
-                    break;
-                }
-            }
-
+    private void deleteTagBinding(String parentResource, String tagValueId, String region) throws IOException, TagBindingNotFoundException {
+        try (TagBindingsClient tagBindingsClient = tagBindingsClientFactory.create(region)) {
+            String tagBindingNameToDelete = findTagBindingName(tagBindingsClient, parentResource, tagValueId);
             if (tagBindingNameToDelete != null) {
-                // The rest of the delete operation logic is unchanged.
-                DeleteTagBindingRequest deleteRequest =
-                        DeleteTagBindingRequest.newBuilder().setName(tagBindingNameToDelete).build();
-
-                OperationFuture<Empty, DeleteTagBindingMetadata> operation =
-                        tagBindingsClient.deleteTagBindingAsync(deleteRequest);
-
-                try {
-                    operation.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-
+                deleteTagBindingOperation(tagBindingsClient, tagBindingNameToDelete);
             } else {
-                String msg = String.format("Couldn't find tag '%s' attached to bucket '%s'", tagValueId ,bucketName);
+                String msg = String.format("Couldn't find tag '%s' attached to the resource '%s'", tagValueId, parentResource);
                 throw new TagBindingNotFoundException(msg);
             }
         }
     }
 
+    private Bucket getBucket(String bucketName) throws ParentNotFoundException {
+        Bucket bucket = storage.get(bucketName);
+        if (bucket == null) {
+            String msg = String.format("Bucket '%s' is not found or caller has no permissions.", bucketName);
+            throw new ParentNotFoundException(msg);
+        }
+        return bucket;
+    }
+
+    private void checkTableExists(String bqOperationProject, TableSpec tableSpec) throws ParentNotFoundException {
+        BigQuery bigQuery = bigQueryProvider.getBigQuery(bqOperationProject);
+        Table table = bigQuery.getTable(tableSpec.toTableId());
+        if (table == null) {
+            String msg = String.format("Table '%s' not found.", tableSpec.toSqlString());
+            throw new ParentNotFoundException(msg);
+        }
+    }
+
+
+    private String findTagBindingName(TagBindingsClient tagBindingsClient, String parentResource, String tagValueId) throws IOException {
+        ListTagBindingsRequest listRequest = ListTagBindingsRequest.newBuilder().setParent(parentResource).build();
+        TagBindingsClient.ListTagBindingsPagedResponse response = tagBindingsClient.listTagBindings(listRequest);
+        for (TagBinding tagBinding : response.iterateAll()) {
+            if (tagBinding.getTagValue().equals(tagValueId)) {
+                return tagBinding.getName();
+            }
+        }
+        return null;
+    }
+
+    private void deleteTagBindingOperation(TagBindingsClient tagBindingsClient, String tagBindingNameToDelete) {
+        DeleteTagBindingRequest deleteRequest =
+                DeleteTagBindingRequest.newBuilder().setName(tagBindingNameToDelete).build();
+        OperationFuture<Empty, DeleteTagBindingMetadata> operation =
+                tagBindingsClient.deleteTagBindingAsync(deleteRequest);
+        try {
+            operation.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new VerifyException("Error deleting tag binding: operation interrupted",e);
+        } catch (ExecutionException e) {
+            throw new VerifyException("Error deleting tag binding: operation failed",e);
+        }
+    }
+
+    /**
+     * Default implementation for TagBindingsClientFactory
+     */
+    public static class TagBindingsClientFactory {
+
+        public TagBindingsClient create(String region) throws IOException {
+            String regionalEndpoint = String.format("%s-cloudresourcemanager.googleapis.com:443", region);
+            TagBindingsSettings tagBindingsSettings = TagBindingsSettings.newBuilder()
+                    .setEndpoint(regionalEndpoint)
+                    .build();
+            return TagBindingsClient.create(tagBindingsSettings);
+        }
+    }
+
+    /**
+     * Default implementation for BigQuery provider
+     */
+    public static class BigQueryProvider {
+
+        private final RetrySettings retrySettings;
+
+        public BigQueryProvider(RetrySettings retrySettings) {
+            this.retrySettings = retrySettings;
+        }
+
+        public BigQuery getBigQuery(String bqOperationProject) {
+            return BigQueryOptions.newBuilder().setProjectId(bqOperationProject).setRetrySettings(retrySettings).build().getService();
+        }
+    }
 }
+

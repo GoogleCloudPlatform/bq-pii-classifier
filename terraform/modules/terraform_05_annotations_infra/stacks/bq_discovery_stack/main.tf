@@ -213,6 +213,21 @@ module "pubsub-tagger-for-dispatcher" {
   subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
 }
 
+module "pubsub-cleaner-for-dispatcher" {
+  source                       = "../../modules/pubsub"
+  project                      = var.project
+  subscription_endpoint        = "${module.cloud-run-tagger.service_endpoint}/cleaning-dispatcher-handler"
+  subscription_name            = "${var.cleaner_pubsub_sub}_for_dispatcher"
+  subscription_service_account = local.sa_application_email
+  topic                        = "${var.cleaner_pubsub_topic}_for_dispatcher"
+  topic_publishers_sa_emails   = [local.sa_application_email]
+  # use a deadline large enough to process BQ listing for large scopes
+  subscription_ack_deadline_seconds = var.tagger_subscription_ack_deadline_seconds
+  # avoid resending dispatcher messages if things went wrong and the msg was NAK (e.g. timeout expired, app error, etc)
+  # min value must be at equal to the ack_deadline_seconds
+  subscription_message_retention_duration = var.tagger_subscription_message_retention_duration
+}
+
 ### Data Catalog Policy Tags ####
 module "data-catalog" {
   count   = length(local.taxonomies_to_be_created)
@@ -278,8 +293,8 @@ resource "google_data_catalog_policy_tag_iam_member" "policy_tag_reader" {
 resource "google_workflows_workflow" "bq_tagging_dispatcher_workflow" {
 
   project     = var.project
-  name        = var.workflows_bq_name
-  description = var.workflows_bq_description
+  name        = var.workflows_tagging_bq_name
+  description = var.workflows_tagging_bq_description
   region      = var.compute_region
 
   service_account = local.sa_application_email
@@ -298,11 +313,12 @@ main:
           - projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
           - datasetsRegex: $${default(map.get(input, "datasetsRegex"), ".*")}
           - tablesRegex: $${default(map.get(input, "tablesRegex"), ".*")}
+          - testingRowsMultiplicationFactor: $${default(map.get(input, "testingRowsMultiplicationFactor"), "1")}
     - create_batch_job:
         call: googleapis.batch.v1.projects.locations.jobs.create
         args:
           parent: $${"projects/" + project_id + "/locations/" + location}
-          jobId: $${"bq-dispatcher-" + uuid.generate()}
+          jobId: $${"bq-tagging-dispatcher-" + uuid.generate()}
           body:
             taskGroups:
                 - taskSpec:
@@ -312,11 +328,12 @@ main:
                           commands:
                             - "-cp"
                             - "@/app/jib-classpath-file"
-                            - ${var.java_class_path_bq_dispatcher_service}
+                            - ${var.java_class_path_bq_tagging_dispatcher_service}
                             - $${foldersRegex}
                             - $${projectsRegex}
                             - $${datasetsRegex}
                             - $${tablesRegex}
+                            - $${testingRowsMultiplicationFactor}
                           entrypoint: java
                     computeResource:
                       memoryMib: ${var.dispatcher_cloud_batch_memory_mib}
@@ -326,11 +343,100 @@ main:
                     - variables:
                         PROJECT_ID: "${var.project}"
                         PUBLISHING_PROJECT_ID: "${var.publishing_project}"
-                        TAGGER_TOPIC: "${module.pubsub-tagger-for-dispatcher.topic-name}"
+                        OUTPUT_TOPIC: "${module.pubsub-tagger-for-dispatcher.topic-name}"
                         LOGGING_DATASET: "${var.logging_dataset_name}"
                         DLP_RESULTS_DATASET: "${var.dlp_dataset_name}"
                         DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
-                        DISPATCHER_RUNS_TABLE: "${google_bigquery_table.dispatcher_runs_bq_table.table_id}"
+                        DISPATCHER_RUNS_TABLE: "${google_bigquery_table.tagging_dispatcher_runs_bq_table.table_id}"
+
+                        PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_REQUESTS_BYTES : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_request_bytes}"
+                        PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_ELEMENT_COUNT : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_element_count}"
+                        PUBSUB_BATCHING_ELEMENT_COUNT_THRESHOLD           : "${var.dispatcher_pubsub_client_config.pubsub_batching_element_count_threshold}"
+                        PUBSUB_BATCHING_REQUEST_BYTE_THRESHOLD            : "${var.dispatcher_pubsub_client_config.pubsub_batching_request_byte_threshold}"
+                        PUBSUB_BATCHING_DELAY_THRESHOLD_MILLIS            : "${var.dispatcher_pubsub_client_config.pubsub_batching_delay_threshold_millis}"
+                        PUBSUB_RETRY_INITIAL_RETRY_DELAY_MILLIS            : "${var.dispatcher_pubsub_client_config.pubsub_retry_initial_retry_delay_millis}"
+                        PUBSUB_RETRY_RETRY_DELAY_MULTIPLIER              : "${var.dispatcher_pubsub_client_config.pubsub_retry_retry_delay_multiplier}"
+                        PUBSUB_RETRY_MAX_RETRY_DELAY_SECONDS              : "${var.dispatcher_pubsub_client_config.pubsub_retry_max_retry_delay_seconds}"
+                        PUBSUB_RETRY_INITIAL_RPC_TIMEOUT_SECONDS          : "${var.dispatcher_pubsub_client_config.pubsub_retry_initial_rpc_timeout_seconds}"
+                        PUBSUB_RETRY_RPC_TIMEOUT_MULTIPLIER                : "${var.dispatcher_pubsub_client_config.pubsub_retry_rpc_timeout_multiplier}"
+                        PUBSUB_RETRY_MAX_RPC_TIMEOUT_SECONDS              : "${var.dispatcher_pubsub_client_config.pubsub_retry_max_rpc_timeout_seconds}"
+                        PUBSUB_RETRY_TOTAL_TIMEOUT_SECONDS                : "${var.dispatcher_pubsub_client_config.pubsub_retry_total_timeout_seconds}"
+                        PUBSUB_EXECUTOR_THREAD_COUNT_MULTIPLIER            : "${var.dispatcher_pubsub_client_config.pubsub_executor_thread_count_multiplier}"
+            allocationPolicy:
+              serviceAccount:
+                email: ${local.sa_application_email}
+                scopes:
+                  - https://www.googleapis.com/auth/cloud-platform
+            logsPolicy:
+              destination: CLOUD_LOGGING
+        result: create_job_result
+    - return_result:
+        return: $${create_job_result}
+EOF
+}
+
+resource "google_workflows_workflow" "bq_cleaning_dispatcher_workflow" {
+
+  project     = var.project
+  name        = var.workflows_cleaning_bq_name
+  description = var.workflows_cleaning_bq_description
+  region      = var.compute_region
+
+  service_account = local.sa_application_email
+
+  deletion_protection = false
+
+  source_contents = <<-EOF
+main:
+  params: [input]
+  steps:
+    - init:
+        assign:
+          - project_id: ${var.project}
+          - location: ${var.compute_region}
+          - foldersRegex: $${default(map.get(input, "foldersRegex"), ".*")}
+          - projectsRegex: $${default(map.get(input, "projectsRegex"), ".*")}
+          - datasetsRegex: $${default(map.get(input, "datasetsRegex"), ".*")}
+          - tablesRegex: $${default(map.get(input, "tablesRegex"), ".*")}
+          - testingRowsMultiplicationFactor: $${default(map.get(input, "testingRowsMultiplicationFactor"), "1")}
+    - create_batch_job:
+        call: googleapis.batch.v1.projects.locations.jobs.create
+        args:
+          parent: $${"projects/" + project_id + "/locations/" + location}
+          jobId: $${"bq-cleaning-dispatcher-" + uuid.generate()}
+          body:
+            taskGroups:
+                - taskSpec:
+                    runnables:
+                      - container:
+                          imageUri: ${local.service_image_uri}
+                          commands:
+                            - "-cp"
+                            - "@/app/jib-classpath-file"
+                            - ${var.java_class_path_bq_cleaning_dispatcher_service}
+                            - $${foldersRegex}
+                            - $${projectsRegex}
+                            - $${datasetsRegex}
+                            - $${tablesRegex}
+                            - $${testingRowsMultiplicationFactor}
+                          entrypoint: java
+                    computeResource:
+                      memoryMib: ${var.dispatcher_cloud_batch_memory_mib}
+                      cpuMilli: ${var.dispatcher_cloud_batch_cpu_millis}
+                    maxRunDuration: ${var.dispatcher_cloud_batch_max_run_duration_seconds}s
+                  taskEnvironments:
+                    - variables:
+                        PROJECT_ID: "${var.project}"
+                        PUBLISHING_PROJECT_ID: "${var.publishing_project}"
+                        OUTPUT_TOPIC: "${module.pubsub-cleaner-for-dispatcher.topic-name}"
+                        LOGGING_DATASET: "${var.logging_dataset_name}"
+                        DLP_RESULTS_DATASET: "${var.dlp_dataset_name}"
+                        DLP_RESULTS_TABLE: "${local.auto_dlp_results_latest_view}"
+                        DISPATCHER_RUNS_TABLE: "${google_bigquery_table.cleaner_dispatcher_runs_bq_table.table_id}"
+
+                        DLP_TAG_VALUE_HIGH: "${var.dlp_tag_high_sensitivity_value}"
+                        DLP_TAG_VALUE_MODERATE: "${var.dlp_tag_moderate_sensitivity_value}"
+                        DLP_TAG_VALUE_LOW: "${var.dlp_tag_low_sensitivity_value}"
 
                         PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_REQUESTS_BYTES : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_request_bytes}"
                         PUBSUB_FLOW_CONTROL_MAX_OUTSTANDING_ELEMENT_COUNT : "${var.dispatcher_pubsub_client_config.pubsub_flow_control_max_outstanding_element_count}"

@@ -44,11 +44,19 @@ variable "auto_dlp_results_table_name" {
   description = "New table name to be created to hold DLP findings in the format 'table'"
 }
 
-variable "workflows_bq_name" {
+variable "workflows_tagging_bq_name" {
   type = string
 }
 
-variable "workflows_bq_description" {
+variable "workflows_tagging_bq_description" {
+  type = string
+}
+
+variable "workflows_cleaning_bq_name" {
+  type = string
+}
+
+variable "workflows_cleaning_bq_description" {
   type = string
 }
 
@@ -64,6 +72,14 @@ variable "tagger_pubsub_sub" {
   type = string
 }
 
+variable "cleaner_pubsub_topic" {
+  type = string
+}
+
+variable "cleaner_pubsub_sub" {
+  type = string
+}
+
 # Images
 variable "gar_docker_repo_name" {
   type = string
@@ -73,6 +89,17 @@ variable "image_name" {
   type = string
 }
 
+variable "dlp_tag_high_sensitivity_value" {
+  type        = string
+}
+
+variable "dlp_tag_moderate_sensitivity_value" {
+  type        = string
+}
+
+variable "dlp_tag_low_sensitivity_value" {
+  type        = string
+}
 
 # for each domain in scope, these policy tags will be created in a domain-specific taxonomy
 # and mapped in BQ configuration with the generated policy_tag_id. Each policy tag will be created
@@ -253,6 +280,10 @@ variable "java_class_path_bq_tagger_service" {
   type = string
 }
 
-variable "java_class_path_bq_dispatcher_service" {
+variable "java_class_path_bq_tagging_dispatcher_service" {
+  type = string
+}
+
+variable "java_class_path_bq_cleaning_dispatcher_service" {
   type = string
 }

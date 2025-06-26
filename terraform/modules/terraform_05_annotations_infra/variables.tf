@@ -238,19 +238,29 @@ variable "tagger_bq_service_account_name" {
   default = "annotations-bq"
 }
 
-variable "workflows_bq_name" {
+variable "workflows_tagging_bq_name" {
   type    = string
   default = "bigquery_tables_re_annotation_trigger"
 }
 
-variable "workflows_bq_description" {
+variable "workflows_tagging_bq_description" {
   type    = string
   default = "Trigger (re)annotation process for BigQuery tables based on DLP findings"
 }
 
+variable "workflows_cleaning_bq_name" {
+  type    = string
+  default = "bigquery_tables_cleaning_trigger"
+}
+
+variable "workflows_cleaning_bq_description" {
+  type    = string
+  default = "Trigger cleaning process for BigQuery tables dlp-driven annotations"
+}
+
 variable "tagger_service_name" {
   type    = string
-  default = "tagger-bq"
+  default = "annotations-service-bq"
 }
 
 variable "tagger_pubsub_topic" {
@@ -262,6 +272,22 @@ variable "tagger_pubsub_sub" {
   type    = string
   default = "tagger_bq_push_sub"
 }
+
+variable "cleaner_bq_pubsub_topic" {
+  type    = string
+  default = "cleaner_bq_topic"
+}
+
+variable "cleaner_bq_pubsub_sub" {
+  type    = string
+  default = "cleaner_bq_push_sub"
+}
+
+variable "dlp_for_bq_pubsub_topic_name" {
+  type    = string
+  default = "dlp_results_for_bq_topic"
+}
+
 
 variable "domain_mapping" {
   type = list(object({
@@ -343,19 +369,19 @@ variable "tagger_bq_service_max_memory" {
   default = "4Gi"
 }
 
-variable "dlp_for_bq_pubsub_topic_name" {
-  type    = string
-  default = "dlp_results_for_bq_topic"
-}
-
 variable "java_class_path_bq_tagger_service" {
   type = string
   default = "com.google.cloud.oss.solutions.annotations.apps.tagger.bigquery.BigQueryTaggerController"
 }
 
-variable "java_class_path_bq_dispatcher_service" {
+variable "java_class_path_bq_tagging_dispatcher_service" {
   type = string
-  default = "com.google.cloud.oss.solutions.annotations.apps.tagger.dispatcher.BigQueryDispatcher"
+  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryTaggingDispatcher"
+}
+
+variable "java_class_path_bq_cleaning_dispatcher_service" {
+  type = string
+  default = "com.google.cloud.oss.solutions.annotations.apps.dispatcher.BigQueryCleaningDispatcher"
 }
 
 ################################################################################
@@ -399,7 +425,7 @@ variable "tagger_gcs_service_account_name" {
 
 variable "tagger_gcs_service_name" {
   type    = string
-  default = "tagger-gcs"
+  default = "annotations-service-gcs"
 }
 
 variable "tagger_gcs_pubsub_topic" {

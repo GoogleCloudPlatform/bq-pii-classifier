@@ -11,7 +11,7 @@ WITH a AS (
     WHERE
             REGEXP_CONTAINS(file_store_profile.project_id, r'${project_name_regex}') AND
             REGEXP_CONTAINS(SUBSTRING(file_store_profile.file_store_path,6), r'${bucket_name_regex}') AND
-            REGEXP_CONTAINS(CAST(file_store_profile.config_snapshot.discovery_config.org_config.location.folder_id AS STRING), r'${folder_id_regex}') AND
+            (REGEXP_CONTAINS(CAST(file_store_profile.config_snapshot.discovery_config.org_config.location.folder_id AS STRING), r'${folder_id_regex}') OR file_store_profile.config_snapshot.discovery_config.org_config.location.folder_id IS NULL) AND
             (
               t.value = '${dlp_sensitivity_level_tag_value_high}' OR
               t.value = '${dlp_sensitivity_level_tag_value_moderate}' OR

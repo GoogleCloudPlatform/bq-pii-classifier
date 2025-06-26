@@ -41,6 +41,8 @@ resource "google_organization_iam_custom_role" "custom_role_tagger_bq" {
     "bigquery.tables.setCategory", # to apply policy tags to columns
     "datacatalog.taxonomies.get",  # to get existing policy tag names and report them
     "bigquery.datasets.get",       # get dataset location (to determine regional policy tags)
+    "bigquery.tables.listTagBindings", # for the annotations cleaner service to list dlp tag bindings. Replace with tagUser role
+    "bigquery.tables.deleteTagBinding" # for the annotations cleaner service to delete dlp tag bindings. Replace with tagUser role
   ]
   // replace this custom role with "roles/bigquery.dataOwner" and "" in case it can't be created
 
