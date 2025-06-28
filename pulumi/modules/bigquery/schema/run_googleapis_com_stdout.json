@@ -1,0 +1,397 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "logName",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "type",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "revision_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "project_id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "location",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "configuration_name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "service_name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "labels",
+        "type": "RECORD"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "resource",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "textPayload",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "function_lifecycle_event",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_run_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_msg",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_app_log",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_logger_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_tracker",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "function_lifecycle_functionnumber",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "global_app",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "message",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_project_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_column_tagging_action",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_field_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_new_policy_tag_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_description",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_table_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_existing_policy_tag_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tag_history_log_dataset_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_tracking_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_tablespec",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_tablespec_project",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_tablespec_dataset",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dispatched_tablespec_table",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "failed_dispatcher_entity_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "failed_dispatcher_ex_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "failed_dispatcher_ex_msg",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "non_retryable_ex_tracking_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "non_retryable_ex_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "non_retryable_ex_msg",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "retryable_ex_tracking_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "retryable_ex_name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "retryable_ex_msg",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "retryable_ex_reason",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "jsonPayload",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "timestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "receiveTimestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "severity",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "insertId",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "requestMethod",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "requestUrl",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "requestSize",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "status",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "responseSize",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "userAgent",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "remoteIp",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "serverIp",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "referer",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "cacheLookup",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "cacheHit",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "cacheValidatedWithOriginServer",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "cacheFillBytes",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "protocol",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "httpRequest",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "instanceid",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "labels",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "producer",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "first",
+        "type": "BOOLEAN"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "last",
+        "type": "BOOLEAN"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "operation",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "trace",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "spanId",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "traceSampled",
+    "type": "BOOLEAN"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "file",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "line",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "function",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "sourceLocation",
+    "type": "RECORD"
+  }
+]
+
