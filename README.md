@@ -308,7 +308,7 @@ export BUCKET=gs://${BUCKET_NAME}
 # Docker repo name to be created and used by the solution
 export DOCKER_REPO_NAME=annotations
 # Container image name that contains the services used by the solution
-export IMAGE_NAME=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/annotations-services
+export IMAGE_NAME=${COMPUTE_REGION}-docker.pkg.dev/${PROJECT_ID}/${DOCKER_REPO_NAME}/annotation-services
 
 # to auth and run deployment scripts
 gcloud auth application-default login
@@ -587,7 +587,7 @@ ORDER BY run_id DESC
 or for the GCS Discovery stack
 
 ```sql
-SELECT * FROM `annotations.v_summary_counts_gcs`
+SELECT * FROM `annotations.v_run_summary_counts_gcs`
 ORDER BY run_id DESC
 ```
 
