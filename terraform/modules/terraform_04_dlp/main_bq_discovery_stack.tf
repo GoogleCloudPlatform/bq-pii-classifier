@@ -35,6 +35,10 @@ resource "google_pubsub_subscription" "dlp_bq_errors_subscription" {
   name  = var.dlp_for_bq_errors_pubsub_subscription_name
   topic = google_pubsub_topic.dlp_bq_errors_topic.id
 
+  expiration_policy {
+    ttl = "" // inactive subscription never expires
+  }
+
   bigquery_config {
     table = "${google_bigquery_dataset.results_dataset.project}.${google_bigquery_dataset.results_dataset.dataset_id}.${google_bigquery_table.dlp_errors_table.table_id}"
   }
